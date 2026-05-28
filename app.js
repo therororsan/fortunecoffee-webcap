@@ -2,14 +2,23 @@
   'use strict';
 
   // ── Constants ────────────────────────────────────────────────────────────
-  const BUCKET           = 'farmer-videos';
-  const TABLE            = 'farmer_submissions';
-  const MAX_DURATION_SEC = 90;
-  const VIDEO_BITRATE    = 2_000_000; // 2 Mbps — keeps 90s video under ~50 MB
-  const QUESTIONS_URL    = '../questions/questions.json';
+  const BUCKET               = 'farmer-videos';
+  const TABLE                = 'farmer_submissions';
+  const MAX_DURATION_SEC     = 90;
+  const VIDEO_BITRATE        = 2_000_000; // 2 Mbps — keeps 90s video under ~50 MB
+  const QUESTIONS_URL        = '../questions/questions.json';
+  const SUPPORTED_LANGS      = ['en', 'am', 'sw', 'fr', 'pt', 'es'];
+  const DEFAULT_LANG         = 'en';
+  const COUNTRY_OPTIONS      = ['Ethiopia', 'Kenya', 'India', 'Colombia', 'Other'];
 
   // ── State ────────────────────────────────────────────────────────────────
   let farmerId        = null;
+  let farmerName      = null;
+  let farmerCountry   = null;
+  let farmerPhone     = null;
+  let farmerLang      = DEFAULT_LANG;
+  let consentGiven    = null;
+  let consentTime     = null;
   let questions       = [];
   let currentQuestion = null;
   let mediaStream     = null;
@@ -24,19 +33,12 @@
   // ── Startup ──────────────────────────────────────────────────────────────
   async function init() {
     const params = new URLSearchParams(window.location.search);
-    const rawId  = params.get('id');
-
-    // In production: no id = hard stop
-    // During dev: fall back to test_001 so you can run without a real link
-    if (!rawId) {
-      // ── Toggle this block for production ──────────────────────────────
-      // showError('This link is not valid. Please contact your coordinator.');
-      // return;
-      // ─────────────────────────────────────────────────────────────────
-      farmerId = 'test_001';
-    } else {
-      farmerId = rawId;
-    }
+    farmerId      = params.get('id') || 'test_001';
+    farmerName    = params.get('name') || null;
+    farmerCountry = params.get('country') || null;
+    farmerPhone   = params.get('phone') || null;
+    const urlLang = params.get('lang') || DEFAULT_LANG;
+    farmerLang    = SUPPORTED_LANGS.includes(urlLang) ? urlLang : DEFAULT_LANG;
 
     if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
       showError('App is not configured. Please contact your coordinator.');
@@ -51,10 +53,14 @@
     const loaded = await loadQuestions();
     if (!loaded) return;
 
-    const cameraReady = await initCamera();
-    if (!cameraReady) return;
-
-    showReady();
+    // Flow: registry → consent → question → record → upload
+    if (farmerName && farmerCountry) {
+      // Pre-filled: show confirmation
+      showRegistryConfirm();
+    } else {
+      // Manual entry
+      showRegistryForm();
+    }
   }
 
   // ── Mime type detection ──────────────────────────────────────────────────
@@ -89,6 +95,56 @@
       showError('Could not load questions. Please try again later.');
       return false;
     }
+  }
+
+  // ── Language & Audio ──────────────────────────────────────────────────────
+  function getAudioPath(type, id, lang) {
+    // type: 'consent' or 'question'
+    // id: null for consent, 'q1' etc for questions
+    const filename = type === 'consent'
+      ? `consent_${lang}.mp3`
+      : `${id}_${lang}.mp3`;
+    const folder = type === 'consent' ? 'consent' : 'questions';
+    return `audio/${folder}/${filename}`;
+  }
+
+  function playAudio(path, onEnd) {
+    const audio = new Audio(path);
+    let isPlaying = false;
+
+    audio.onerror = () => {
+      // Fallback to English if language file missing
+      if (!path.includes('_en.mp3')) {
+        const fallback = path.replace(/_[a-z]+\.mp3$/, '_en.mp3');
+        playAudio(fallback, onEnd);
+      } else if (onEnd) {
+        onEnd();
+      }
+    };
+
+    audio.onended = () => {
+      isPlaying = false;
+      if (onEnd) onEnd();
+    };
+
+    audio.play().catch(() => {
+      // Autoplay blocked — show manual play button
+      showPlayButton(audio, () => {
+        isPlaying = false;
+        if (onEnd) onEnd();
+      });
+    });
+    isPlaying = true;
+  }
+
+  function showPlayButton(audio, onEnd) {
+    const btn = document.getElementById('playBtn');
+    if (!btn) return;
+    btn.style.display = 'block';
+    btn.onclick = () => {
+      btn.style.display = 'none';
+      audio.play().catch(() => {});
+    };
   }
 
   // ── Camera ───────────────────────────────────────────────────────────────
@@ -140,12 +196,178 @@
     `);
   }
 
-  function showReady() {
+  // ── Registry Screen ────────────────────────────────────────────────────────
+  function showRegistryForm() {
+    const countryOpts = COUNTRY_OPTIONS
+      .map(c => `<option value="${c}">${c}</option>`)
+      .join('');
+
     render(`
-      <div class="screen screen--ready">
+      <div class="screen screen--registry">
+        <div class="card">
+          <h2>Welcome! Let's get started.</h2>
+          <p>Please enter your details:</p>
+          <div class="form-group">
+            <label for="nameInput">Name *</label>
+            <input type="text" id="nameInput" placeholder="Your name" required>
+          </div>
+          <div class="form-group">
+            <label for="countrySelect">Country</label>
+            <select id="countrySelect">
+              <option value="">Select country...</option>
+              ${countryOpts}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="phoneInput">Phone</label>
+            <input type="tel" id="phoneInput" placeholder="Your phone number">
+          </div>
+          <button class="btn btn--primary" id="registrySubmitBtn">Continue</button>
+        </div>
+      </div>
+    `);
+
+    document.getElementById('registrySubmitBtn').addEventListener('click', () => {
+      const name = document.getElementById('nameInput').value.trim();
+      const country = document.getElementById('countrySelect').value;
+      const phone = document.getElementById('phoneInput').value.trim();
+
+      if (!name) {
+        alert('Name is required');
+        return;
+      }
+
+      farmerName = name;
+      farmerCountry = country || null;
+      farmerPhone = phone || null;
+      proceedToConsent();
+    });
+  }
+
+  function showRegistryConfirm() {
+    render(`
+      <div class="screen screen--registry">
+        <div class="card">
+          <h2>Hi ${farmerName}! 👋</h2>
+          <p>Please confirm your details:</p>
+          <div class="form-group">
+            <label for="nameConfirm">Name</label>
+            <input type="text" id="nameConfirm" value="${farmerName}">
+          </div>
+          <div class="form-group">
+            <label for="countryConfirm">Country</label>
+            <input type="text" id="countryConfirm" value="${farmerCountry || ''}">
+          </div>
+          <div class="form-group">
+            <label for="phoneConfirm">Phone</label>
+            <input type="text" id="phoneConfirm" value="${farmerPhone || ''}">
+          </div>
+          <button class="btn btn--primary" id="registryConfirmBtn">Confirm & Continue</button>
+        </div>
+      </div>
+    `);
+
+    document.getElementById('registryConfirmBtn').addEventListener('click', () => {
+      farmerName = document.getElementById('nameConfirm').value.trim();
+      farmerCountry = document.getElementById('countryConfirm').value.trim() || null;
+      farmerPhone = document.getElementById('phoneConfirm').value.trim() || null;
+      proceedToConsent();
+    });
+  }
+
+  async function proceedToConsent() {
+    showLoading();
+    const cameraReady = await initCamera();
+    if (!cameraReady) return;
+    showConsent();
+  }
+
+  // ── Consent Screen ─────────────────────────────────────────────────────────
+  function showConsent() {
+    consentGiven = null;
+    consentTime = null;
+
+    render(`
+      <div class="screen screen--consent">
+        <div class="consent-body">
+          <div class="audio-section">
+            <div class="audio-status">🔊 Playing consent audio...</div>
+            <button class="btn btn--small" id="playBtn" style="display:none">Tap to play audio</button>
+          </div>
+          <div class="consent-text">
+            <p>This video will be used by Fortune Coffee to share your story with customers who buy your coffee.</p>
+            <p><strong>Do you agree?</strong></p>
+          </div>
+          <div class="consent-actions">
+            <button class="btn btn--consent btn--yes" id="consentYesBtn">✅ AGREE</button>
+            <button class="btn btn--consent btn--no" id="consentNoBtn">❌ DISAGREE</button>
+          </div>
+        </div>
+      </div>
+    `);
+
+    document.getElementById('consentYesBtn').addEventListener('click', () => {
+      consentGiven = true;
+      consentTime = new Date().toISOString();
+      showQuestion();
+    });
+
+    document.getElementById('consentNoBtn').addEventListener('click', () => {
+      consentGiven = false;
+      consentTime = new Date().toISOString();
+      showConsentDecline();
+    });
+
+    const audioPath = getAudioPath('consent', null, farmerLang);
+    playAudio(audioPath, () => {
+      // Audio finished, farmer can make choice
+    });
+  }
+
+  function showConsentDecline() {
+    render(`
+      <div class="screen screen--consent-decline">
+        <div class="card">
+          <div style="font-size: 48px; margin-bottom: 16px;">👋</div>
+          <h2>Thank you</h2>
+          <p>Thank you for your time. Your decision has been recorded.</p>
+        </div>
+      </div>
+    `);
+
+    // Log the decline to Supabase and stop
+    logConsentAndStop();
+  }
+
+  async function logConsentAndStop() {
+    try {
+      await supabaseClient
+        .from(TABLE)
+        .insert({
+          farmer_id: farmerId,
+          farmer_name: farmerName,
+          farmer_country: farmerCountry,
+          farmer_phone: farmerPhone,
+          consent_given: consentGiven,
+          consent_timestamp: consentTime,
+          language: farmerLang,
+          status: 'consent_declined',
+        });
+    } catch (err) {
+      console.error('[webcap] consent logging error:', err);
+    }
+  }
+
+  // ── Question Screen (with audio) ───────────────────────────────────────────
+  function showQuestion() {
+    render(`
+      <div class="screen screen--question">
         <div class="question-card">
           <p class="question-label">Your question</p>
           <p class="question-text">${currentQuestion.text_prompt}</p>
+        </div>
+        <div class="audio-section" style="margin-bottom: 20px;">
+          <button class="btn btn--small" id="replayBtn">🔊 Replay audio</button>
         </div>
         <div class="preview-wrap">
           <video id="preview" autoplay muted playsinline></video>
@@ -154,9 +376,19 @@
         <p class="hint">Maximum ${MAX_DURATION_SEC} seconds</p>
       </div>
     `);
+
     document.getElementById('preview').srcObject = mediaStream;
     document.getElementById('startBtn').addEventListener('click', startRecording);
+    document.getElementById('replayBtn').addEventListener('click', () => {
+      const audioPath = getAudioPath('question', currentQuestion.id, farmerLang);
+      playAudio(audioPath, () => {});
+    });
+
+    // Auto-play question audio
+    const audioPath = getAudioPath('question', currentQuestion.id, farmerLang);
+    playAudio(audioPath, () => {});
   }
+
 
   function showRecording() {
     render(`
@@ -292,7 +524,7 @@
   function reRecord() {
     recordedChunks = [];
     recordedBlob   = null;
-    showReady();
+    showQuestion();
   }
 
   // ── Upload ───────────────────────────────────────────────────────────────
@@ -330,12 +562,18 @@
       const { error: dbError } = await supabaseClient
         .from(TABLE)
         .insert({
-          farmer_id:   farmerId,
-          country:     null, // populated downstream via farmer-master.csv lookup
-          question_id: currentQuestion.id,
-          video_path:  filePath,
-          video_url:   publicUrl,
-          status:      'received',
+          farmer_id:          farmerId,
+          farmer_name:        farmerName,
+          farmer_country:     farmerCountry,
+          farmer_phone:       farmerPhone,
+          consent_given:      consentGiven,
+          consent_timestamp:  consentTime,
+          language:           farmerLang,
+          country:            null, // populated downstream via farmer-master.csv lookup
+          question_id:        currentQuestion.id,
+          video_path:         filePath,
+          video_url:          publicUrl,
+          status:             'received',
         });
       if (dbError) throw dbError;
 

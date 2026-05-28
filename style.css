@@ -278,6 +278,169 @@ html, body {
   to { transform: rotate(360deg); }
 }
 
+/* ── Registry screen ──────────────────────────────────────────────────── */
+.screen--registry {
+  justify-content: flex-start;
+  padding-top: 40px;
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+}
+
+.card h2 {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.card p {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  font-family: var(--font);
+  transition: outline 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #fff;
+  margin-top: 12px;
+}
+
+/* ── Consent screen ───────────────────────────────────────────────────── */
+.screen--consent {
+  justify-content: space-between;
+  padding-top: 60px;
+  padding-bottom: 60px;
+}
+
+.consent-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 32px;
+}
+
+.audio-section {
+  text-align: center;
+}
+
+.audio-status {
+  font-size: 16px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.btn--small {
+  width: auto;
+  padding: 12px 24px;
+  font-size: 14px;
+  background: var(--btn-secondary);
+  color: var(--text);
+}
+
+.consent-text {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  text-align: center;
+  max-width: 340px;
+}
+
+.consent-text p {
+  font-size: 17px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.consent-text p:last-child {
+  margin-bottom: 0;
+}
+
+.consent-actions {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.btn--consent {
+  flex: 1;
+  padding: 16px;
+  font-size: 16px;
+  border-radius: 10px;
+}
+
+.btn--consent.btn--yes {
+  background: var(--success);
+  color: #fff;
+}
+
+.btn--consent.btn--no {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ── Consent decline screen ───────────────────────────────────────────── */
+.screen--consent-decline {
+  justify-content: center;
+  text-align: center;
+}
+
+.screen--consent-decline .card {
+  max-width: 300px;
+}
+
+.screen--consent-decline h2 {
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.screen--consent-decline p {
+  font-size: 16px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ── Question screen (with audio) ─────────────────────────────────────── */
+.screen--question {
+  justify-content: flex-start;
+}
+
 /* ── Landscape guard ──────────────────────────────────────────────────── */
 @media (orientation: landscape) and (max-height: 500px) {
   #app::before {
