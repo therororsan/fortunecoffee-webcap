@@ -35,7 +35,8 @@
   // ── Startup ──────────────────────────────────────────────────────────────
   async function init() {
     const params = new URLSearchParams(window.location.search);
-    farmerId      = params.get('id') || 'test_001';
+    const urlFarmerId = params.get('id'); // Track if explicitly provided in URL
+    farmerId      = urlFarmerId || 'test_001';
     farmerName    = params.get('name') || null;
     farmerCountry = params.get('country') || null;
     farmerPhone   = params.get('phone') || null;
@@ -69,8 +70,8 @@
     if (!loaded) return;
 
     // Check for returning farmer (existing submission)
-    // Skip lookup if no farmer_id/phone params to avoid unnecessary queries
-    const shouldCheckSubmission = (farmerId && farmerId !== 'test_001') || farmerPhone;
+    // Skip lookup only if no farmer_id/phone params were explicitly provided in URL
+    const shouldCheckSubmission = urlFarmerId || farmerPhone;
 
     if (shouldCheckSubmission) {
       // Add 5-second timeout for Supabase lookup
@@ -116,24 +117,39 @@
   async function checkExistingSubmission(id, phone) {
     if (!supabaseClient) return null;
     try {
-      let query = supabaseClient
-        .from(TABLE)
-        .select('farmer_id, farmer_name, farmer_country, farmer_phone, consent_given, consent_timestamp');
-
-      // Query by farmer_id first
+      // Query by farmer_id first (get most recent row ordered by uploaded_at)
       if (id) {
-        const { data, error } = await query.eq('farmer_id', id).limit(1);
+        const { data, error } = await supabaseClient
+          .from(TABLE)
+          .select('farmer_id, farmer_name, farmer_country, farmer_phone, consent_given, consent_timestamp, uploaded_at')
+          .eq('farmer_id', id)
+          .order('uploaded_at', { ascending: false })
+          .limit(1);
+
         if (error) throw error;
-        if (data && data.length > 0) return data[0];
+        if (data && data.length > 0) {
+          console.log('[webcap] Existing submission found for farmer_id:', data[0]);
+          return data[0];
+        }
       }
 
-      // Fallback: query by phone
+      // Fallback: query by phone (get most recent row ordered by uploaded_at)
       if (phone) {
-        const { data, error } = await query.eq('farmer_phone', phone).limit(1);
+        const { data, error } = await supabaseClient
+          .from(TABLE)
+          .select('farmer_id, farmer_name, farmer_country, farmer_phone, consent_given, consent_timestamp, uploaded_at')
+          .eq('farmer_phone', phone)
+          .order('uploaded_at', { ascending: false })
+          .limit(1);
+
         if (error) throw error;
-        if (data && data.length > 0) return data[0];
+        if (data && data.length > 0) {
+          console.log('[webcap] Existing submission found for phone:', data[0]);
+          return data[0];
+        }
       }
 
+      console.log('[webcap] No existing submission found for farmer_id:', id, 'phone:', phone);
       return null;
     } catch (err) {
       console.error('[webcap] Error checking existing submission:', err);
