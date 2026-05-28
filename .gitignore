@@ -1,6 +1,6 @@
 # Secrets — never commit
 .env
-config.js
+/config.js
 
 # Dependencies
 node_modules/

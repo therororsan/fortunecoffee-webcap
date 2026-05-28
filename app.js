@@ -6,7 +6,7 @@
   const TABLE                = 'farmer_submissions';
   const MAX_DURATION_SEC     = 90;
   const VIDEO_BITRATE        = 2_000_000; // 2 Mbps — keeps 90s video under ~50 MB
-  const QUESTIONS_URL        = '../questions/questions.json';
+  const QUESTIONS_URL        = '/questions/questions.json';
   const SUPPORTED_LANGS      = ['en', 'am', 'sw', 'fr', 'pt', 'es'];
   const DEFAULT_LANG         = 'en';
   const COUNTRY_OPTIONS      = ['Ethiopia', 'Kenya', 'India', 'Colombia', 'Other'];
