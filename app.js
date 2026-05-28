@@ -448,15 +448,11 @@
         <div class="preview-wrap">
           <video id="preview" autoplay muted playsinline></video>
         </div>
-        <div style="display: flex; gap: 12px; width: 100%;">
-          <button class="btn btn--small" id="cameraToggleBtn" style="flex: 1;">📷 Switch</button>
-          <button class="btn btn--stop" id="stopBtn" style="flex: 1;">Stop</button>
-        </div>
+        <button class="btn btn--stop" id="stopBtn">Stop</button>
       </div>
     `);
     document.getElementById('preview').srcObject = mediaStream;
     document.getElementById('stopBtn').addEventListener('click', stopRecording);
-    setupCameraToggle();
   }
 
   function showReview() {
