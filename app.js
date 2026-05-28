@@ -29,6 +29,7 @@
   let countdownTimer  = null;
   let elapsedSeconds  = 0;
   let supabaseClient  = null;
+  let cameraFacingMode = 'user'; // 'user' = front/selfie, 'environment' = back
 
   // ── Startup ──────────────────────────────────────────────────────────────
   async function init() {
@@ -165,7 +166,7 @@
     try {
       mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: { ideal: 'environment' }, // rear camera preferred
+          facingMode: { ideal: cameraFacingMode }, // 'user' = front, 'environment' = back
           width:  { ideal: 720  },
           height: { ideal: 1280 },
         },
@@ -186,9 +187,40 @@
     }
   }
 
+  async function switchCamera() {
+    // Toggle between front and back cameras
+    cameraFacingMode = cameraFacingMode === 'user' ? 'environment' : 'user';
+
+    // Stop current stream
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
+    }
+
+    // Reinitialize with new camera
+    const cameraReady = await initCamera();
+    if (!cameraReady) {
+      // If switch fails, toggle back
+      cameraFacingMode = cameraFacingMode === 'user' ? 'environment' : 'user';
+      return;
+    }
+
+    // Update preview
+    const preview = document.getElementById('preview');
+    if (preview) {
+      preview.srcObject = mediaStream;
+    }
+  }
+
   // ── Screens ──────────────────────────────────────────────────────────────
   function render(html) {
     document.getElementById('app').innerHTML = html;
+  }
+
+  function setupCameraToggle() {
+    const btn = document.getElementById('cameraToggleBtn');
+    if (btn) {
+      btn.addEventListener('click', switchCamera);
+    }
   }
 
   function showLoading() {
@@ -385,6 +417,7 @@
         <div class="preview-wrap">
           <video id="preview" autoplay muted playsinline></video>
         </div>
+        <button class="btn btn--small" id="cameraToggleBtn" style="margin-bottom: 12px;">📷 Switch camera</button>
         <button class="btn btn--record" id="startBtn">Tap to start recording</button>
         <p class="hint">Maximum ${MAX_DURATION_SEC} seconds</p>
       </div>
@@ -396,6 +429,7 @@
       const audioPath = getAudioPath('question', currentQuestion.id, farmerLang);
       playAudio(audioPath, () => {});
     });
+    setupCameraToggle();
 
     // Auto-play question audio
     const audioPath = getAudioPath('question', currentQuestion.id, farmerLang);
@@ -414,11 +448,15 @@
         <div class="preview-wrap">
           <video id="preview" autoplay muted playsinline></video>
         </div>
-        <button class="btn btn--stop" id="stopBtn">Stop</button>
+        <div style="display: flex; gap: 12px; width: 100%;">
+          <button class="btn btn--small" id="cameraToggleBtn" style="flex: 1;">📷 Switch</button>
+          <button class="btn btn--stop" id="stopBtn" style="flex: 1;">Stop</button>
+        </div>
       </div>
     `);
     document.getElementById('preview').srcObject = mediaStream;
     document.getElementById('stopBtn').addEventListener('click', stopRecording);
+    setupCameraToggle();
   }
 
   function showReview() {
