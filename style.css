@@ -67,7 +67,7 @@ html, body {
 /* ── Camera preview / playback ────────────────────────────────────────── */
 .preview-wrap {
   width: 100%;
-  aspect-ratio: 9 / 16;
+  aspect-ratio: 1 / 1;
   background: #000;
   border-radius: var(--radius);
   overflow: hidden;
