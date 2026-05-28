@@ -102,8 +102,8 @@
     // type: 'consent' or 'question'
     // id: null for consent, 'q1' etc for questions
     const filename = type === 'consent'
-      ? `consent_${lang}.mp3`
-      : `${id}_${lang}.mp3`;
+      ? `consent_${lang}.m4a`
+      : `${id}_${lang}.m4a`;
     const folder = type === 'consent' ? 'consent' : 'questions';
     return `audio/${folder}/${filename}`;
   }
@@ -114,8 +114,8 @@
 
     audio.onerror = () => {
       // Fallback to English if language file missing
-      if (!path.includes('_en.mp3')) {
-        const fallback = path.replace(/_[a-z]+\.mp3$/, '_en.mp3');
+      if (!path.includes('_en.m4a')) {
+        const fallback = path.replace(/_[a-z]+\.m4a$/, '_en.m4a');
         playAudio(fallback, onEnd);
       } else if (onEnd) {
         onEnd();
