@@ -147,6 +147,7 @@
           .from(TABLE)
           .select('farmer_id, farmer_name, farmer_country, farmer_phone, consent_given, consent_timestamp, uploaded_at, created_at')
           .eq('farmer_id', id)
+          .not('consent_given', 'is', null)
           .order('uploaded_at', { ascending: false, nullsFirst: false })
           .order('created_at', { ascending: false })
           .limit(1);
@@ -163,6 +164,7 @@
           .from(TABLE)
           .select('farmer_id, farmer_name, farmer_country, farmer_phone, consent_given, consent_timestamp, uploaded_at, created_at')
           .eq('farmer_phone', phone)
+          .not('consent_given', 'is', null)
           .order('uploaded_at', { ascending: false, nullsFirst: false })
           .order('created_at', { ascending: false })
           .limit(1);
