@@ -411,14 +411,14 @@
           <p class="question-label">Your question</p>
           <p class="question-text">${currentQuestion.text_prompt}</p>
         </div>
-        <div class="audio-section" style="margin-bottom: 20px;">
-          <button class="btn btn--small" id="replayBtn">🔊 Replay audio</button>
+        <div class="audio-section" style="display: flex; gap: 12px; width: 100%; margin-bottom: 16px;">
+          <button class="btn btn--small" id="replayBtn" style="flex: 1;">🔊 Replay audio</button>
+          <button class="btn btn--small" id="cameraToggleBtn" style="flex: 1;">📷 Switch camera</button>
         </div>
         <div class="preview-wrap">
           <video id="preview" autoplay muted playsinline></video>
         </div>
-        <button class="btn btn--small" id="cameraToggleBtn" style="margin-bottom: 12px;">📷 Switch camera</button>
-        <button class="btn btn--record" id="startBtn">Tap to start recording</button>
+        <button class="btn btn--record" id="startBtn" style="margin-top: 12px;">Tap to start recording</button>
         <p class="hint">Maximum ${MAX_DURATION_SEC} seconds</p>
       </div>
     `);
