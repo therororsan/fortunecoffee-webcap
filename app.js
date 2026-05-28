@@ -34,6 +34,8 @@
 
   // ── Startup ──────────────────────────────────────────────────────────────
   async function init() {
+    console.log('[webcap] build marker: no-created-at-query-2026-05-28');
+
     const params = new URLSearchParams(window.location.search);
     // Support both ?id= and ?farmer_id= URL param names
     const urlFarmerId = params.get('id') || params.get('farmer_id') || null;
@@ -140,16 +142,17 @@
       return null;
     }
     try {
-      // ── Query by farmer_id (most recent row: uploaded_at DESC, then created_at DESC) ──
+      const safeReturningFarmerFields =
+        'farmer_id, farmer_name, farmer_country, farmer_phone, consent_given, consent_timestamp';
+
+      // ── Query by farmer_id using only schema-safe fields ─────────────────
       if (id) {
         console.log('[webcap] Querying farmer_submissions WHERE farmer_id =', id);
         const { data, error } = await supabaseClient
           .from(TABLE)
-          .select('farmer_id, farmer_name, farmer_country, farmer_phone, consent_given, consent_timestamp, uploaded_at, created_at')
+          .select(safeReturningFarmerFields)
           .eq('farmer_id', id)
           .not('consent_given', 'is', null)
-          .order('uploaded_at', { ascending: false, nullsFirst: false })
-          .order('created_at', { ascending: false })
           .limit(1);
 
         console.log('[webcap] farmer_id query →', { data, error });
@@ -162,11 +165,9 @@
         console.log('[webcap] Querying farmer_submissions WHERE farmer_phone =', phone);
         const { data, error } = await supabaseClient
           .from(TABLE)
-          .select('farmer_id, farmer_name, farmer_country, farmer_phone, consent_given, consent_timestamp, uploaded_at, created_at')
+          .select(safeReturningFarmerFields)
           .eq('farmer_phone', phone)
           .not('consent_given', 'is', null)
-          .order('uploaded_at', { ascending: false, nullsFirst: false })
-          .order('created_at', { ascending: false })
           .limit(1);
 
         console.log('[webcap] phone query →', { data, error });
