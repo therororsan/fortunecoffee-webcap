@@ -1,0 +1,28 @@
+[
+  {
+    "id": "q1",
+    "text_prompt": "Please tell us: what is your favorite crop to grow, and why?",
+    "audio_file": "q1",
+    "text_translations": {
+      "en": "Please tell us: what is your favorite crop to grow, and why?",
+      "am": null,
+      "sw": null,
+      "fr": null,
+      "pt": null,
+      "es": null
+    }
+  },
+  {
+    "id": "q2",
+    "text_prompt": "How do you decide when to plant your crops?",
+    "audio_file": "q2",
+    "text_translations": {
+      "en": "How do you decide when to plant your crops?",
+      "am": null,
+      "sw": null,
+      "fr": null,
+      "pt": null,
+      "es": null
+    }
+  }
+]

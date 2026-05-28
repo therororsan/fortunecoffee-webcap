@@ -10,13 +10,13 @@ export default function handler(req, res) {
   if (!supabaseUrl || !supabaseAnonKey) {
     return res.status(500).json({
       error: 'Supabase configuration not set. Contact administrator.',
-      url: supabaseUrl ? 'OK' : 'missing',
-      key: supabaseAnonKey ? 'OK' : 'missing',
+      supabaseUrl: supabaseUrl ? 'OK' : 'missing',
+      supabaseAnonKey: supabaseAnonKey ? 'OK' : 'missing',
     });
   }
 
   res.status(200).json({
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
+    supabaseUrl,
+    supabaseAnonKey,
   });
 }

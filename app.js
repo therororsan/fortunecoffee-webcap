@@ -40,7 +40,20 @@
     const urlLang = params.get('lang') || DEFAULT_LANG;
     farmerLang    = SUPPORTED_LANGS.includes(urlLang) ? urlLang : DEFAULT_LANG;
 
-    if (!window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+    // Fetch Supabase config from API endpoint
+    try {
+      const configRes = await fetch('/api/config');
+      if (!configRes.ok) throw new Error(`Config API returned ${configRes.status}`);
+      const config = await configRes.json();
+
+      if (!config.supabaseUrl || !config.supabaseAnonKey) {
+        throw new Error('Config missing required fields');
+      }
+
+      window.SUPABASE_URL = config.supabaseUrl;
+      window.SUPABASE_ANON_KEY = config.supabaseAnonKey;
+    } catch (err) {
+      console.error('[webcap] Failed to load config:', err);
       showError('App is not configured. Please contact your coordinator.');
       return;
     }

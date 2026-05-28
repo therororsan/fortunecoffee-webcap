@@ -20,67 +20,67 @@ A mobile-optimized Progressive Web App that lets farmers record a short video re
 
 ```
 webcap/
-├── app/                    ← this folder (the web app)
-│   ├── index.html
-│   ├── app.js
-│   ├── style.css
-│   ├── config.js           ← YOU CREATE THIS (gitignored)
-│   ├── config.example.js   ← template — copy → config.js
-│   ├── .env                ← documents expected vars (gitignored)
-│   ├── .gitignore
-│   ├── README.md
-│   └── SUPABASE_SETUP.md
-└── questions/
-    └── questions.json      ← question bank
+├── index.html
+├── app.js
+├── style.css
+├── style.css
+├── config.example.js       ← reference template (not used in production)
+├── api/
+│   └── config.js           ← Vercel serverless function (returns Supabase config from env vars)
+├── questions/
+│   └── questions.json      ← question bank
+└── audio/                  ← audio files for consent and questions
+    ├── consent/
+    └── questions/
 ```
 
 ---
 
 ## Environment variables
 
-This is a vanilla browser app (no build tool), so secrets are loaded via `config.js` — not a `.env` file directly.
+**Production (Vercel):**
+Supabase configuration comes from environment variables set in the Vercel dashboard. The app fetches config from the `/api/config` serverless function at startup.
 
-**Setup steps:**
-1. Copy `config.example.js` → `config.js`
-2. Open `config.js` and fill in your Supabase values
-3. `config.js` is gitignored — never commit it
-
-```js
-window.SUPABASE_URL      = 'https://your-project-ref.supabase.co';
-window.SUPABASE_ANON_KEY = 'your-anon-key-here';
-```
+Set these in Vercel → Settings → Environment Variables:
+- `SUPABASE_URL` — your Supabase project URL
+- `SUPABASE_ANON_KEY` — your Supabase anon key (public, safe for browser)
 
 See `SUPABASE_SETUP.md` for how to get these values.
+
+**Local development:**
+Create a `config.js` file at the root (copy from `config.example.js`). This file is gitignored and only for local testing.
 
 ---
 
 ## Running locally
 
-**Important:** Run the server from the `webcap/` directory (one level above `app/`), not from inside `app/`. This ensures the question file at `../questions/questions.json` resolves correctly.
-
 ### Option A — npx serve (recommended)
 
 ```bash
-cd C:\Users\User\OneDrive\Claude\farmer-project\webcap
+cd webcap
 npx serve .
 ```
 
-Then open: `http://localhost:3000/app/?id=test_001`
+Then open: `http://localhost:3000/?id=test_001`
 
 ### Option B — Python
 
 ```bash
-cd C:\Users\User\OneDrive\Claude\farmer-project\webcap
+cd webcap
 python -m http.server 3000
 ```
 
-Then open: `http://localhost:3000/app/?id=test_001`
+Then open: `http://localhost:3000/?id=test_001`
+
+**Note:** For local testing with `/api/config`, you'll need:
+1. Create a `config.js` file at root with your Supabase credentials (see `config.example.js`)
+2. Or run a local serverless function emulator (e.g., `wrangler` for Vercel Functions)
 
 ---
 
 ## Testing checklist
 
-Test at: `http://localhost:3000/app/?id=test_001`
+Test at: `http://localhost:3000/?id=test_001`
 
 - [ ] Page loads without errors in browser console
 - [ ] Camera permission prompt appears

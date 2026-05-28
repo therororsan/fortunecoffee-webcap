@@ -1,6 +1,18 @@
 #!/usr/bin/env node
-// build.js — Generate config.js from environment variables for Vercel deployment
-// Runs at build time; injects VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY into config.js
+// DEPRECATED — build.js is no longer used
+//
+// Historical context: This script previously generated config.js at build time.
+//
+// Current approach (as of May 2026):
+// - Supabase config is fetched from /api/config serverless function
+// - Config endpoint reads from Vercel environment variables
+// - No build step or generated files needed
+//
+// To re-enable this script, update Vercel build settings to run:
+//   node build.js
+// And set Vercel environment variables:
+//   VITE_SUPABASE_URL = your-supabase-url
+//   VITE_SUPABASE_ANON_KEY = your-anon-key
 
 const fs = require('fs');
 const path = require('path');
