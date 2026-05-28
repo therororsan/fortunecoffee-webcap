@@ -35,13 +35,25 @@
   // ── Startup ──────────────────────────────────────────────────────────────
   async function init() {
     const params = new URLSearchParams(window.location.search);
-    const urlFarmerId = params.get('id'); // Track if explicitly provided in URL
+    // Support both ?id= and ?farmer_id= URL param names
+    const urlFarmerId = params.get('id') || params.get('farmer_id') || null;
     farmerId      = urlFarmerId || 'test_001';
     farmerName    = params.get('name') || null;
     farmerCountry = params.get('country') || null;
     farmerPhone   = params.get('phone') || null;
     const urlLang = params.get('lang') || DEFAULT_LANG;
     farmerLang    = SUPPORTED_LANGS.includes(urlLang) ? urlLang : DEFAULT_LANG;
+
+    // (a) Log what params were read from URL
+    console.log('[webcap] URL params:', {
+      urlFarmerId,
+      farmerId,
+      farmerName,
+      farmerCountry,
+      farmerPhone,
+      farmerLang,
+      rawSearch: window.location.search,
+    });
 
     // Fetch Supabase config from API endpoint
     try {
@@ -50,9 +62,10 @@
       const config = await configRes.json();
 
       if (!config.supabaseUrl || !config.supabaseAnonKey) {
-        throw new Error('Config missing required fields');
+        throw new Error('Config missing: supabaseUrl=' + !!config.supabaseUrl + ' supabaseAnonKey=' + !!config.supabaseAnonKey);
       }
 
+      console.log('[webcap] Config loaded OK from /api/config');
       window.SUPABASE_URL = config.supabaseUrl;
       window.SUPABASE_ANON_KEY = config.supabaseAnonKey;
     } catch (err) {
@@ -69,90 +82,100 @@
     const loaded = await loadQuestions();
     if (!loaded) return;
 
-    // Check for returning farmer (existing submission)
-    // Skip lookup only if no farmer_id/phone params were explicitly provided in URL
-    const shouldCheckSubmission = urlFarmerId || farmerPhone;
+    // Check for returning farmer (existing submission).
+    // Only run lookup if farmer_id or phone was explicitly in the URL.
+    const shouldCheckSubmission = !!(urlFarmerId || farmerPhone);
+    console.log('[webcap] shouldCheckSubmission:', shouldCheckSubmission,
+      '— urlFarmerId:', urlFarmerId, '— farmerPhone:', farmerPhone);
 
     if (shouldCheckSubmission) {
-      // Add 5-second timeout for Supabase lookup
+      // 5-second timeout guards against Supabase hangs
       const existingSubmission = await Promise.race([
         checkExistingSubmission(farmerId, farmerPhone),
         new Promise(resolve => setTimeout(() => resolve(null), 5000))
       ]);
 
+      // (b) Log what Supabase returned
+      console.log('[webcap] Supabase lookup result:', existingSubmission);
+
       if (existingSubmission) {
-        // Pre-fill data from existing submission
-        farmerName = existingSubmission.farmer_name || farmerName;
+        // Pre-fill state from most-recent submission
+        farmerName    = existingSubmission.farmer_name    || farmerName;
         farmerCountry = existingSubmission.farmer_country || farmerCountry;
-        farmerPhone = existingSubmission.farmer_phone || farmerPhone;
-        consentGiven = existingSubmission.consent_given;
-        consentTime = existingSubmission.consent_timestamp;
+        farmerPhone   = existingSubmission.farmer_phone   || farmerPhone;
+        consentGiven  = existingSubmission.consent_given;
+        consentTime   = existingSubmission.consent_timestamp;
         isReturningFarmer = true;
 
-        // Route based on consent status
         if (consentGiven === true) {
-          // Already consented: skip to question/recording
+          // Already consented — skip registry + consent, go straight to recording
+          console.log('[webcap] Routing → camera → question (returning, consent=true)');
           const cameraReady = await initCamera();
           if (!cameraReady) return;
           showQuestion();
-        } else if (consentGiven === false) {
-          // Declined consent before: show registry then consent again
+        } else {
+          // consent_given is false or null — show pre-filled registry then consent
+          console.log('[webcap] Routing → registry confirm (returning, consent=' + consentGiven + ')');
           showRegistryConfirm();
         }
         return;
       }
+
+      console.log('[webcap] No existing submission found — treating as new farmer');
     }
 
-    // New farmer: standard flow
-    // Flow: registry → consent → question → record → upload
+    // New farmer: standard flow — registry → consent → question → record → upload
     if (farmerName && farmerCountry) {
-      // Pre-filled: show confirmation
+      console.log('[webcap] Routing → registry confirm (URL pre-fill)');
       showRegistryConfirm();
     } else {
-      // Manual entry
+      console.log('[webcap] Routing → registry form (blank)');
       showRegistryForm();
     }
   }
 
   async function checkExistingSubmission(id, phone) {
-    if (!supabaseClient) return null;
+    if (!supabaseClient) {
+      console.warn('[webcap] checkExistingSubmission: supabaseClient not ready');
+      return null;
+    }
     try {
-      // Query by farmer_id first (get most recent row ordered by uploaded_at)
+      // ── Query by farmer_id (most recent row: uploaded_at DESC, then created_at DESC) ──
       if (id) {
+        console.log('[webcap] Querying farmer_submissions WHERE farmer_id =', id);
         const { data, error } = await supabaseClient
           .from(TABLE)
-          .select('farmer_id, farmer_name, farmer_country, farmer_phone, consent_given, consent_timestamp, uploaded_at')
+          .select('farmer_id, farmer_name, farmer_country, farmer_phone, consent_given, consent_timestamp, uploaded_at, created_at')
           .eq('farmer_id', id)
-          .order('uploaded_at', { ascending: false })
+          .order('uploaded_at', { ascending: false, nullsFirst: false })
+          .order('created_at', { ascending: false })
           .limit(1);
 
+        console.log('[webcap] farmer_id query →', { data, error });
         if (error) throw error;
-        if (data && data.length > 0) {
-          console.log('[webcap] Existing submission found for farmer_id:', data[0]);
-          return data[0];
-        }
+        if (data && data.length > 0) return data[0];
       }
 
-      // Fallback: query by phone (get most recent row ordered by uploaded_at)
+      // ── Fallback: query by phone ──────────────────────────────────────────
       if (phone) {
+        console.log('[webcap] Querying farmer_submissions WHERE farmer_phone =', phone);
         const { data, error } = await supabaseClient
           .from(TABLE)
-          .select('farmer_id, farmer_name, farmer_country, farmer_phone, consent_given, consent_timestamp, uploaded_at')
+          .select('farmer_id, farmer_name, farmer_country, farmer_phone, consent_given, consent_timestamp, uploaded_at, created_at')
           .eq('farmer_phone', phone)
-          .order('uploaded_at', { ascending: false })
+          .order('uploaded_at', { ascending: false, nullsFirst: false })
+          .order('created_at', { ascending: false })
           .limit(1);
 
+        console.log('[webcap] phone query →', { data, error });
         if (error) throw error;
-        if (data && data.length > 0) {
-          console.log('[webcap] Existing submission found for phone:', data[0]);
-          return data[0];
-        }
+        if (data && data.length > 0) return data[0];
       }
 
-      console.log('[webcap] No existing submission found for farmer_id:', id, 'phone:', phone);
+      console.log('[webcap] No rows found for farmer_id:', id, '/ phone:', phone);
       return null;
     } catch (err) {
-      console.error('[webcap] Error checking existing submission:', err);
+      console.error('[webcap] checkExistingSubmission error:', err);
       return null;
     }
   }

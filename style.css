@@ -458,3 +458,21 @@ html, body {
     z-index: 999;
   }
 }
+
+/* ── Desktop: constrain to phone-width, centered ──────────────────────── */
+/* Mobile (< 600px) is completely unaffected by this block.                */
+@media (min-width: 600px) {
+  body {
+    display: flex;
+    justify-content: center;
+    background: #070710; /* slightly darker than --bg to frame the app column */
+  }
+
+  #app {
+    width: 480px;
+    max-width: 480px;
+    min-height: 100vh;
+    flex-shrink: 0;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+  }
+}
