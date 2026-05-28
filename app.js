@@ -413,7 +413,7 @@
         </div>
         <div class="audio-section" style="display: flex; gap: 12px; width: 100%; margin-bottom: 16px;">
           <button class="btn btn--small" id="replayBtn" style="flex: 1;">🔊 Replay audio</button>
-          <button class="btn btn--small" id="cameraToggleBtn" style="flex: 1;">📷 Switch camera</button>
+          <button class="btn btn--small" id="cameraToggleBtn" style="flex: 1;">🔄 Flip camera</button>
         </div>
         <div class="preview-wrap">
           <video id="preview" autoplay muted playsinline></video>
