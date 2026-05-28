@@ -69,27 +69,37 @@
     if (!loaded) return;
 
     // Check for returning farmer (existing submission)
-    const existingSubmission = await checkExistingSubmission(farmerId, farmerPhone);
-    if (existingSubmission) {
-      // Pre-fill data from existing submission
-      farmerName = existingSubmission.farmer_name || farmerName;
-      farmerCountry = existingSubmission.farmer_country || farmerCountry;
-      farmerPhone = existingSubmission.farmer_phone || farmerPhone;
-      consentGiven = existingSubmission.consent_given;
-      consentTime = existingSubmission.consent_timestamp;
-      isReturningFarmer = true;
+    // Skip lookup if no farmer_id/phone params to avoid unnecessary queries
+    const shouldCheckSubmission = (farmerId && farmerId !== 'test_001') || farmerPhone;
 
-      // Route based on consent status
-      if (consentGiven === true) {
-        // Already consented: skip to question/recording
-        const cameraReady = await initCamera();
-        if (!cameraReady) return;
-        showQuestion();
-      } else if (consentGiven === false) {
-        // Declined consent before: show registry then consent again
-        showRegistryConfirm();
+    if (shouldCheckSubmission) {
+      // Add 5-second timeout for Supabase lookup
+      const existingSubmission = await Promise.race([
+        checkExistingSubmission(farmerId, farmerPhone),
+        new Promise(resolve => setTimeout(() => resolve(null), 5000))
+      ]);
+
+      if (existingSubmission) {
+        // Pre-fill data from existing submission
+        farmerName = existingSubmission.farmer_name || farmerName;
+        farmerCountry = existingSubmission.farmer_country || farmerCountry;
+        farmerPhone = existingSubmission.farmer_phone || farmerPhone;
+        consentGiven = existingSubmission.consent_given;
+        consentTime = existingSubmission.consent_timestamp;
+        isReturningFarmer = true;
+
+        // Route based on consent status
+        if (consentGiven === true) {
+          // Already consented: skip to question/recording
+          const cameraReady = await initCamera();
+          if (!cameraReady) return;
+          showQuestion();
+        } else if (consentGiven === false) {
+          // Declined consent before: show registry then consent again
+          showRegistryConfirm();
+        }
+        return;
       }
-      return;
     }
 
     // New farmer: standard flow
