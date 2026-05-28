@@ -556,8 +556,103 @@
     // Auto-play question audio
     const audioPath = getAudioPath('question', currentQuestion.id, farmerLang);
     playAudio(audioPath, () => {});
+
+    // Show framing guidance before user starts recording
+    showRecordingGuidanceOverlay();
   }
 
+  // ── Recording Guidance Overlay ────────────────────────────────────────────
+  function showRecordingGuidanceOverlay() {
+    // Unique suffix so clipPath IDs don't clash if overlay is shown more than once
+    const uid = Math.random().toString(36).slice(2, 6);
+
+    const overlay = document.createElement('div');
+    overlay.id        = 'recordingGuidanceOverlay';
+    overlay.className = 'recording-guidance-overlay';
+    overlay.innerHTML = `
+      <div class="guidance-content">
+
+        <!-- Bad: dark screen, tilted phone, face cropped at edge -->
+        <div class="guidance-panel">
+          <svg class="guidance-svg" viewBox="0 0 90 138" xmlns="http://www.w3.org/2000/svg">
+            <g transform="rotate(-11 45 69)">
+              <rect x="9" y="4" width="72" height="130" rx="9" fill="#1e1e2e" stroke="#888" stroke-width="2"/>
+              <rect x="34" y="7"  width="22" height="5"   rx="2.5" fill="#111"/>
+              <clipPath id="sb${uid}">
+                <rect x="14" y="17" width="62" height="100" rx="3"/>
+              </clipPath>
+              <rect x="14" y="17" width="62" height="100" rx="3" fill="#0d0d18"/>
+              <g clip-path="url(#sb${uid})">
+                <!-- face shifted far right — partially outside frame -->
+                <ellipse cx="68" cy="70" rx="26" ry="32" fill="#b87a52"/>
+                <!-- heavy shadow overlay -->
+                <rect x="14" y="17" width="62" height="100" fill="rgba(0,0,0,0.58)"/>
+                <!-- faint eye just visible through shadow -->
+                <circle cx="59" cy="64" r="1.8" fill="rgba(0,0,0,0.75)"/>
+              </g>
+            </g>
+          </svg>
+          <span class="guidance-mark guidance-mark--bad">&#x2717;</span>
+        </div>
+
+        <div class="guidance-divider"></div>
+
+        <!-- Good: bright screen, upright phone, face centered -->
+        <div class="guidance-panel">
+          <svg class="guidance-svg" viewBox="0 0 90 138" xmlns="http://www.w3.org/2000/svg">
+            <rect x="9" y="4" width="72" height="130" rx="9" fill="#1e1e2e" stroke="#ddd" stroke-width="2"/>
+            <rect x="34" y="7"  width="22" height="5"   rx="2.5" fill="#111"/>
+            <clipPath id="sg${uid}">
+              <rect x="14" y="17" width="62" height="100" rx="3"/>
+            </clipPath>
+            <rect x="14" y="17" width="62" height="100" rx="3" fill="#f0e4d0"/>
+            <g clip-path="url(#sg${uid})">
+              <rect x="14" y="17" width="62" height="100" fill="#f2e6d5"/>
+              <!-- neck -->
+              <rect x="34" y="94" width="22" height="20" rx="4" fill="#b87a52"/>
+              <!-- face centered and filling the frame -->
+              <ellipse cx="45" cy="68" rx="22" ry="28" fill="#c8855c"/>
+              <!-- eyes -->
+              <circle cx="38" cy="62" r="2.5" fill="#2a1205"/>
+              <circle cx="52" cy="62" r="2.5" fill="#2a1205"/>
+              <!-- smile -->
+              <path d="M38 76 Q45 84 52 76" stroke="#2a1205" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </g>
+          </svg>
+          <span class="guidance-mark guidance-mark--good">&#x2713;</span>
+        </div>
+
+      </div>
+    `;
+
+    document.getElementById('app').appendChild(overlay);
+
+    let autoTimer;
+    let dismissed = false;
+
+    function dismiss() {
+      if (dismissed) return;
+      dismissed = true;
+      clearTimeout(autoTimer);
+      overlay.classList.add('recording-guidance-overlay--fading');
+      setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 320);
+    }
+
+    // Tap anywhere on the overlay dismisses it
+    overlay.addEventListener('click', dismiss);
+
+    // Elevate record button above overlay so it stays directly tappable.
+    // Also hook dismiss so overlay clears the moment recording starts.
+    const startBtn = document.getElementById('startBtn');
+    if (startBtn) {
+      startBtn.style.position = 'relative';
+      startBtn.style.zIndex   = '200';
+      startBtn.addEventListener('click', dismiss, { once: true });
+    }
+
+    // Auto-dismiss after 4 seconds
+    autoTimer = setTimeout(dismiss, 4000);
+  }
 
   function showRecording() {
     render(`
