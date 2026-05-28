@@ -30,6 +30,7 @@
   let elapsedSeconds  = 0;
   let supabaseClient  = null;
   let cameraFacingMode = 'user'; // 'user' = front/selfie, 'environment' = back
+  let isReturningFarmer = false; // Track if farmer has existing submission
 
   // ── Startup ──────────────────────────────────────────────────────────────
   async function init() {
@@ -67,6 +68,31 @@
     const loaded = await loadQuestions();
     if (!loaded) return;
 
+    // Check for returning farmer (existing submission)
+    const existingSubmission = await checkExistingSubmission(farmerId, farmerPhone);
+    if (existingSubmission) {
+      // Pre-fill data from existing submission
+      farmerName = existingSubmission.farmer_name || farmerName;
+      farmerCountry = existingSubmission.farmer_country || farmerCountry;
+      farmerPhone = existingSubmission.farmer_phone || farmerPhone;
+      consentGiven = existingSubmission.consent_given;
+      consentTime = existingSubmission.consent_timestamp;
+      isReturningFarmer = true;
+
+      // Route based on consent status
+      if (consentGiven === true) {
+        // Already consented: skip to question/recording
+        const cameraReady = await initCamera();
+        if (!cameraReady) return;
+        showQuestion();
+      } else if (consentGiven === false) {
+        // Declined consent before: show registry then consent again
+        showRegistryConfirm();
+      }
+      return;
+    }
+
+    // New farmer: standard flow
     // Flow: registry → consent → question → record → upload
     if (farmerName && farmerCountry) {
       // Pre-filled: show confirmation
@@ -74,6 +100,34 @@
     } else {
       // Manual entry
       showRegistryForm();
+    }
+  }
+
+  async function checkExistingSubmission(id, phone) {
+    if (!supabaseClient) return null;
+    try {
+      let query = supabaseClient
+        .from(TABLE)
+        .select('farmer_id, farmer_name, farmer_country, farmer_phone, consent_given, consent_timestamp');
+
+      // Query by farmer_id first
+      if (id) {
+        const { data, error } = await query.eq('farmer_id', id).limit(1);
+        if (error) throw error;
+        if (data && data.length > 0) return data[0];
+      }
+
+      // Fallback: query by phone
+      if (phone) {
+        const { data, error } = await query.eq('farmer_phone', phone).limit(1);
+        if (error) throw error;
+        if (data && data.length > 0) return data[0];
+      }
+
+      return null;
+    } catch (err) {
+      console.error('[webcap] Error checking existing submission:', err);
+      return null;
     }
   }
 
@@ -405,6 +459,10 @@
 
   // ── Question Screen (with audio) ───────────────────────────────────────────
   function showQuestion() {
+    const updateInfoLink = isReturningFarmer
+      ? `<a href="#" id="updateInfoLink" style="font-size: 12px; color: #8892b0; text-decoration: underline; margin-top: 12px; display: inline-block;">Update info / Rescind consent</a>`
+      : '';
+
     render(`
       <div class="screen screen--question">
         <div class="question-card">
@@ -420,6 +478,7 @@
         </div>
         <button class="btn btn--record" id="startBtn" style="margin-top: 12px;">Tap to start recording</button>
         <p class="hint">Maximum ${MAX_DURATION_SEC} seconds</p>
+        ${updateInfoLink}
       </div>
     `);
 
@@ -430,6 +489,17 @@
       playAudio(audioPath, () => {});
     });
     setupCameraToggle();
+
+    // Add update info link listener if returning farmer
+    if (isReturningFarmer) {
+      const updateLink = document.getElementById('updateInfoLink');
+      if (updateLink) {
+        updateLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          showRegistryConfirm();
+        });
+      }
+    }
 
     // Auto-play question audio
     const audioPath = getAudioPath('question', currentQuestion.id, farmerLang);
