@@ -10,18 +10,23 @@
   const SUPPORTED_LANGS      = ['en', 'am', 'sw', 'fr', 'pt', 'es'];
   const DEFAULT_LANG         = 'en';
   const COUNTRY_OPTIONS = [
-    'Brazil 🇧🇷', 'Colombia 🇨🇴', 'Ethiopia 🇪🇹', 'Guatemala 🇬🇹',
-    'Honduras 🇭🇳', 'India 🇮🇳', 'Indonesia 🇮🇩', 'Kenya 🇰🇪',
-    'Mexico 🇲🇽', 'Peru 🇵🇪', 'Rwanda 🇷🇼', 'Tanzania 🇹🇿',
-    'Uganda 🇺🇬', 'Vietnam 🇻🇳', 'Yemen 🇾🇪', 'Other',
+    'Brazil', 'Colombia', 'Ethiopia', 'Guatemala', 'Honduras',
+    'India', 'Indonesia', 'Kenya', 'Mexico', 'Peru',
+    'Rwanda', 'Tanzania', 'Uganda', 'Vietnam', 'Yemen', 'Other',
   ];
   const DIAL_CODES = {
-    'Brazil 🇧🇷': '+55',    'Colombia 🇨🇴': '+57',  'Ethiopia 🇪🇹': '+251',
-    'Guatemala 🇬🇹': '+502', 'Honduras 🇭🇳': '+504', 'India 🇮🇳': '+91',
-    'Indonesia 🇮🇩': '+62',  'Kenya 🇰🇪': '+254',    'Mexico 🇲🇽': '+52',
-    'Peru 🇵🇪': '+51',       'Rwanda 🇷🇼': '+250',   'Tanzania 🇹🇿': '+255',
-    'Uganda 🇺🇬': '+256',    'Vietnam 🇻🇳': '+84',   'Yemen 🇾🇪': '+967',
+    'Brazil': '+55',    'Colombia': '+57',  'Ethiopia': '+251',
+    'Guatemala': '+502','Honduras': '+504', 'India': '+91',
+    'Indonesia': '+62', 'Kenya': '+254',    'Mexico': '+52',
+    'Peru': '+51',      'Rwanda': '+250',   'Tanzania': '+255',
+    'Uganda': '+256',   'Vietnam': '+84',   'Yemen': '+967',
     'Other': '',
+  };
+  const FLAG_CODES = {
+    'Brazil': 'br',    'Colombia': 'co',  'Ethiopia': 'et', 'Guatemala': 'gt',
+    'Honduras': 'hn',  'India': 'in',     'Indonesia': 'id','Kenya': 'ke',
+    'Mexico': 'mx',    'Peru': 'pe',      'Rwanda': 'rw',   'Tanzania': 'tz',
+    'Uganda': 'ug',    'Vietnam': 'vn',   'Yemen': 'ye',
   };
 
   // ── State ────────────────────────────────────────────────────────────────
@@ -362,9 +367,14 @@
 
   // ── Registry Screen ────────────────────────────────────────────────────────
   function showRegistryForm() {
-    const countryOpts = COUNTRY_OPTIONS
-      .map(c => `<option value="${c}">${c}</option>`)
-      .join('');
+    // Build custom dropdown options with flag images
+    const csOpts = COUNTRY_OPTIONS.map(name => {
+      const code = FLAG_CODES[name];
+      const flag = code
+        ? `<img src="https://flagcdn.com/24x18/${code}.png" style="vertical-align:middle;margin-right:6px;" alt="">`
+        : '';
+      return `<li class="cs-opt" data-value="${name}">${flag}${name}</li>`;
+    }).join('');
 
     render(`
       <div class="screen screen--registry">
@@ -376,14 +386,21 @@
             <input type="text" id="nameInput" placeholder="Your name" required>
           </div>
           <div class="form-group">
-            <label for="countrySelect">Country/Region</label>
-            <select id="countrySelect">
-              <option value="">Select country...</option>
-              ${countryOpts}
-            </select>
+            <label>Country/Region</label>
+            <div class="cs-wrap" id="csWrap">
+              <div class="cs-trigger" id="csTrigger">
+                <span id="csDisplay" class="cs-placeholder">Select country…</span>
+                <span class="cs-arrow">▾</span>
+              </div>
+              <ul class="cs-list" id="csList">
+                <li class="cs-opt cs-opt--empty" data-value="">Select country…</li>
+                ${csOpts}
+              </ul>
+              <input type="hidden" id="countrySelect">
+            </div>
           </div>
           <div class="form-group">
-            <label for="phoneInput">Phone 📱</label>
+            <label for="phoneInput">Phone 📞</label>
             <div class="phone-input-wrap">
               <span id="phonePrefix" class="phone-prefix"></span>
               <input type="tel" id="phoneInput" placeholder="Your phone number">
@@ -393,6 +410,37 @@
         </div>
       </div>
     `);
+
+    // ── Custom dropdown wiring ───────────────────────────────────────────────
+    const csWrap    = document.getElementById('csWrap');
+    const csList    = document.getElementById('csList');
+    const csHidden  = document.getElementById('countrySelect');
+    const csDisplay = document.getElementById('csDisplay');
+
+    document.getElementById('csTrigger').addEventListener('click', () => {
+      csWrap.classList.toggle('cs-open');
+    });
+
+    csList.addEventListener('click', e => {
+      const opt = e.target.closest('.cs-opt');
+      if (!opt) return;
+      const val = opt.dataset.value;
+      csHidden.value = val;
+      csWrap.classList.remove('cs-open');
+      if (val) {
+        csDisplay.innerHTML = opt.innerHTML;
+        csDisplay.classList.remove('cs-placeholder');
+      } else {
+        csDisplay.textContent = 'Select country…';
+        csDisplay.classList.add('cs-placeholder');
+      }
+      csHidden.dispatchEvent(new Event('change'));
+    });
+
+    // Close on outside click
+    document.addEventListener('click', e => {
+      if (csWrap && !csWrap.contains(e.target)) csWrap.classList.remove('cs-open');
+    });
 
     // Update dial-code prefix when country changes
     document.getElementById('countrySelect').addEventListener('change', () => {
@@ -438,7 +486,7 @@
             <input type="text" id="countryConfirm" value="${farmerCountry || ''}">
           </div>
           <div class="form-group">
-            <label for="phoneConfirm">Phone 📱</label>
+            <label for="phoneConfirm">Phone 📞</label>
             <input type="text" id="phoneConfirm" value="${farmerPhone || ''}">
           </div>
           <button class="btn btn--primary" id="registryConfirmBtn">Confirm & Continue</button>

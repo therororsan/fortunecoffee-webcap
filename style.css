@@ -334,6 +334,75 @@ html, body {
   outline-offset: 0;
 }
 
+/* ── Custom country dropdown ──────────────────────────────────────────── */
+.cs-wrap {
+  position: relative;
+  user-select: none;
+}
+
+.cs-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  background: var(--bg);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-family: var(--font);
+  color: var(--text);
+}
+
+.cs-wrap.cs-open .cs-trigger {
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
+  border-radius: 8px 8px 0 0;
+}
+
+.cs-placeholder { color: var(--text-muted); }
+
+.cs-arrow {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-left: 8px;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.cs-open .cs-arrow { transform: rotate(180deg); }
+
+.cs-list {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  z-index: 50;
+  max-height: 220px;
+  overflow-y: auto;
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
+}
+
+.cs-open .cs-list { display: block; }
+
+.cs-opt {
+  display: flex;
+  align-items: center;
+  padding: 11px 14px;
+  cursor: pointer;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.cs-opt:hover { background: rgba(255, 255, 255, 0.07); }
+
+.cs-opt--empty { color: var(--text-muted); }
+
 /* ── Phone field with dial-code prefix ────────────────────────────────── */
 .phone-input-wrap {
   display: flex;
