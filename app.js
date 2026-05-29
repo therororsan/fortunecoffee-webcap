@@ -583,6 +583,7 @@
     if (!supabaseClient || !farmerId) return;
 
     const updatePayload = {
+      farmer_id: farmerId,
       consent_given: consentValue,
       consent_timestamp: new Date().toISOString(),
     };
@@ -598,8 +599,7 @@
 
     const { error } = await supabaseClient
       .from(FARMERS_TABLE)
-      .update(updatePayload)
-      .eq('farmer_id', farmerId);
+      .upsert(updatePayload, { onConflict: 'farmer_id' });
 
     if (error) throw error;
   }
