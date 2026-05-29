@@ -14,7 +14,7 @@ import re
 import sys
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode, quote
+from urllib.parse import urlencode, quote, unquote
 from urllib.request import Request, urlopen
 
 
@@ -138,9 +138,10 @@ def build_webcap_link(farmer_id: str, farmer_name: str, country: str, full_phone
 
 def build_contact_link(contact_app: str, farmer_name: str, webcap_link: str, full_phone: str) -> str:
     normalized_app = contact_app.strip().lower()
+    readable_webcap_link = unquote(webcap_link)
     message = (
         f"Hi {farmer_name}, Fortune Coffee would like to hear your story.\n"
-        f"Please tap this link to record a short video: {webcap_link}"
+        f"Please tap this link to record a short video: {readable_webcap_link}"
     )
     encoded_message = quote(message, safe="")
 
