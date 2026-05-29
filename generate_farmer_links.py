@@ -9,10 +9,13 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, quote
+from urllib.request import Request, urlopen
 
 
 BASE_URL = "https://fortunecoffee-webcap.vercel.app/"
@@ -183,6 +186,42 @@ def initialize_headers_if_needed(worksheet) -> list[str]:
     return headers
 
 
+def sync_farmers_to_supabase(
+    env: dict[str, str],
+    farmer_rows: list[dict[str, str]],
+) -> None:
+    if not farmer_rows:
+        return
+
+    supabase_url = env.get("SUPABASE_URL")
+    supabase_anon_key = env.get("SUPABASE_ANON_KEY")
+    if not supabase_url or not supabase_anon_key:
+        raise RuntimeError("SUPABASE_URL or SUPABASE_ANON_KEY missing from ../_shared/config/.env")
+
+    request_url = f"{supabase_url.rstrip('/')}/rest/v1/farmers?on_conflict=farmer_id"
+    request = Request(
+        request_url,
+        data=json.dumps(farmer_rows).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "apikey": supabase_anon_key,
+            "Authorization": f"Bearer {supabase_anon_key}",
+            "Prefer": "resolution=ignore-duplicates,return=minimal",
+        },
+        method="POST",
+    )
+
+    try:
+        with urlopen(request) as response:
+            if response.status not in (200, 201, 204):
+                raise RuntimeError(f"Unexpected Supabase status: {response.status}")
+    except HTTPError as exc:
+        error_body = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"Supabase sync failed: HTTP {exc.code} {error_body}") from exc
+    except URLError as exc:
+        raise RuntimeError(f"Supabase sync failed: {exc.reason}") from exc
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Fill missing farmer IDs, webcap links, and contact links in a worksheet."
@@ -242,6 +281,7 @@ def main() -> None:
     counters = extract_existing_counters(data_rows, header_index)
 
     updates: list[dict[str, list[list[str]]]] = []
+    farmers_to_sync: list[dict[str, str]] = []
     processed_count = 0
     farmer_id_count = 0
     webcap_link_count = 0
@@ -256,9 +296,12 @@ def main() -> None:
 
         processed_count += 1
         farmer_name = row[header_index["farmer_name"]].strip()
+        farm_name = row[header_index["farm_name"]].strip()
         country = row[header_index["country"]].strip()
         phone = row[header_index["phone"]].strip()
         contact_app = row[header_index["contact_app"]].strip()
+        language = row[header_index["language"]].strip()
+        notes = row[header_index["notes"]].strip()
 
         if not farmer_name:
             print(f"Warning: Skipping row {zero_based_index} because farmer_name is blank.")
@@ -315,8 +358,25 @@ def main() -> None:
             )
             contact_link_count += 1
 
+        farmers_to_sync.append(
+            {
+                "farmer_id": farmer_id,
+                "team_id": args.sheet,
+                "farmer_name": farmer_name,
+                "farm_name": farm_name,
+                "country": country,
+                "phone": full_phone or phone,
+                "contact_app": contact_app,
+                "language": language,
+                "status": row[header_index["status"]].strip(),
+                "webcap_link": webcap_link,
+                "notes": notes,
+            }
+        )
+
     if updates:
         worksheet.batch_update(updates)
+    sync_farmers_to_supabase(env, farmers_to_sync)
 
     print(f"Processed: {processed_count} rows")
     print(f"New farmer_ids generated: {farmer_id_count}")

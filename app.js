@@ -3,7 +3,8 @@
 
   // ── Constants ────────────────────────────────────────────────────────────
   const BUCKET               = 'farmer-videos';
-  const TABLE                = 'farmer_submissions';
+  const FARMERS_TABLE        = 'farmers';
+  const SUBMISSIONS_TABLE    = 'farmer_submissions';
   const MAX_DURATION_SEC     = 90;
   const VIDEO_BITRATE        = 2_000_000; // 2 Mbps — keeps 90s video under ~50 MB
   const QUESTIONS_URL        = '/questions/questions.json';
@@ -111,7 +112,7 @@
     if (shouldCheckSubmission) {
       // 5-second timeout guards against Supabase hangs
       const existingSubmission = await Promise.race([
-        checkExistingSubmission(farmerId, farmerPhone),
+        checkExistingFarmer(farmerId, farmerPhone),
         new Promise(resolve => setTimeout(() => resolve(null), 5000))
       ]);
 
@@ -119,12 +120,13 @@
       console.log('[webcap] Supabase lookup result:', existingSubmission);
 
       if (existingSubmission) {
-        // Pre-fill state from most-recent submission
-        farmerName    = existingSubmission.farmer_name    || farmerName;
-        farmerCountry = existingSubmission.farmer_country || farmerCountry;
-        farmerPhone   = existingSubmission.farmer_phone   || farmerPhone;
+        // Pre-fill state from the farmer record
+        farmerName    = existingSubmission.farmer_name || farmerName;
+        farmerCountry = existingSubmission.country || farmerCountry;
+        farmerPhone   = existingSubmission.phone || farmerPhone;
         consentGiven  = existingSubmission.consent_given;
         consentTime   = existingSubmission.consent_timestamp;
+        farmerLang    = existingSubmission.language || farmerLang;
         isReturningFarmer = true;
 
         if (consentGiven === true) {
@@ -154,23 +156,22 @@
     }
   }
 
-  async function checkExistingSubmission(id, phone) {
+  async function checkExistingFarmer(id, phone) {
     if (!supabaseClient) {
-      console.warn('[webcap] checkExistingSubmission: supabaseClient not ready');
+      console.warn('[webcap] checkExistingFarmer: supabaseClient not ready');
       return null;
     }
     try {
       const safeReturningFarmerFields =
-        'farmer_id, farmer_name, farmer_country, farmer_phone, consent_given, consent_timestamp';
+        'farmer_id, farmer_name, country, phone, consent_given, consent_timestamp, language, contact_verified';
 
-      // ── Query by farmer_id using only schema-safe fields ─────────────────
+      // ── Query by farmer_id in farmers ────────────────────────────────────
       if (id) {
-        console.log('[webcap] Querying farmer_submissions WHERE farmer_id =', id);
+        console.log('[webcap] Querying farmers WHERE farmer_id =', id);
         const { data, error } = await supabaseClient
-          .from(TABLE)
+          .from(FARMERS_TABLE)
           .select(safeReturningFarmerFields)
           .eq('farmer_id', id)
-          .not('consent_given', 'is', null)
           .limit(1);
 
         console.log('[webcap] farmer_id query →', { data, error });
@@ -178,14 +179,13 @@
         if (data && data.length > 0) return data[0];
       }
 
-      // ── Fallback: query by phone ──────────────────────────────────────────
+      // ── Fallback: query by phone in farmers ──────────────────────────────
       if (phone) {
-        console.log('[webcap] Querying farmer_submissions WHERE farmer_phone =', phone);
+        console.log('[webcap] Querying farmers WHERE phone =', phone);
         const { data, error } = await supabaseClient
-          .from(TABLE)
+          .from(FARMERS_TABLE)
           .select(safeReturningFarmerFields)
-          .eq('farmer_phone', phone)
-          .not('consent_given', 'is', null)
+          .eq('phone', phone)
           .limit(1);
 
         console.log('[webcap] phone query →', { data, error });
@@ -196,7 +196,7 @@
       console.log('[webcap] No rows found for farmer_id:', id, '/ phone:', phone);
       return null;
     } catch (err) {
-      console.error('[webcap] checkExistingSubmission error:', err);
+      console.error('[webcap] checkExistingFarmer error:', err);
       return null;
     }
   }
@@ -533,15 +533,29 @@
       </div>
     `);
 
-    document.getElementById('consentYesBtn').addEventListener('click', () => {
+    document.getElementById('consentYesBtn').addEventListener('click', async () => {
       consentGiven = true;
       consentTime = new Date().toISOString();
+      try {
+        await syncFarmerConsent(true);
+      } catch (err) {
+        console.error('[webcap] consent update error:', err);
+        showError('Could not save your consent. Please try again.');
+        return;
+      }
       showQuestion();
     });
 
-    document.getElementById('consentNoBtn').addEventListener('click', () => {
+    document.getElementById('consentNoBtn').addEventListener('click', async () => {
       consentGiven = false;
       consentTime = new Date().toISOString();
+      try {
+        await syncFarmerConsent(false);
+      } catch (err) {
+        console.error('[webcap] consent update error:', err);
+        showError('Could not save your decision. Please try again.');
+        return;
+      }
       showConsentDecline();
     });
 
@@ -562,27 +576,32 @@
       </div>
     `);
 
-    // Log the decline to Supabase and stop
-    logConsentAndStop();
+    // Consent has already been saved to farmers; stop here.
   }
 
-  async function logConsentAndStop() {
-    try {
-      await supabaseClient
-        .from(TABLE)
-        .insert({
-          farmer_id: farmerId,
-          farmer_name: farmerName,
-          farmer_country: farmerCountry,
-          farmer_phone: farmerPhone,
-          consent_given: consentGiven,
-          consent_timestamp: consentTime,
-          language: farmerLang,
-          status: 'consent_declined',
-        });
-    } catch (err) {
-      console.error('[webcap] consent logging error:', err);
+  async function syncFarmerConsent(consentValue) {
+    if (!supabaseClient || !farmerId) return;
+
+    const updatePayload = {
+      consent_given: consentValue,
+      consent_timestamp: new Date().toISOString(),
+    };
+
+    if (consentValue === true) {
+      updatePayload.contact_verified = true;
     }
+
+    if (farmerName) updatePayload.farmer_name = farmerName;
+    if (farmerCountry) updatePayload.country = farmerCountry;
+    if (farmerPhone) updatePayload.phone = farmerPhone;
+    if (farmerLang) updatePayload.language = farmerLang;
+
+    const { error } = await supabaseClient
+      .from(FARMERS_TABLE)
+      .update(updatePayload)
+      .eq('farmer_id', farmerId);
+
+    if (error) throw error;
   }
 
   // ── Question Screen (with audio) ───────────────────────────────────────────
@@ -859,20 +878,13 @@
       const publicUrl = urlData.publicUrl;
 
       const { error: dbError } = await supabaseClient
-        .from(TABLE)
+        .from(SUBMISSIONS_TABLE)
         .insert({
-          farmer_id:          farmerId,
-          farmer_name:        farmerName,
-          farmer_country:     farmerCountry,
-          farmer_phone:       farmerPhone,
-          consent_given:      consentGiven,
-          consent_timestamp:  consentTime,
-          language:           farmerLang,
-          country:            null, // populated downstream via farmer-master.csv lookup
-          question_id:        currentQuestion.id,
-          video_path:         filePath,
-          video_url:          publicUrl,
-          status:             'received',
+          farmer_id:   farmerId,
+          question_id: currentQuestion.id,
+          video_path:  filePath,
+          video_url:   publicUrl,
+          status:      'received',
         });
       if (dbError) throw dbError;
 
