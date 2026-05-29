@@ -9,7 +9,20 @@
   const QUESTIONS_URL        = '/questions/questions.json';
   const SUPPORTED_LANGS      = ['en', 'am', 'sw', 'fr', 'pt', 'es'];
   const DEFAULT_LANG         = 'en';
-  const COUNTRY_OPTIONS      = ['Ethiopia', 'Kenya', 'India', 'Colombia', 'Other'];
+  const COUNTRY_OPTIONS = [
+    'Brazil 🇧🇷', 'Colombia 🇨🇴', 'Ethiopia 🇪🇹', 'Guatemala 🇬🇹',
+    'Honduras 🇭🇳', 'India 🇮🇳', 'Indonesia 🇮🇩', 'Kenya 🇰🇪',
+    'Mexico 🇲🇽', 'Peru 🇵🇪', 'Rwanda 🇷🇼', 'Tanzania 🇹🇿',
+    'Uganda 🇺🇬', 'Vietnam 🇻🇳', 'Yemen 🇾🇪', 'Other',
+  ];
+  const DIAL_CODES = {
+    'Brazil 🇧🇷': '+55',    'Colombia 🇨🇴': '+57',  'Ethiopia 🇪🇹': '+251',
+    'Guatemala 🇬🇹': '+502', 'Honduras 🇭🇳': '+504', 'India 🇮🇳': '+91',
+    'Indonesia 🇮🇩': '+62',  'Kenya 🇰🇪': '+254',    'Mexico 🇲🇽': '+52',
+    'Peru 🇵🇪': '+51',       'Rwanda 🇷🇼': '+250',   'Tanzania 🇹🇿': '+255',
+    'Uganda 🇺🇬': '+256',    'Vietnam 🇻🇳': '+84',   'Yemen 🇾🇪': '+967',
+    'Other': '',
+  };
 
   // ── State ────────────────────────────────────────────────────────────────
   let farmerId        = null;
@@ -363,34 +376,49 @@
             <input type="text" id="nameInput" placeholder="Your name" required>
           </div>
           <div class="form-group">
-            <label for="countrySelect">Country</label>
+            <label for="countrySelect">Country/Region</label>
             <select id="countrySelect">
               <option value="">Select country...</option>
               ${countryOpts}
             </select>
           </div>
           <div class="form-group">
-            <label for="phoneInput">Phone</label>
-            <input type="tel" id="phoneInput" placeholder="Your phone number">
+            <label for="phoneInput">Phone 📱</label>
+            <div class="phone-input-wrap">
+              <span id="phonePrefix" class="phone-prefix"></span>
+              <input type="tel" id="phoneInput" placeholder="Your phone number">
+            </div>
           </div>
           <button class="btn btn--primary" id="registrySubmitBtn">Continue</button>
         </div>
       </div>
     `);
 
-    document.getElementById('registrySubmitBtn').addEventListener('click', () => {
-      const name = document.getElementById('nameInput').value.trim();
+    // Update dial-code prefix when country changes
+    document.getElementById('countrySelect').addEventListener('change', () => {
       const country = document.getElementById('countrySelect').value;
-      const phone = document.getElementById('phoneInput').value.trim();
+      const prefix  = DIAL_CODES[country] || '';
+      const el = document.getElementById('phonePrefix');
+      el.textContent    = prefix;
+      el.style.display  = prefix ? 'inline-flex' : 'none';
+    });
+
+    document.getElementById('registrySubmitBtn').addEventListener('click', () => {
+      const name     = document.getElementById('nameInput').value.trim();
+      const country  = document.getElementById('countrySelect').value;
+      const prefix   = document.getElementById('phonePrefix').textContent.trim();
+      const phoneRaw = document.getElementById('phoneInput').value.trim();
+      // Prepend dial code; if no number entered, store null
+      const phone    = phoneRaw ? (prefix + phoneRaw) : null;
 
       if (!name) {
         alert('Name is required');
         return;
       }
 
-      farmerName = name;
+      farmerName    = name;
       farmerCountry = country || null;
-      farmerPhone = phone || null;
+      farmerPhone   = phone;
       proceedToConsent();
     });
   }
@@ -406,11 +434,11 @@
             <input type="text" id="nameConfirm" value="${farmerName}">
           </div>
           <div class="form-group">
-            <label for="countryConfirm">Country</label>
+            <label for="countryConfirm">Country/Region</label>
             <input type="text" id="countryConfirm" value="${farmerCountry || ''}">
           </div>
           <div class="form-group">
-            <label for="phoneConfirm">Phone</label>
+            <label for="phoneConfirm">Phone 📱</label>
             <input type="text" id="phoneConfirm" value="${farmerPhone || ''}">
           </div>
           <button class="btn btn--primary" id="registryConfirmBtn">Confirm & Continue</button>
