@@ -50,6 +50,7 @@
   let supabaseClient  = null;
   let cameraFacingMode = 'user'; // 'user' = front/selfie, 'environment' = back
   let isReturningFarmer = false; // Track if farmer has existing submission
+  let currentAudio    = null;
 
   // ── Startup ──────────────────────────────────────────────────────────────
   async function init() {
@@ -248,6 +249,7 @@
 
   function playAudio(path, onEnd) {
     const audio = new Audio(path);
+    currentAudio = audio;
     let isPlaying = false;
 
     audio.onerror = () => {
@@ -273,6 +275,12 @@
       });
     });
     isPlaying = true;
+  }
+
+  function stopCurrentAudio() {
+    if (!currentAudio) return;
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
   }
 
   function showPlayButton(audio, onEnd) {
@@ -534,6 +542,7 @@
     `);
 
     document.getElementById('consentYesBtn').addEventListener('click', async () => {
+      stopCurrentAudio();
       consentGiven = true;
       consentTime = new Date().toISOString();
       try {
@@ -547,6 +556,7 @@
     });
 
     document.getElementById('consentNoBtn').addEventListener('click', async () => {
+      stopCurrentAudio();
       consentGiven = false;
       consentTime = new Date().toISOString();
       try {
