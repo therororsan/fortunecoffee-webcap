@@ -570,14 +570,12 @@
 
         <div class="guidance-panel">
           <img class="guidance-img" src="images/guidance_bad.jpg" alt="">
-          <span class="guidance-mark guidance-mark--bad">&#x2717;</span>
         </div>
 
         <div class="guidance-divider"></div>
 
         <div class="guidance-panel">
           <img class="guidance-img" src="images/guidance_good.jpg" alt="">
-          <span class="guidance-mark guidance-mark--good">&#x2713;</span>
         </div>
 
       </div>
