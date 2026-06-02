@@ -796,13 +796,30 @@
     // Release camera tracks once we're done
     if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
 
+    const displayName = farmerName ? `, ${farmerName}` : '';
+
     render(`
       <div class="screen screen--success">
-        <div class="success-icon">✓</div>
-        <h1>Thank you!</h1>
-        <p>Your response has been recorded successfully.</p>
+        <div class="success-card success-animate" id="successCard">
+          <div class="success-icon" aria-hidden="true">
+            <svg viewBox="0 0 80 80" role="img" focusable="false">
+              <circle cx="40" cy="40" r="36"></circle>
+              <path d="M24 41.5 35 52.5 57 29.5"></path>
+            </svg>
+          </div>
+          <p class="success-eyebrow">Submission complete</p>
+          <h1>Thank you${displayName}!</h1>
+          <p class="success-copy">Your video has been received successfully.</p>
+          <p class="success-next">We will be in touch when your farmer card is ready.</p>
+          <p class="success-footer">FORTUNE COFFEE</p>
+        </div>
       </div>
     `);
+
+    requestAnimationFrame(() => {
+      const card = document.getElementById('successCard');
+      if (card) card.classList.add('is-visible');
+    });
   }
 
   // ── Recording ────────────────────────────────────────────────────────────

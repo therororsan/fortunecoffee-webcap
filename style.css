@@ -217,26 +217,89 @@ html, body {
   gap: 20px;
 }
 
+.success-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border-radius: 24px;
+  padding: 36px 24px 30px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+}
+
+.success-animate {
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.success-animate.is-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
 .success-icon {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: var(--success);
-  color: #fff;
-  font-size: 36px;
+  width: 112px;
+  height: 112px;
+  margin: 0 auto 8px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.success-icon svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.success-icon circle {
+  fill: var(--success);
+}
+
+.success-icon path {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.success-eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--success);
+  font-weight: 700;
+}
+
 .screen--success h1 {
-  font-size: 28px;
+  font-size: 32px;
+  line-height: 1.2;
+  margin-top: 4px;
+  color: var(--text);
 }
 
 .screen--success p {
   font-size: 17px;
   color: var(--text-muted);
   line-height: 1.5;
+}
+
+.success-copy {
+  margin-top: 4px;
+}
+
+.success-next {
+  max-width: 28ch;
+  margin: 0 auto;
+}
+
+.success-footer {
+  margin-top: 12px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 /* ── Error screen ─────────────────────────────────────────────────────── */
