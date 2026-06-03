@@ -10,6 +10,9 @@
   const QUESTIONS_URL        = '/questions/questions.json';
   const SUPPORTED_LANGS      = ['en', 'am', 'sw', 'fr', 'pt', 'es'];
   const DEFAULT_LANG         = 'en';
+  const SOUND_LEVEL_THRESHOLD = 0.02;
+  const SILENCE_WARNING_SECONDS = 5;
+  const SOUND_CHECK_BAR_COUNT = 6;
   const COUNTRY_OPTIONS = [
     'Brazil', 'Colombia', 'Ethiopia', 'Guatemala', 'Honduras',
     'India', 'Indonesia', 'Kenya', 'Mexico', 'Peru',
@@ -51,6 +54,251 @@
   let cameraFacingMode = 'user'; // 'user' = front/selfie, 'environment' = back
   let isReturningFarmer = false; // Track if farmer has existing submission
   let currentAudio    = null;
+  let reviewObjectUrl = null;
+  let audioContext    = null;
+  let audioSourceNode = null;
+  let audioStreamForMonitor = null;
+  let analyserNode    = null;
+  let analyserData    = null;
+  let audioMonitorFrame = null;
+  let currentMicLevel = 0;
+  let faceDetector    = null;
+  let faceDetectionInterval = null;
+  let isFaceDetectionSupported = false;
+  let faceDetectedNow = false;
+  let faceWasDetectedAtLeastOnce = false;
+  let consecutiveSilentSeconds = 0;
+  let cumulativeSilentSeconds = 0;
+
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    }[char]));
+  }
+
+  async function ensureAudioMonitor() {
+    if (!mediaStream) return false;
+    try {
+      if (!audioContext) {
+        const AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) return false;
+        audioContext = new AudioCtor();
+      }
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+      if (audioStreamForMonitor !== mediaStream) {
+        if (audioSourceNode) {
+          audioSourceNode.disconnect();
+        }
+        audioSourceNode = null;
+        analyserNode = null;
+        analyserData = null;
+      }
+      if (!audioSourceNode || !analyserNode) {
+        audioSourceNode = audioContext.createMediaStreamSource(mediaStream);
+        analyserNode = audioContext.createAnalyser();
+        analyserNode.fftSize = 256;
+        analyserNode.smoothingTimeConstant = 0.75;
+        audioSourceNode.connect(analyserNode);
+        analyserData = new Uint8Array(analyserNode.fftSize);
+        audioStreamForMonitor = mediaStream;
+      }
+      return true;
+    } catch (err) {
+      console.error('[webcap] audio monitor init error:', err);
+      return false;
+    }
+  }
+
+  function sampleMicLevel() {
+    if (!analyserNode || !analyserData) return 0;
+    analyserNode.getByteTimeDomainData(analyserData);
+    let total = 0;
+    for (let i = 0; i < analyserData.length; i++) {
+      total += Math.abs((analyserData[i] - 128) / 128);
+    }
+    return total / analyserData.length;
+  }
+
+  function renderAudioMonitorFrame() {
+    currentMicLevel = sampleMicLevel();
+
+    const bars = Array.from(document.querySelectorAll('.sound-bars .sound-bar'));
+    if (bars.length) {
+      const normalized = Math.max(0.08, Math.min(1, currentMicLevel / 0.08));
+      bars.forEach((bar, index) => {
+        const offset = 0.18 + (index % 3) * 0.1;
+        const scale = Math.min(1, normalized + offset);
+        bar.style.transform = `scaleY(${scale.toFixed(3)})`;
+      });
+    }
+
+    const status = document.getElementById('soundStatus');
+    const statusDetail = document.getElementById('soundStatusDetail');
+    const continueAnyway = document.getElementById('continueAnywayBtn');
+    if (status) {
+      const canHear = currentMicLevel >= SOUND_LEVEL_THRESHOLD;
+      status.textContent = canHear ? 'We can hear you ✓' : 'No sound detected';
+      status.className = `sound-status ${canHear ? 'sound-status--good' : 'sound-status--warn'}`;
+      if (statusDetail) {
+        statusDetail.textContent = canHear
+          ? 'Your microphone is picking up your voice.'
+          : 'Try speaking closer to the phone or check your mic.';
+      }
+      if (continueAnyway) {
+        continueAnyway.style.display = canHear ? 'none' : 'inline-block';
+      }
+    }
+
+    const banner = document.getElementById('silentWarningBanner');
+    if (banner) {
+      banner.classList.toggle('is-visible', consecutiveSilentSeconds >= SILENCE_WARNING_SECONDS);
+    }
+
+    audioMonitorFrame = window.requestAnimationFrame(renderAudioMonitorFrame);
+  }
+
+  async function startAudioMonitor() {
+    const ready = await ensureAudioMonitor();
+    if (!ready) return false;
+    stopAudioMonitor();
+    renderAudioMonitorFrame();
+    return true;
+  }
+
+  function stopAudioMonitor() {
+    if (audioMonitorFrame) {
+      window.cancelAnimationFrame(audioMonitorFrame);
+      audioMonitorFrame = null;
+    }
+  }
+
+  function resetRecordingDiagnostics() {
+    faceDetectedNow = false;
+    faceWasDetectedAtLeastOnce = false;
+    consecutiveSilentSeconds = 0;
+    cumulativeSilentSeconds = 0;
+  }
+
+  function setRecordingFrameState(state) {
+    const wrap = document.getElementById('recordingPreviewWrap');
+    if (!wrap) return;
+    wrap.classList.remove('preview-wrap--face-good', 'preview-wrap--face-bad');
+    if (state) {
+      wrap.classList.add(`preview-wrap--${state}`);
+    }
+  }
+
+  async function ensureFaceDetector() {
+    if (faceDetector || isFaceDetectionSupported) return true;
+    if (!('FaceDetector' in window)) return false;
+    try {
+      faceDetector = new window.FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
+      isFaceDetectionSupported = true;
+      return true;
+    } catch (err) {
+      console.warn('[webcap] FaceDetector unavailable:', err);
+      faceDetector = null;
+      isFaceDetectionSupported = false;
+      return false;
+    }
+  }
+
+  function stopFaceDetection() {
+    if (faceDetectionInterval) {
+      clearInterval(faceDetectionInterval);
+      faceDetectionInterval = null;
+    }
+  }
+
+  async function startFaceDetection(videoEl) {
+    stopFaceDetection();
+    const supported = await ensureFaceDetector();
+    if (!supported || !videoEl) {
+      setRecordingFrameState('');
+      return;
+    }
+
+    const detect = async () => {
+      if (!videoEl || videoEl.readyState < 2 || !faceDetector) return;
+      try {
+        const faces = await faceDetector.detect(videoEl);
+        faceDetectedNow = faces.length > 0;
+        if (faceDetectedNow) faceWasDetectedAtLeastOnce = true;
+        setRecordingFrameState(faceDetectedNow ? 'face-good' : 'face-bad');
+      } catch (err) {
+        console.warn('[webcap] Face detection loop error:', err);
+      }
+    };
+
+    setRecordingFrameState('face-bad');
+    await detect();
+    faceDetectionInterval = setInterval(detect, 500);
+  }
+
+  function clearReviewObjectUrl() {
+    if (reviewObjectUrl) {
+      URL.revokeObjectURL(reviewObjectUrl);
+      reviewObjectUrl = null;
+    }
+  }
+
+  function showSubmissionWarningModal(issues) {
+    const app = document.getElementById('app');
+    if (!app) return;
+
+    const overlay = document.createElement('div');
+    overlay.className = 'guardrail-modal';
+    overlay.innerHTML = `
+      <div class="guardrail-modal__card">
+        <h3>Your video may have issues:</h3>
+        <ul class="guardrail-modal__list">
+          ${issues.map(issue => `<li>${escapeHtml(issue)}</li>`).join('')}
+        </ul>
+        <div class="guardrail-modal__actions">
+          <button class="btn btn--secondary" id="guardrailRerecordBtn">Re-record</button>
+          <button class="btn btn--upload" id="guardrailSubmitBtn">Submit anyway</button>
+        </div>
+      </div>
+    `;
+
+    app.appendChild(overlay);
+
+    document.getElementById('guardrailRerecordBtn').addEventListener('click', () => {
+      overlay.remove();
+      clearReviewObjectUrl();
+      startRecording();
+    });
+
+    document.getElementById('guardrailSubmitBtn').addEventListener('click', () => {
+      overlay.remove();
+      clearReviewObjectUrl();
+      uploadVideo();
+    });
+  }
+
+  function handleUploadAttempt() {
+    const issues = [];
+    if (isFaceDetectionSupported && !faceWasDetectedAtLeastOnce) {
+      issues.push("We couldn't detect your face — were you in frame?");
+    }
+    if (elapsedSeconds > 0 && cumulativeSilentSeconds > (elapsedSeconds / 2)) {
+      issues.push("We couldn't hear you — was your mic on?");
+    }
+
+    if (issues.length) {
+      showSubmissionWarningModal(issues);
+      return;
+    }
+
+    clearReviewObjectUrl();
+    uploadVideo();
+  }
 
   // ── Startup ──────────────────────────────────────────────────────────────
   async function init() {
@@ -633,14 +881,17 @@
         <div class="preview-wrap">
           <video id="preview" autoplay muted playsinline></video>
         </div>
-        <button class="btn btn--record" id="startBtn" style="margin-top: 12px;">Tap to start recording</button>
+        <button class="btn btn--record" id="startBtn" style="margin-top: 12px;">Continue to sound check</button>
         <p class="hint">Maximum ${MAX_DURATION_SEC} seconds</p>
         ${updateInfoLink}
       </div>
     `);
 
     document.getElementById('preview').srcObject = mediaStream;
-    document.getElementById('startBtn').addEventListener('click', startRecording);
+    document.getElementById('startBtn').addEventListener('click', async () => {
+      stopCurrentAudio();
+      await showSoundCheck();
+    });
     document.getElementById('replayBtn').addEventListener('click', () => {
       const audioPath = getAudioPath('question', currentQuestion.id, farmerLang);
       playAudio(audioPath, () => {});
@@ -663,6 +914,44 @@
 
     // Show framing guidance; audio starts 1.5s after overlay begins dismissing
     showRecordingGuidanceOverlay(audioPath);
+  }
+
+  async function showSoundCheck() {
+    render(`
+      <div class="screen screen--sound-check">
+        <div class="question-card">
+          <p class="question-label">Sound check</p>
+          <p class="question-text">Say a few words so we can check your microphone.</p>
+        </div>
+        <div class="preview-wrap preview-wrap--sound-check">
+          <video id="preview" autoplay muted playsinline></video>
+        </div>
+        <div class="sound-check-card">
+          <div class="sound-bars" aria-hidden="true">
+            ${Array.from({ length: SOUND_CHECK_BAR_COUNT }, () => '<span class="sound-bar"></span>').join('')}
+          </div>
+          <p class="sound-status sound-status--warn" id="soundStatus">No sound detected</p>
+          <p class="sound-status-detail" id="soundStatusDetail">Try speaking closer to the phone or check your mic.</p>
+        </div>
+        <button class="btn btn--record" id="soundCheckContinueBtn">Looks good — start recording</button>
+        <button class="btn btn--link" id="continueAnywayBtn" style="display:none">Continue anyway</button>
+      </div>
+    `);
+
+    const preview = document.getElementById('preview');
+    if (preview) {
+      preview.srcObject = mediaStream;
+    }
+
+    await startAudioMonitor();
+
+    const continueToRecording = () => {
+      stopCurrentAudio();
+      startRecording();
+    };
+
+    document.getElementById('soundCheckContinueBtn').addEventListener('click', continueToRecording);
+    document.getElementById('continueAnywayBtn').addEventListener('click', continueToRecording);
   }
 
   // ── Recording Guidance Overlay ────────────────────────────────────────────
@@ -714,31 +1003,37 @@
       startBtn.addEventListener('click', dismiss, { once: true });
     }
 
-    // Auto-dismiss after 7 seconds
-    autoTimer = setTimeout(dismiss, 7000);
+    // Auto-dismiss after 4 seconds
+    autoTimer = setTimeout(dismiss, 4000);
   }
 
-  function showRecording() {
+  async function showRecording() {
+    const faceSupported = await ensureFaceDetector();
     render(`
       <div class="screen screen--recording">
+        <div class="recording-warning-banner" id="silentWarningBanner">We can't hear you — check your mic</div>
         <div class="recording-header">
           <span class="rec-dot"></span>
           <span class="rec-label">REC</span>
           <span class="countdown" id="countdown">${MAX_DURATION_SEC}s</span>
         </div>
-        <div class="preview-wrap">
+        <div class="preview-wrap ${faceSupported ? 'preview-wrap--face-bad' : 'preview-wrap--frame-guide'}" id="recordingPreviewWrap">
           <video id="preview" autoplay muted playsinline></video>
+          ${faceSupported ? '' : '<div class="frame-guide-overlay" aria-hidden="true"></div>'}
         </div>
         <button class="btn btn--stop" id="stopBtn">Stop</button>
       </div>
     `);
-    document.getElementById('preview').srcObject = mediaStream;
+    const preview = document.getElementById('preview');
+    preview.srcObject = mediaStream;
     document.getElementById('stopBtn').addEventListener('click', stopRecording);
+    await startFaceDetection(preview);
   }
 
   function showReview() {
     const sizeMB    = (recordedBlob.size / 1024 / 1024).toFixed(1);
-    const objectUrl = URL.createObjectURL(recordedBlob);
+    clearReviewObjectUrl();
+    reviewObjectUrl = URL.createObjectURL(recordedBlob);
 
     render(`
       <div class="screen screen--review">
@@ -758,15 +1053,12 @@
     `);
 
     // Set src after render so the element exists
-    document.getElementById('playback').src = objectUrl;
+    document.getElementById('playback').src = reviewObjectUrl;
     document.getElementById('rerecordBtn').addEventListener('click', () => {
-      URL.revokeObjectURL(objectUrl);
+      clearReviewObjectUrl();
       reRecord();
     });
-    document.getElementById('uploadBtn').addEventListener('click', () => {
-      URL.revokeObjectURL(objectUrl);
-      uploadVideo();
-    });
+    document.getElementById('uploadBtn').addEventListener('click', handleUploadAttempt);
   }
 
   function showUploading() {
@@ -795,6 +1087,8 @@
   function showSuccess() {
     // Release camera tracks once we're done
     if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+    stopFaceDetection();
+    stopAudioMonitor();
 
     const displayName = farmerName ? `, ${farmerName}` : '';
 
@@ -823,9 +1117,10 @@
   }
 
   // ── Recording ────────────────────────────────────────────────────────────
-  function startRecording() {
+  async function startRecording() {
     recordedChunks = [];
     elapsedSeconds = 0;
+    resetRecordingDiagnostics();
 
     try {
       mediaRecorder = new MediaRecorder(mediaStream, {
@@ -843,15 +1138,24 @@
 
     mediaRecorder.onstop = () => {
       clearInterval(countdownTimer);
+      stopFaceDetection();
+      stopAudioMonitor();
       recordedBlob = new Blob(recordedChunks, { type: mimeType });
       showReview();
     };
 
+    await showRecording();
+    await startAudioMonitor();
     mediaRecorder.start(1000); // collect a chunk every second
-    showRecording();
 
     countdownTimer = setInterval(() => {
       elapsedSeconds++;
+      if (currentMicLevel < SOUND_LEVEL_THRESHOLD) {
+        consecutiveSilentSeconds++;
+        cumulativeSilentSeconds++;
+      } else {
+        consecutiveSilentSeconds = 0;
+      }
       const remaining = MAX_DURATION_SEC - elapsedSeconds;
       const el = document.getElementById('countdown');
       if (el) el.textContent = `${remaining}s`;
@@ -861,14 +1165,18 @@
 
   function stopRecording() {
     clearInterval(countdownTimer);
+    stopFaceDetection();
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
     }
   }
 
   function reRecord() {
+    clearReviewObjectUrl();
     recordedChunks = [];
     recordedBlob   = null;
+    stopFaceDetection();
+    stopAudioMonitor();
     showQuestion();
   }
 
