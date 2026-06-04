@@ -745,6 +745,36 @@ html, body {
   border: 4px solid transparent;
 }
 
+.selfie-with-face-guide {
+  position: relative;
+}
+
+.selfie-with-face-guide .frame-guide-overlay {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 58%;
+  height: 68%;
+  border: 5px solid rgba(255,255,255,0.9);
+  border-radius: 50% / 40%;
+  box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.selfie-with-face-guide .frame-guide-overlay::after {
+  content: '';
+  position: absolute;
+  bottom: -8%;
+  left: 22%;
+  width: 56%;
+  height: 18%;
+  border: 3px solid rgba(255,255,255,0.55);
+  border-radius: 50%;
+  border-top: none;
+}
+
 .frame-guide-overlay {
   position: absolute;
   inset: 12% 12%;

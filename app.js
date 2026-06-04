@@ -10,6 +10,7 @@
   const QUESTIONS_URL        = '/questions/questions.json';
   const SUPPORTED_LANGS      = ['en', 'am', 'sw', 'fr', 'pt', 'es'];
   const DEFAULT_LANG         = 'en';
+  const DEBUG_SELFIE_CHECK   = false;
   const SOUND_LEVEL_THRESHOLD = 0.02;
   const SILENCE_WARNING_SECONDS = 5;
   const SOUND_CHECK_BAR_COUNT = 6;
@@ -219,6 +220,10 @@
     clearSelfieObjectUrl();
     selfieFeedbackTone = null;
     selfieFeedbackMessage = '';
+    const wrap = document.getElementById('selfiePreviewWrap');
+    if (wrap) {
+      wrap.classList.remove('selfie-with-face-guide');
+    }
   }
 
   function showSubmissionWarningModal(issues) {
@@ -877,7 +882,7 @@
       <div class="screen screen--selfie">
         <div class="question-card">
           <p class="question-label">Selfie check</p>
-          <p class="question-text">Center your face inside the frame, then take one clear photo.</p>
+          <p class="question-text">Center your face inside the oval, then take one clear photo.</p>
         </div>
         <div class="preview-wrap preview-wrap--frame-guide ${!hasCapturedSelfie && cameraFacingMode === 'user' ? 'preview-wrap--mirrored' : ''}" id="selfiePreviewWrap">
           ${hasCapturedSelfie
@@ -910,6 +915,8 @@
       if (preview) {
         preview.srcObject = mediaStream;
       }
+      const wrap = document.getElementById('selfiePreviewWrap');
+      if (wrap) wrap.classList.add('selfie-with-face-guide');
       const flipButton = document.getElementById('selfieFlipBtn');
       if (flipButton) {
         flipButton.addEventListener('click', switchCamera);
@@ -922,8 +929,12 @@
     }
   }
 
-  function measureAverageLuminance(context, width, height) {
-    const { data } = context.getImageData(0, 0, width, height);
+  function measureCentralLuminance(context, fullWidth, fullHeight) {
+    const roiX = Math.floor(fullWidth * 0.22);
+    const roiY = Math.floor(fullHeight * 0.08);
+    const roiW = Math.floor(fullWidth * 0.56);
+    const roiH = Math.floor(fullHeight * 0.68);
+    const { data } = context.getImageData(roiX, roiY, roiW, roiH);
     let luminanceTotal = 0;
     let samples = 0;
 
@@ -936,6 +947,38 @@
     }
 
     return samples ? (luminanceTotal / samples) : 0;
+  }
+
+  function hasSubjectInCenter(context, fullWidth, fullHeight) {
+    const roiX = Math.floor(fullWidth * 0.25);
+    const roiY = Math.floor(fullHeight * 0.10);
+    const roiW = Math.floor(fullWidth * 0.50);
+    const roiH = Math.floor(fullHeight * 0.65);
+    const { data } = context.getImageData(roiX, roiY, roiW, roiH);
+    const luminances = [];
+
+    // Variance heuristic only; this is not face detection.
+    for (let index = 0; index < data.length; index += 20) {
+      const red = data[index];
+      const green = data[index + 1];
+      const blue = data[index + 2];
+      luminances.push((0.2126 * red) + (0.7152 * green) + (0.0722 * blue));
+    }
+
+    if (!luminances.length) return false;
+
+    const mean = luminances.reduce((sum, value) => sum + value, 0) / luminances.length;
+    const variance = luminances.reduce((sum, value) => {
+      const delta = value - mean;
+      return sum + (delta * delta);
+    }, 0) / luminances.length;
+    const stdDev = Math.sqrt(variance);
+
+    if (DEBUG_SELFIE_CHECK) {
+      console.log('[webcap] selfie subject check', { stdDev });
+    }
+
+    return stdDev > 14;
   }
 
   function canvasToJpegBlob(canvas) {
@@ -960,18 +1003,9 @@
     const context = canvas.getContext('2d', { willReadFrequently: true });
     context.drawImage(preview, 0, 0, width, height);
 
-    const averageLuminance = measureAverageLuminance(context, width, height);
-    const isTooDark = averageLuminance < 50;
-    let faceMissing = false;
-
-    if (await ensureFaceDetector()) {
-      try {
-        const faces = await faceDetector.detect(canvas);
-        faceMissing = faces.length === 0;
-      } catch (err) {
-        console.warn('[webcap] FaceDetector selfie check failed:', err);
-      }
-    }
+    const centralLum = measureCentralLuminance(context, width, height);
+    const isTooDark = centralLum < 52;
+    const subjectMissing = !hasSubjectInCenter(context, width, height);
 
     const blob = await canvasToJpegBlob(canvas);
     if (!blob) {
@@ -983,9 +1017,38 @@
     selfieBlob = blob;
     selfieObjectUrl = URL.createObjectURL(blob);
 
-    if (isTooDark || faceMissing) {
+    if (DEBUG_SELFIE_CHECK) {
+      const roiX = Math.floor(width * 0.25);
+      const roiY = Math.floor(height * 0.10);
+      const roiW = Math.floor(width * 0.50);
+      const roiH = Math.floor(height * 0.65);
+      const { data } = context.getImageData(roiX, roiY, roiW, roiH);
+      const luminances = [];
+      for (let index = 0; index < data.length; index += 20) {
+        const red = data[index];
+        const green = data[index + 1];
+        const blue = data[index + 2];
+        luminances.push((0.2126 * red) + (0.7152 * green) + (0.0722 * blue));
+      }
+      const mean = luminances.length
+        ? luminances.reduce((sum, value) => sum + value, 0) / luminances.length
+        : 0;
+      const variance = luminances.length
+        ? luminances.reduce((sum, value) => {
+            const delta = value - mean;
+            return sum + (delta * delta);
+          }, 0) / luminances.length
+        : 0;
+      const stdDev = Math.sqrt(variance);
+      console.log('[webcap] selfie checks', { centralLum, stdDev, isTooDark, subjectMissing });
+    }
+
+    if (isTooDark) {
       selfieFeedbackTone = 'warn';
-      selfieFeedbackMessage = "Photo looks dark or we couldn't detect your face - try again in better light";
+      selfieFeedbackMessage = 'Photo looks dark - try again in better light';
+    } else if (subjectMissing) {
+      selfieFeedbackTone = 'warn';
+      selfieFeedbackMessage = "We couldn't see you clearly - center your face in the oval and retake";
     } else {
       selfieFeedbackTone = 'good';
       selfieFeedbackMessage = 'Looks good ✓';
