@@ -861,9 +861,6 @@
   function showSelfieCapture({ showGuide = false } = {}) {
     const hasCapturedSelfie = !!(selfieBlob && selfieObjectUrl);
     const showFlipButton = !hasCapturedSelfie && hasMultipleVideoInputs;
-    const feedbackHtml = selfieFeedbackMessage
-      ? `<div class="selfie-feedback selfie-feedback--${selfieFeedbackTone || 'good'}">${escapeHtml(selfieFeedbackMessage)}</div>`
-      : '';
     const actionHtml = hasCapturedSelfie
       ? `
           <div class="selfie-actions">
@@ -889,7 +886,6 @@
             ? `<img id="selfiePreviewImage" src="${selfieObjectUrl}" alt="Selfie preview">`
             : '<video id="preview" autoplay muted playsinline></video><div class="frame-guide-overlay" aria-hidden="true"></div>'}
         </div>
-        ${feedbackHtml}
         ${actionHtml}
       </div>
     `);
@@ -1123,7 +1119,7 @@
           <p class="sound-status sound-status--warn" id="soundStatus">No sound detected</p>
           <p class="sound-status-detail" id="soundStatusDetail">Try speaking closer to the phone or check your mic.</p>
         </div>
-        <button class="btn btn--record" id="soundCheckContinueBtn">Looks good - start recording</button>
+        <button class="btn btn--record" id="soundCheckContinueBtn">Start Recording</button>
         <button class="btn btn--link" id="continueAnywayBtn" style="display:none">Continue anyway</button>
       </div>
     `);
