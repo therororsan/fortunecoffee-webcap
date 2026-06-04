@@ -55,6 +55,10 @@
   let isReturningFarmer = false; // Track if farmer has existing submission
   let currentAudio    = null;
   let reviewObjectUrl = null;
+  let selfieBlob      = null;
+  let selfieObjectUrl = null;
+  let selfieFeedbackTone = null;
+  let selfieFeedbackMessage = '';
   let audioContext    = null;
   let audioSourceNode = null;
   let audioStreamForMonitor = null;
@@ -63,10 +67,8 @@
   let audioMonitorFrame = null;
   let currentMicLevel = 0;
   let faceDetector    = null;
-  let faceDetectionInterval = null;
   let isFaceDetectionSupported = false;
-  let faceDetectedNow = false;
-  let faceWasDetectedAtLeastOnce = false;
+  let hasMultipleVideoInputs = false;
   let consecutiveSilentSeconds = 0;
   let cumulativeSilentSeconds = 0;
 
@@ -179,19 +181,8 @@
   }
 
   function resetRecordingDiagnostics() {
-    faceDetectedNow = false;
-    faceWasDetectedAtLeastOnce = false;
     consecutiveSilentSeconds = 0;
     cumulativeSilentSeconds = 0;
-  }
-
-  function setRecordingFrameState(state) {
-    const wrap = document.getElementById('recordingPreviewWrap');
-    if (!wrap) return;
-    wrap.classList.remove('preview-wrap--face-good', 'preview-wrap--face-bad');
-    if (state) {
-      wrap.classList.add(`preview-wrap--${state}`);
-    }
   }
 
   async function ensureFaceDetector() {
@@ -209,43 +200,25 @@
     }
   }
 
-  function stopFaceDetection() {
-    if (faceDetectionInterval) {
-      clearInterval(faceDetectionInterval);
-      faceDetectionInterval = null;
-    }
-  }
-
-  async function startFaceDetection(videoEl) {
-    stopFaceDetection();
-    const supported = await ensureFaceDetector();
-    if (!supported || !videoEl) {
-      setRecordingFrameState('');
-      return;
-    }
-
-    const detect = async () => {
-      if (!videoEl || videoEl.readyState < 2 || !faceDetector) return;
-      try {
-        const faces = await faceDetector.detect(videoEl);
-        faceDetectedNow = faces.length > 0;
-        if (faceDetectedNow) faceWasDetectedAtLeastOnce = true;
-        setRecordingFrameState(faceDetectedNow ? 'face-good' : 'face-bad');
-      } catch (err) {
-        console.warn('[webcap] Face detection loop error:', err);
-      }
-    };
-
-    setRecordingFrameState('face-bad');
-    await detect();
-    faceDetectionInterval = setInterval(detect, 500);
-  }
-
   function clearReviewObjectUrl() {
     if (reviewObjectUrl) {
       URL.revokeObjectURL(reviewObjectUrl);
       reviewObjectUrl = null;
     }
+  }
+
+  function clearSelfieObjectUrl() {
+    if (selfieObjectUrl) {
+      URL.revokeObjectURL(selfieObjectUrl);
+      selfieObjectUrl = null;
+    }
+  }
+
+  function resetSelfieCaptureState() {
+    selfieBlob = null;
+    clearSelfieObjectUrl();
+    selfieFeedbackTone = null;
+    selfieFeedbackMessage = '';
   }
 
   function showSubmissionWarningModal(issues) {
@@ -272,7 +245,7 @@
     document.getElementById('guardrailRerecordBtn').addEventListener('click', () => {
       overlay.remove();
       clearReviewObjectUrl();
-      startRecording();
+      reRecord();
     });
 
     document.getElementById('guardrailSubmitBtn').addEventListener('click', () => {
@@ -284,9 +257,6 @@
 
   function handleUploadAttempt() {
     const issues = [];
-    if (isFaceDetectionSupported && !faceWasDetectedAtLeastOnce) {
-      issues.push("We couldn't detect your face — were you in frame?");
-    }
     if (elapsedSeconds > 0 && cumulativeSilentSeconds > (elapsedSeconds / 2)) {
       issues.push("We couldn't hear you — was your mic on?");
     }
@@ -379,11 +349,9 @@
         isReturningFarmer = true;
 
         if (consentGiven === true) {
-          // Already consented — skip registry + consent, go straight to recording
-          console.log('[webcap] Routing → camera → question (returning, consent=true)');
-          const cameraReady = await initCamera();
-          if (!cameraReady) return;
-          showQuestion();
+          // Already consented — skip registry + consent, go straight to selfie step
+          console.log('[webcap] Routing → selfie step (returning, consent=true)');
+          await startSelfieStep();
         } else {
           // consent_given is false or null — show pre-filled registry then consent
           console.log('[webcap] Routing → registry confirm (returning, consent=' + consentGiven + ')');
@@ -395,7 +363,7 @@
       console.log('[webcap] No existing submission found — treating as new farmer');
     }
 
-    // New farmer: standard flow — registry → consent → question → record → upload
+    // New farmer: standard flow — registry → consent → selfie → sound check → question → record → upload
     if (farmerName && farmerCountry) {
       console.log('[webcap] Routing → registry confirm (URL pre-fill)');
       showRegistryConfirm();
@@ -495,44 +463,40 @@
     return `audio/${folder}/${filename}`;
   }
 
-  function playAudio(path, onEnd) {
+  function playAudio(path, onEnd, options = {}) {
+    const buttonId = options.buttonId || 'playBtn';
     const audio = new Audio(path);
     currentAudio = audio;
-    let isPlaying = false;
 
     audio.onerror = () => {
       // Fallback to English if language file missing
       if (!path.includes('_en.m4a')) {
         const fallback = path.replace(/_[a-z]+\.m4a$/, '_en.m4a');
-        playAudio(fallback, onEnd);
+        playAudio(fallback, onEnd, options);
       } else if (onEnd) {
         onEnd();
       }
     };
 
     audio.onended = () => {
-      isPlaying = false;
       if (onEnd) onEnd();
     };
 
     audio.play().catch(() => {
       // Autoplay blocked — show manual play button
-      showPlayButton(audio, () => {
-        isPlaying = false;
-        if (onEnd) onEnd();
-      });
+      showPlayButton(audio, buttonId);
     });
-    isPlaying = true;
   }
 
   function stopCurrentAudio() {
     if (!currentAudio) return;
     currentAudio.pause();
     currentAudio.currentTime = 0;
+    currentAudio = null;
   }
 
-  function showPlayButton(audio, onEnd) {
-    const btn = document.getElementById('playBtn');
+  function showPlayButton(audio, buttonId) {
+    const btn = document.getElementById(buttonId);
     if (!btn) return;
     btn.style.display = 'block';
     btn.onclick = () => {
@@ -544,6 +508,9 @@
   // ── Camera ───────────────────────────────────────────────────────────────
   async function initCamera() {
     try {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+      }
       mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: cameraFacingMode }, // 'user' = front, 'environment' = back
@@ -552,6 +519,16 @@
         },
         audio: true,
       });
+      if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          hasMultipleVideoInputs = devices.filter(device => device.kind === 'videoinput').length > 1;
+        } catch {
+          hasMultipleVideoInputs = false;
+        }
+      } else {
+        hasMultipleVideoInputs = false;
+      }
       // Best-effort portrait lock — not supported on all browsers
       if (screen.orientation && screen.orientation.lock) {
         screen.orientation.lock('portrait').catch(() => {});
@@ -567,14 +544,15 @@
     }
   }
 
+  function stopMediaStream() {
+    if (!mediaStream) return;
+    mediaStream.getTracks().forEach(track => track.stop());
+    mediaStream = null;
+  }
+
   async function switchCamera() {
     // Toggle between front and back cameras
     cameraFacingMode = cameraFacingMode === 'user' ? 'environment' : 'user';
-
-    // Stop current stream
-    if (mediaStream) {
-      mediaStream.getTracks().forEach(track => track.stop());
-    }
 
     // Reinitialize with new camera
     const cameraReady = await initCamera();
@@ -588,6 +566,10 @@
     const preview = document.getElementById('preview');
     if (preview) {
       preview.srcObject = mediaStream;
+    }
+    const selfieWrap = document.getElementById('selfiePreviewWrap');
+    if (selfieWrap) {
+      selfieWrap.classList.toggle('preview-wrap--mirrored', cameraFacingMode === 'user');
     }
   }
 
@@ -759,14 +741,11 @@
   }
 
   async function proceedToConsent() {
-    showLoading();
-    const cameraReady = await initCamera();
-    if (!cameraReady) return;
-    showConsent();
+    showConsent({ attemptAutoplay: true });
   }
 
   // ── Consent Screen ─────────────────────────────────────────────────────────
-  function showConsent() {
+  function showConsent({ attemptAutoplay = false } = {}) {
     consentGiven = null;
     consentTime = null;
 
@@ -800,7 +779,7 @@
         showError('Could not save your consent. Please try again.');
         return;
       }
-      showQuestion();
+      await startSelfieStep();
     });
 
     document.getElementById('consentNoBtn').addEventListener('click', async () => {
@@ -818,9 +797,9 @@
     });
 
     const audioPath = getAudioPath('consent', null, farmerLang);
-    playAudio(audioPath, () => {
-      // Audio finished, farmer can make choice
-    });
+    if (attemptAutoplay) {
+      playAudio(audioPath, () => {}, { buttonId: 'playBtn' });
+    }
   }
 
   function showConsentDecline() {
@@ -862,43 +841,189 @@
     if (error) throw error;
   }
 
+  // ── Selfie Step ────────────────────────────────────────────────────────────
+  async function startSelfieStep() {
+    stopCurrentAudio();
+    stopAudioMonitor();
+    resetSelfieCaptureState();
+    cameraFacingMode = 'user';
+    showLoading();
+    const cameraReady = await initCamera();
+    if (!cameraReady) return;
+    showSelfieCapture({ showGuide: true });
+  }
+
+  function showSelfieCapture({ showGuide = false } = {}) {
+    const hasCapturedSelfie = !!(selfieBlob && selfieObjectUrl);
+    const showFlipButton = !hasCapturedSelfie && hasMultipleVideoInputs;
+    const feedbackHtml = selfieFeedbackMessage
+      ? `<div class="selfie-feedback selfie-feedback--${selfieFeedbackTone || 'good'}">${escapeHtml(selfieFeedbackMessage)}</div>`
+      : '';
+    const actionHtml = hasCapturedSelfie
+      ? `
+          <div class="selfie-actions">
+            <button class="btn btn--record" id="retakeSelfieBtn">${selfieFeedbackTone === 'warn' ? 'Retake' : 'Use this photo'}</button>
+            <button class="btn btn--secondary" id="useSelfieBtn">${selfieFeedbackTone === 'warn' ? 'Use this photo' : 'Retake'}</button>
+          </div>
+        `
+      : `
+          <div class="selfie-camera-controls">
+            ${showFlipButton ? '<button class="btn btn--small" id="selfieFlipBtn" type="button">Flip</button>' : ''}
+            <button class="btn btn--record" id="takeSelfieBtn" type="button">Take photo</button>
+          </div>
+        `;
+
+    render(`
+      <div class="screen screen--selfie">
+        <div class="question-card">
+          <p class="question-label">Selfie check</p>
+          <p class="question-text">Center your face inside the frame, then take one clear photo.</p>
+        </div>
+        <div class="preview-wrap preview-wrap--frame-guide ${!hasCapturedSelfie && cameraFacingMode === 'user' ? 'preview-wrap--mirrored' : ''}" id="selfiePreviewWrap">
+          ${hasCapturedSelfie
+            ? `<img id="selfiePreviewImage" src="${selfieObjectUrl}" alt="Selfie preview">`
+            : '<video id="preview" autoplay muted playsinline></video><div class="frame-guide-overlay" aria-hidden="true"></div>'}
+        </div>
+        ${feedbackHtml}
+        ${actionHtml}
+      </div>
+    `);
+
+    if (hasCapturedSelfie) {
+      const primaryAction = document.getElementById('retakeSelfieBtn');
+      const secondaryAction = document.getElementById('useSelfieBtn');
+      if (selfieFeedbackTone === 'warn') {
+        primaryAction.addEventListener('click', () => {
+          resetSelfieCaptureState();
+          showSelfieCapture();
+        });
+        secondaryAction.addEventListener('click', showSoundCheck);
+      } else {
+        primaryAction.addEventListener('click', showSoundCheck);
+        secondaryAction.addEventListener('click', () => {
+          resetSelfieCaptureState();
+          showSelfieCapture();
+        });
+      }
+    } else {
+      const preview = document.getElementById('preview');
+      if (preview) {
+        preview.srcObject = mediaStream;
+      }
+      const flipButton = document.getElementById('selfieFlipBtn');
+      if (flipButton) {
+        flipButton.addEventListener('click', switchCamera);
+      }
+      document.getElementById('takeSelfieBtn').addEventListener('click', captureSelfie);
+    }
+
+    if (showGuide) {
+      showPhotoGuidanceOverlay();
+    }
+  }
+
+  function measureAverageLuminance(context, width, height) {
+    const { data } = context.getImageData(0, 0, width, height);
+    let luminanceTotal = 0;
+    let samples = 0;
+
+    for (let index = 0; index < data.length; index += 16) {
+      const red = data[index];
+      const green = data[index + 1];
+      const blue = data[index + 2];
+      luminanceTotal += (0.2126 * red) + (0.7152 * green) + (0.0722 * blue);
+      samples++;
+    }
+
+    return samples ? (luminanceTotal / samples) : 0;
+  }
+
+  function canvasToJpegBlob(canvas) {
+    return new Promise(resolve => {
+      canvas.toBlob(resolve, 'image/jpeg', 0.92);
+    });
+  }
+
+  async function captureSelfie() {
+    const preview = document.getElementById('preview');
+    if (!preview || preview.readyState < 2) {
+      alert('Camera is still starting. Please try again.');
+      return;
+    }
+
+    const canvas = document.createElement('canvas');
+    const width = preview.videoWidth || 720;
+    const height = preview.videoHeight || 1280;
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    context.drawImage(preview, 0, 0, width, height);
+
+    const averageLuminance = measureAverageLuminance(context, width, height);
+    const isTooDark = averageLuminance < 50;
+    let faceMissing = false;
+
+    if (await ensureFaceDetector()) {
+      try {
+        const faces = await faceDetector.detect(canvas);
+        faceMissing = faces.length === 0;
+      } catch (err) {
+        console.warn('[webcap] FaceDetector selfie check failed:', err);
+      }
+    }
+
+    const blob = await canvasToJpegBlob(canvas);
+    if (!blob) {
+      showError('Could not capture your photo. Please try again.');
+      return;
+    }
+
+    clearSelfieObjectUrl();
+    selfieBlob = blob;
+    selfieObjectUrl = URL.createObjectURL(blob);
+
+    if (isTooDark || faceMissing) {
+      selfieFeedbackTone = 'warn';
+      selfieFeedbackMessage = "Photo looks dark or we couldn't detect your face - try again in better light";
+    } else {
+      selfieFeedbackTone = 'good';
+      selfieFeedbackMessage = 'Looks good ✓';
+    }
+
+    showSelfieCapture();
+  }
+
   // ── Question Screen (with audio) ───────────────────────────────────────────
-  function showQuestion() {
+  function showQuestion({ attemptAutoplay = true } = {}) {
+    stopAudioMonitor();
     const updateInfoLink = isReturningFarmer
-      ? `<a href="#" id="updateInfoLink" style="font-size: 12px; color: #8892b0; text-decoration: underline; margin-top: 12px; display: inline-block;">Update info / Rescind consent</a>`
+      ? `<a href="#" id="updateInfoLink" class="question-update-link">Update info / Rescind consent</a>`
       : '';
 
     render(`
       <div class="screen screen--question">
-        <div class="question-card">
-          <p class="question-label">Your question</p>
-          <p class="question-text">${currentQuestion.text_prompt}</p>
+        <div class="question-listen-card">
+          <p class="question-listen-text">${currentQuestion.text_prompt}</p>
         </div>
-        <div class="audio-section" style="display: flex; gap: 12px; width: 100%; margin-bottom: 16px;">
-          <button class="btn btn--small" id="replayBtn" style="flex: 1;">🔊 Replay audio</button>
-          <button class="btn btn--small" id="cameraToggleBtn" style="flex: 1;">🔄 Flip camera</button>
-        </div>
-        <div class="preview-wrap">
-          <video id="preview" autoplay muted playsinline></video>
-        </div>
-        <button class="btn btn--record" id="startBtn" style="margin-top: 12px;">Continue to sound check</button>
-        <p class="hint">Maximum ${MAX_DURATION_SEC} seconds</p>
+        <button class="btn btn--small" id="playBtn" style="display:none">Play question audio</button>
+        <button class="btn btn--record" id="readyToRecordBtn" style="display:none">Ready to record</button>
         ${updateInfoLink}
       </div>
     `);
 
-    document.getElementById('preview').srcObject = mediaStream;
-    document.getElementById('startBtn').addEventListener('click', async () => {
-      stopCurrentAudio();
-      await showSoundCheck();
-    });
-    document.getElementById('replayBtn').addEventListener('click', () => {
-      const audioPath = getAudioPath('question', currentQuestion.id, farmerLang);
-      playAudio(audioPath, () => {});
-    });
-    setupCameraToggle();
+    const revealReadyButton = () => {
+      const readyButton = document.getElementById('readyToRecordBtn');
+      if (readyButton) {
+        readyButton.style.display = 'block';
+      }
+    };
 
-    // Add update info link listener if returning farmer
+    document.getElementById('readyToRecordBtn').addEventListener('click', () => {
+      stopCurrentAudio();
+      startRecording();
+    });
+
     if (isReturningFarmer) {
       const updateLink = document.getElementById('updateInfoLink');
       if (updateLink) {
@@ -909,11 +1034,12 @@
       }
     }
 
-    // Audio starts 1.5s after the overlay begins dismissing — not before
-    const audioPath = getAudioPath('question', currentQuestion.id, farmerLang);
-
-    // Show framing guidance; audio starts 1.5s after overlay begins dismissing
-    showRecordingGuidanceOverlay(audioPath);
+    if (attemptAutoplay) {
+      const audioPath = getAudioPath('question', currentQuestion.id, farmerLang);
+      playAudio(audioPath, revealReadyButton, { buttonId: 'playBtn' });
+    } else {
+      revealReadyButton();
+    }
   }
 
   async function showSoundCheck() {
@@ -923,8 +1049,9 @@
           <p class="question-label">Sound check</p>
           <p class="question-text">Say a few words so we can check your microphone.</p>
         </div>
-        <div class="preview-wrap preview-wrap--sound-check">
+        <div class="preview-wrap preview-wrap--frame-guide">
           <video id="preview" autoplay muted playsinline></video>
+          <div class="frame-guide-overlay" aria-hidden="true"></div>
         </div>
         <div class="sound-check-card">
           <div class="sound-bars" aria-hidden="true">
@@ -933,7 +1060,7 @@
           <p class="sound-status sound-status--warn" id="soundStatus">No sound detected</p>
           <p class="sound-status-detail" id="soundStatusDetail">Try speaking closer to the phone or check your mic.</p>
         </div>
-        <button class="btn btn--record" id="soundCheckContinueBtn">Looks good — start recording</button>
+        <button class="btn btn--record" id="soundCheckContinueBtn">Looks good - start recording</button>
         <button class="btn btn--link" id="continueAnywayBtn" style="display:none">Continue anyway</button>
       </div>
     `);
@@ -945,17 +1072,18 @@
 
     await startAudioMonitor();
 
-    const continueToRecording = () => {
+    const continueToQuestion = () => {
       stopCurrentAudio();
-      startRecording();
+      stopAudioMonitor();
+      showQuestion({ attemptAutoplay: true });
     };
 
-    document.getElementById('soundCheckContinueBtn').addEventListener('click', continueToRecording);
-    document.getElementById('continueAnywayBtn').addEventListener('click', continueToRecording);
+    document.getElementById('soundCheckContinueBtn').addEventListener('click', continueToQuestion);
+    document.getElementById('continueAnywayBtn').addEventListener('click', continueToQuestion);
   }
 
-  // ── Recording Guidance Overlay ────────────────────────────────────────────
-  function showRecordingGuidanceOverlay(audioPath) {
+  // ── Photo Guidance Overlay ────────────────────────────────────────────────
+  function showPhotoGuidanceOverlay() {
     const overlay = document.createElement('div');
     overlay.id        = 'recordingGuidanceOverlay';
     overlay.className = 'recording-guidance-overlay';
@@ -985,30 +1113,15 @@
       dismissed = true;
       clearTimeout(autoTimer);
       overlay.classList.add('recording-guidance-overlay--fading');
-      // Remove overlay after fade completes (matches 0.6s CSS transition)
       setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 650);
-      // Start question audio 1.5s after dismiss begins (after overlay is mostly gone)
-      setTimeout(() => playAudio(audioPath, () => {}), 1500);
     }
 
-    // Tap anywhere on the overlay dismisses it
     overlay.addEventListener('click', dismiss);
 
-    // Elevate record button above overlay so it stays directly tappable.
-    // Also hook dismiss so overlay clears the moment recording starts.
-    const startBtn = document.getElementById('startBtn');
-    if (startBtn) {
-      startBtn.style.position = 'relative';
-      startBtn.style.zIndex   = '200';
-      startBtn.addEventListener('click', dismiss, { once: true });
-    }
-
-    // Auto-dismiss after 4 seconds
     autoTimer = setTimeout(dismiss, 4000);
   }
 
   async function showRecording() {
-    const faceSupported = await ensureFaceDetector();
     render(`
       <div class="screen screen--recording">
         <div class="recording-warning-banner" id="silentWarningBanner">We can't hear you — check your mic</div>
@@ -1017,9 +1130,9 @@
           <span class="rec-label">REC</span>
           <span class="countdown" id="countdown">${MAX_DURATION_SEC}s</span>
         </div>
-        <div class="preview-wrap ${faceSupported ? 'preview-wrap--face-bad' : 'preview-wrap--frame-guide'}" id="recordingPreviewWrap">
+        <div class="preview-wrap preview-wrap--frame-guide" id="recordingPreviewWrap">
           <video id="preview" autoplay muted playsinline></video>
-          ${faceSupported ? '' : '<div class="frame-guide-overlay" aria-hidden="true"></div>'}
+          <div class="frame-guide-overlay" aria-hidden="true"></div>
         </div>
         <button class="btn btn--stop" id="stopBtn">Stop</button>
       </div>
@@ -1027,7 +1140,6 @@
     const preview = document.getElementById('preview');
     preview.srcObject = mediaStream;
     document.getElementById('stopBtn').addEventListener('click', stopRecording);
-    await startFaceDetection(preview);
   }
 
   function showReview() {
@@ -1086,9 +1198,9 @@
 
   function showSuccess() {
     // Release camera tracks once we're done
-    if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
-    stopFaceDetection();
+    stopMediaStream();
     stopAudioMonitor();
+    clearSelfieObjectUrl();
 
     const displayName = farmerName ? `, ${farmerName}` : '';
 
@@ -1138,7 +1250,6 @@
 
     mediaRecorder.onstop = () => {
       clearInterval(countdownTimer);
-      stopFaceDetection();
       stopAudioMonitor();
       recordedBlob = new Blob(recordedChunks, { type: mimeType });
       showReview();
@@ -1165,7 +1276,6 @@
 
   function stopRecording() {
     clearInterval(countdownTimer);
-    stopFaceDetection();
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
     }
@@ -1175,18 +1285,23 @@
     clearReviewObjectUrl();
     recordedChunks = [];
     recordedBlob   = null;
-    stopFaceDetection();
     stopAudioMonitor();
-    showQuestion();
+    showQuestion({ attemptAutoplay: true });
   }
 
   // ── Upload ───────────────────────────────────────────────────────────────
   async function uploadVideo() {
     showUploading();
 
+    if (!selfieBlob) {
+      showUploadError('Missing selfie photo. Please retake your photo and try again.');
+      return;
+    }
+
     const ext       = fileExtension();
     const timestamp = Date.now();
     const filePath  = `${farmerId}/${currentQuestion.id}_${timestamp}.${ext}`;
+    const selfiePath = `farmers/${farmerId}/selfie.jpg`;
 
     // Supabase JS v2 doesn't expose upload progress events, so we animate
     // a simulated bar up to 90% and snap to 100% on success.
@@ -1212,6 +1327,19 @@
         .getPublicUrl(filePath);
       const publicUrl = urlData.publicUrl;
 
+      const { error: selfieUploadError } = await supabaseClient.storage
+        .from(BUCKET)
+        .upload(selfiePath, selfieBlob, {
+          contentType: 'image/jpeg',
+          upsert: true,
+        });
+      if (selfieUploadError) throw selfieUploadError;
+
+      const { data: selfieUrlData } = supabaseClient.storage
+        .from(BUCKET)
+        .getPublicUrl(selfiePath);
+      const selfiePublicUrl = selfieUrlData.publicUrl;
+
       const { error: dbError } = await supabaseClient
         .from(SUBMISSIONS_TABLE)
         .insert({
@@ -1222,6 +1350,14 @@
           status:      'received',
         });
       if (dbError) throw dbError;
+
+      const { error: farmerUpdateError } = await supabaseClient
+        .from(FARMERS_TABLE)
+        .upsert({
+          farmer_id: farmerId,
+          selfie_url: selfiePublicUrl,
+        }, { onConflict: 'farmer_id' });
+      if (farmerUpdateError) throw farmerUpdateError;
 
       clearInterval(ticker);
       const bar = progressBar();

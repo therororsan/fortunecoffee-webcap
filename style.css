@@ -76,11 +76,16 @@ html, body {
   max-height: 68vh;
 }
 
-.preview-wrap video {
+.preview-wrap video,
+.preview-wrap img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.preview-wrap--mirrored video {
+  transform: scaleX(-1);
 }
 
 /* ── Buttons ──────────────────────────────────────────────────────────── */
@@ -614,13 +619,79 @@ html, body {
 
 /* ── Question screen (with audio) ─────────────────────────────────────── */
 .screen--question {
-  justify-content: flex-start;
+  justify-content: center;
+  padding-top: 48px;
+  padding-bottom: 48px;
+  text-align: center;
+  background: linear-gradient(180deg, #23422b 0%, #122118 100%);
 }
 
+.question-listen-card {
+  width: 100%;
+  padding: 40px 28px;
+  border-radius: 24px;
+  background: rgba(9, 16, 11, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
+}
+
+.question-listen-text {
+  font-size: clamp(32px, 8vw, 42px);
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.question-update-link {
+  font-size: 12px;
+  color: #dce8d7;
+  text-decoration: underline;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.screen--selfie,
 .screen--sound-check,
 .screen--recording,
 .screen--review {
   justify-content: flex-start;
+}
+
+.selfie-feedback {
+  width: 100%;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.selfie-feedback--good {
+  background: rgba(76, 175, 125, 0.16);
+  border: 1px solid rgba(76, 175, 125, 0.36);
+  color: #d6f3e2;
+}
+
+.selfie-feedback--warn {
+  background: rgba(240, 195, 106, 0.18);
+  border: 1px solid rgba(240, 195, 106, 0.36);
+  color: #ffe8b3;
+}
+
+.selfie-actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.selfie-camera-controls {
+  width: 100%;
+  display: flex;
+  gap: 12px;
+}
+
+.selfie-camera-controls .btn {
+  flex: 1;
 }
 
 .sound-check-card {
@@ -670,20 +741,8 @@ html, body {
   line-height: 1.5;
 }
 
-.preview-wrap--face-good,
-.preview-wrap--face-bad,
 .preview-wrap--frame-guide {
   border: 4px solid transparent;
-}
-
-.preview-wrap--face-good {
-  border-color: var(--success);
-  box-shadow: 0 0 0 1px rgba(76, 175, 125, 0.25);
-}
-
-.preview-wrap--face-bad {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px rgba(233, 69, 96, 0.2);
 }
 
 .frame-guide-overlay {
