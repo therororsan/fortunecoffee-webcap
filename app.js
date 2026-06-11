@@ -27,6 +27,21 @@
     'Uganda': '+256',   'Vietnam': '+84',   'Yemen': '+967',
     'Other': '',
   };
+  const ISO3_COUNTRY_NAMES = {
+    'bra': 'Brazil',       'col': 'Colombia',      'eth': 'Ethiopia',
+    'gtm': 'Guatemala',    'hnd': 'Honduras',       'ind': 'India',
+    'idn': 'Indonesia',    'ken': 'Kenya',          'mex': 'Mexico',
+    'per': 'Peru',         'rwa': 'Rwanda',         'tza': 'Tanzania',
+    'uga': 'Uganda',       'vnm': 'Vietnam',        'yem': 'Yemen',
+    'lka': 'Sri Lanka',    'chn': 'China',          'hkg': 'Hong Kong',
+    'gbr': 'United Kingdom',
+  };
+
+  function countryDisplayName(code) {
+    if (!code) return '';
+    return ISO3_COUNTRY_NAMES[code.toLowerCase()] || code;
+  }
+
   const FLAG_CODES = {
     'Brazil': 'br',    'Colombia': 'co',  'Ethiopia': 'et', 'Guatemala': 'gt',
     'Honduras': 'hn',  'India': 'in',     'Indonesia': 'id','Kenya': 'ke',
@@ -728,7 +743,7 @@
           </div>
           <div class="form-group">
             <label>Country/Region</label>
-            <p class="registry-field-readonly">${escapeHtml(farmerCountry || '—')}</p>
+            <p class="registry-field-readonly">${escapeHtml(countryDisplayName(farmerCountry) || '—')}</p>
           </div>
           <div class="form-group">
             <label for="phoneConfirm">Phone 📞</label>
