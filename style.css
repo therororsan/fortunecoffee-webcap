@@ -711,7 +711,7 @@ html, body {
   width: 100%;
   background: var(--surface);
   border-radius: var(--radius);
-  padding: 18px 20px;
+  padding: 8px 12px;
   text-align: center;
 }
 
@@ -720,8 +720,8 @@ html, body {
   align-items: flex-end;
   justify-content: center;
   gap: 10px;
-  height: 56px;
-  margin-bottom: 12px;
+  height: 28px;
+  margin-bottom: 6px;
 }
 
 .sound-bar {
@@ -748,14 +748,20 @@ html, body {
 }
 
 .sound-status-detail {
-  margin-top: 8px;
+  margin-top: 4px;
   color: var(--text-muted);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .preview-wrap--frame-guide {
   border: 4px solid transparent;
+}
+
+/* Constrain camera preview on sound-check screen so Start Recording stays visible
+   on a 667px viewport without scrolling. Other screens keep the 68vh default. */
+.screen--sound-check .preview-wrap {
+  max-height: 38vh;
 }
 
 .selfie-with-face-guide {
