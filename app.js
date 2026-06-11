@@ -11,7 +11,7 @@
   const SUPPORTED_LANGS      = ['en', 'am', 'sw', 'fr', 'pt', 'es'];
   const DEFAULT_LANG         = 'en';
   const DEBUG_SELFIE_CHECK   = false;
-  const SOUND_LEVEL_THRESHOLD = 0.02;
+  const SOUND_LEVEL_THRESHOLD = 0.01;
   const SILENCE_WARNING_SECONDS = 5;
   const SOUND_CHECK_BAR_COUNT = 6;
   const COUNTRY_OPTIONS = [
