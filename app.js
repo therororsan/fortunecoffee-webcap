@@ -914,9 +914,15 @@
           resetSelfieCaptureState();
           showSelfieCapture();
         });
-        secondaryAction.addEventListener('click', showSoundCheck);
+        secondaryAction.addEventListener('click', () => {
+          console.log('[webcap] selfie: "Use Photo" tapped', { selfieFeedbackTone, selfieBlob: !!selfieBlob });
+          showSoundCheck();
+        });
       } else {
-        primaryAction.addEventListener('click', showSoundCheck);
+        primaryAction.addEventListener('click', () => {
+          console.log('[webcap] selfie: "Use Photo" tapped', { selfieFeedbackTone, selfieBlob: !!selfieBlob });
+          showSoundCheck();
+        });
         secondaryAction.addEventListener('click', () => {
           resetSelfieCaptureState();
           showSelfieCapture();
@@ -1020,6 +1026,7 @@
     const subjectMissing = !hasSubjectInCenter(context, width, height);
 
     const blob = await canvasToJpegBlob(canvas);
+    console.log('[webcap] selfie: blob created', { size: blob ? blob.size : null, type: blob ? blob.type : null });
     if (!blob) {
       showError('Could not capture your photo. Please try again.');
       return;
@@ -1402,18 +1409,24 @@
         .getPublicUrl(filePath);
       const publicUrl = urlData.publicUrl;
 
-      const { error: selfieUploadError } = await supabaseClient.storage
+      console.log('[webcap] selfie upload: starting', { selfiePath, blobSize: selfieBlob.size });
+      const { data: selfieUpData, error: selfieUploadError } = await supabaseClient.storage
         .from(BUCKET)
         .upload(selfiePath, selfieBlob, {
           contentType: 'image/jpeg',
           upsert: true,
         });
-      if (selfieUploadError) throw selfieUploadError;
+      console.log('[webcap] selfie upload: done', { data: selfieUpData, error: selfieUploadError });
 
-      const { data: selfieUrlData } = supabaseClient.storage
-        .from(BUCKET)
-        .getPublicUrl(selfiePath);
-      const selfiePublicUrl = selfieUrlData.publicUrl;
+      let selfiePublicUrl = null;
+      if (selfieUploadError) {
+        console.error('[webcap] selfie upload failed (non-fatal, continuing):', selfieUploadError);
+      } else {
+        const { data: selfieUrlData } = supabaseClient.storage
+          .from(BUCKET)
+          .getPublicUrl(selfiePath);
+        selfiePublicUrl = selfieUrlData.publicUrl;
+      }
 
       const { error: dbError } = await supabaseClient
         .from(SUBMISSIONS_TABLE)
@@ -1426,13 +1439,19 @@
         });
       if (dbError) throw dbError;
 
-      const { error: farmerUpdateError } = await supabaseClient
-        .from(FARMERS_TABLE)
-        .upsert({
-          farmer_id: farmerId,
-          selfie_url: selfiePublicUrl,
-        }, { onConflict: 'farmer_id' });
-      if (farmerUpdateError) throw farmerUpdateError;
+      if (selfiePublicUrl) {
+        console.log('[webcap] selfie_url upsert: starting', { farmerId, selfiePublicUrl });
+        const { data: farmerUpdateData, error: farmerUpdateError } = await supabaseClient
+          .from(FARMERS_TABLE)
+          .upsert({
+            farmer_id: farmerId,
+            selfie_url: selfiePublicUrl,
+          }, { onConflict: 'farmer_id' });
+        console.log('[webcap] selfie_url upsert: done', { data: farmerUpdateData, error: farmerUpdateError });
+        if (farmerUpdateError) {
+          console.error('[webcap] selfie_url upsert failed (non-fatal):', farmerUpdateError);
+        }
+      }
 
       clearInterval(ticker);
       const bar = progressBar();
