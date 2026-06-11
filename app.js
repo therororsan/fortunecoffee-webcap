@@ -12,7 +12,6 @@
   const DEFAULT_LANG         = 'en';
   const DEBUG_SELFIE_CHECK   = false;
   const SOUND_LEVEL_THRESHOLD = 0.01;
-  const SILENCE_WARNING_SECONDS = 5;
   const SOUND_CHECK_BAR_COUNT = 6;
   const COUNTRY_OPTIONS = [
     'Brazil', 'Colombia', 'Ethiopia', 'Guatemala', 'Honduras',
@@ -85,8 +84,6 @@
   let faceDetector    = null;
   let isFaceDetectionSupported = false;
   let hasMultipleVideoInputs = false;
-  let consecutiveSilentSeconds = 0;
-  let cumulativeSilentSeconds = 0;
 
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -173,11 +170,6 @@
       }
     }
 
-    const banner = document.getElementById('silentWarningBanner');
-    if (banner) {
-      banner.classList.toggle('is-visible', consecutiveSilentSeconds >= SILENCE_WARNING_SECONDS);
-    }
-
     audioMonitorFrame = window.requestAnimationFrame(renderAudioMonitorFrame);
   }
 
@@ -194,11 +186,6 @@
       window.cancelAnimationFrame(audioMonitorFrame);
       audioMonitorFrame = null;
     }
-  }
-
-  function resetRecordingDiagnostics() {
-    consecutiveSilentSeconds = 0;
-    cumulativeSilentSeconds = 0;
   }
 
   async function ensureFaceDetector() {
@@ -241,51 +228,7 @@
     }
   }
 
-  function showSubmissionWarningModal(issues) {
-    const app = document.getElementById('app');
-    if (!app) return;
-
-    const overlay = document.createElement('div');
-    overlay.className = 'guardrail-modal';
-    overlay.innerHTML = `
-      <div class="guardrail-modal__card">
-        <h3>Your video may have issues:</h3>
-        <ul class="guardrail-modal__list">
-          ${issues.map(issue => `<li>${escapeHtml(issue)}</li>`).join('')}
-        </ul>
-        <div class="guardrail-modal__actions">
-          <button class="btn btn--secondary" id="guardrailRerecordBtn">Re-record</button>
-          <button class="btn btn--upload" id="guardrailSubmitBtn">Submit anyway</button>
-        </div>
-      </div>
-    `;
-
-    app.appendChild(overlay);
-
-    document.getElementById('guardrailRerecordBtn').addEventListener('click', () => {
-      overlay.remove();
-      clearReviewObjectUrl();
-      reRecord();
-    });
-
-    document.getElementById('guardrailSubmitBtn').addEventListener('click', () => {
-      overlay.remove();
-      clearReviewObjectUrl();
-      uploadVideo();
-    });
-  }
-
   function handleUploadAttempt() {
-    const issues = [];
-    if (elapsedSeconds > 0 && cumulativeSilentSeconds > (elapsedSeconds / 2)) {
-      issues.push("We couldn't hear you — was your mic on?");
-    }
-
-    if (issues.length) {
-      showSubmissionWarningModal(issues);
-      return;
-    }
-
     clearReviewObjectUrl();
     uploadVideo();
   }
@@ -1206,7 +1149,6 @@
   async function showRecording() {
     render(`
       <div class="screen screen--recording">
-        <div class="recording-warning-banner" id="silentWarningBanner">We can't hear you — check your mic</div>
         <div class="recording-header">
           <span class="rec-dot"></span>
           <span class="rec-label">REC</span>
@@ -1314,7 +1256,6 @@
   async function startRecording() {
     recordedChunks = [];
     elapsedSeconds = 0;
-    resetRecordingDiagnostics();
 
     try {
       mediaRecorder = new MediaRecorder(mediaStream, {
@@ -1343,12 +1284,6 @@
 
     countdownTimer = setInterval(() => {
       elapsedSeconds++;
-      if (currentMicLevel < SOUND_LEVEL_THRESHOLD) {
-        consecutiveSilentSeconds++;
-        cumulativeSilentSeconds++;
-      } else {
-        consecutiveSilentSeconds = 0;
-      }
       const remaining = MAX_DURATION_SEC - elapsedSeconds;
       const el = document.getElementById('countdown');
       if (el) el.textContent = `${remaining}s`;
