@@ -345,8 +345,10 @@
 
       if (existingSubmission) {
         // Pre-fill state from the farmer record
+        // URL param is authoritative for country — only fall back to Supabase value
+        // if no country was passed in the link (prevents stale DB value overriding operator-set country)
         farmerName    = existingSubmission.farmer_name || farmerName;
-        farmerCountry = existingSubmission.country || farmerCountry;
+        farmerCountry = farmerCountry || existingSubmission.country;
         farmerPhone   = existingSubmission.phone || farmerPhone;
         consentGiven  = existingSubmission.consent_given;
         consentTime   = existingSubmission.consent_timestamp;
@@ -725,8 +727,8 @@
             <input type="text" id="nameConfirm" value="${farmerName}">
           </div>
           <div class="form-group">
-            <label for="countryConfirm">Country/Region</label>
-            <input type="text" id="countryConfirm" value="${farmerCountry || ''}">
+            <label>Country/Region</label>
+            <p class="registry-field-readonly">${escapeHtml(farmerCountry || '—')}</p>
           </div>
           <div class="form-group">
             <label for="phoneConfirm">Phone 📞</label>
@@ -739,7 +741,6 @@
 
     document.getElementById('registryConfirmBtn').addEventListener('click', () => {
       farmerName = document.getElementById('nameConfirm').value.trim();
-      farmerCountry = document.getElementById('countryConfirm').value.trim() || null;
       farmerPhone = document.getElementById('phoneConfirm').value.trim() || null;
       proceedToConsent();
     });
