@@ -8,7 +8,7 @@
   const MAX_DURATION_SEC     = 90;
   const VIDEO_BITRATE        = 2_000_000; // 2 Mbps — keeps 90s video under ~50 MB
   const QUESTIONS_URL        = '/questions/questions.json';
-  const SUPPORTED_LANGS      = ['en', 'am', 'sw', 'fr', 'pt', 'es'];
+  const SUPPORTED_LANGS      = ['en', 'sw', 'am', 'si', 'ta', 'vi', 'hi', 'es', 'fr', 'pt'];
   const DEFAULT_LANG         = 'en';
   const DEBUG_SELFIE_CHECK   = false;
   const SOUND_LEVEL_THRESHOLD = 0.01;
@@ -69,6 +69,10 @@
   let cameraFacingMode = 'user'; // 'user' = front/selfie, 'environment' = back
   let isReturningFarmer = false; // Track if farmer has existing submission
   let currentAudio    = null;
+  let currentAudioSettle = null;
+  let currentAudioDelayTimer = null;
+  let currentAudioDelayResolve = null;
+  let isMuted         = false;
   let reviewObjectUrl = null;
   let selfieBlob      = null;
   let selfieObjectUrl = null;
@@ -418,55 +422,218 @@
   }
 
   // ── Language & Audio ──────────────────────────────────────────────────────
-  function getAudioPath(type, id, lang) {
-    // type: 'consent' or 'question'
-    // id: null for consent, 'q1' etc for questions
-    const filename = type === 'consent'
-      ? `consent_${lang}.m4a`
-      : `${id}_${lang}.m4a`;
-    const folder = type === 'consent' ? 'consent' : 'questions';
-    return `audio/${folder}/${filename}`;
+  function resolveAudioPath(screen, lang, options = {}) {
+    const folder = options.folder || screen;
+    const baseName = options.baseName || screen;
+    return `/audio/${folder}/${baseName}_${lang}.mp3`;
   }
 
-  function playAudio(path, onEnd, options = {}) {
-    const buttonId = options.buttonId || 'playBtn';
-    const audio = new Audio(path);
-    currentAudio = audio;
+  function renderMuteToggle() {
+    return `
+      <div style="width:100%; display:flex; justify-content:flex-end;">
+        <button
+          class="btn btn--small"
+          id="muteToggleBtn"
+          data-mute-toggle
+          type="button"
+          style="width:auto; min-width:56px; padding:10px 14px;"
+        >${isMuted ? '🔇' : '🔊'}</button>
+      </div>
+    `;
+  }
 
-    audio.onerror = () => {
-      // Fallback to English if language file missing
-      if (!path.includes('_en.m4a')) {
-        const fallback = path.replace(/_[a-z]+\.m4a$/, '_en.m4a');
-        playAudio(fallback, onEnd, options);
-      } else if (onEnd) {
-        onEnd();
-      }
-    };
+  function syncMuteToggleButton(button) {
+    if (!button) return;
+    button.textContent = isMuted ? '🔇' : '🔊';
+    button.setAttribute('aria-label', isMuted ? 'Unmute audio' : 'Mute audio');
+    button.setAttribute('title', isMuted ? 'Unmute audio' : 'Mute audio');
+  }
 
-    audio.onended = () => {
-      if (onEnd) onEnd();
-    };
+  function syncMuteToggleButtons() {
+    document.querySelectorAll('[data-mute-toggle]').forEach(syncMuteToggleButton);
+  }
 
-    audio.play().catch(() => {
-      // Autoplay blocked — show manual play button
-      showPlayButton(audio, buttonId);
-    });
+  function clearPendingAudioDelay() {
+    if (currentAudioDelayTimer) {
+      window.clearTimeout(currentAudioDelayTimer);
+      currentAudioDelayTimer = null;
+    }
+    if (currentAudioDelayResolve) {
+      const resolve = currentAudioDelayResolve;
+      currentAudioDelayResolve = null;
+      resolve('stopped');
+    }
   }
 
   function stopCurrentAudio() {
+    clearPendingAudioDelay();
     if (!currentAudio) return;
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
+
+    const audio = currentAudio;
+    const settle = currentAudioSettle;
     currentAudio = null;
+    currentAudioSettle = null;
+    audio.onended = null;
+    audio.onerror = null;
+
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+    } catch {}
+
+    if (typeof settle === 'function') {
+      settle('stopped');
+    }
   }
 
-  function showPlayButton(audio, buttonId) {
-    const btn = document.getElementById(buttonId);
-    if (!btn) return;
-    btn.style.display = 'block';
-    btn.onclick = () => {
-      btn.style.display = 'none';
-      audio.play().catch(() => {});
+  function setMuted(nextMuted) {
+    isMuted = !!nextMuted;
+    if (isMuted) {
+      stopCurrentAudio();
+    }
+    syncMuteToggleButtons();
+  }
+
+  function setupMuteToggle() {
+    const button = document.getElementById('muteToggleBtn');
+    if (!button) return;
+    syncMuteToggleButton(button);
+    button.addEventListener('click', () => {
+      setMuted(!isMuted);
+    });
+  }
+
+  function playAudioPath(path) {
+    if (isMuted) {
+      return Promise.resolve('muted');
+    }
+
+    stopCurrentAudio();
+
+    return new Promise(resolve => {
+      const audio = new Audio(path);
+      let settled = false;
+
+      const finish = status => {
+        if (settled) return;
+        settled = true;
+        if (currentAudio === audio) {
+          currentAudio = null;
+          currentAudioSettle = null;
+        }
+        audio.onended = null;
+        audio.onerror = null;
+        resolve(status);
+      };
+
+      currentAudio = audio;
+      currentAudioSettle = finish;
+      audio.onended = () => finish('ended');
+      audio.onerror = () => finish('error');
+
+      const playPromise = audio.play();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => finish('play-error'));
+      }
+    });
+  }
+
+  async function playAudioClip(screen, lang, options = {}) {
+    const primaryPath = resolveAudioPath(screen, lang, options);
+    const primaryResult = await playAudioPath(primaryPath);
+
+    if (
+      primaryResult === 'ended' ||
+      primaryResult === 'stopped' ||
+      primaryResult === 'muted'
+    ) {
+      return primaryResult;
+    }
+
+    if (options.skipEnglishFallback || lang === 'en') {
+      return options.optional ? 'skipped' : primaryResult;
+    }
+
+    const fallbackPath = resolveAudioPath(screen, 'en', options);
+    const fallbackResult = await playAudioPath(fallbackPath);
+    if (fallbackResult === 'ended' || fallbackResult === 'stopped' || fallbackResult === 'muted') {
+      return fallbackResult;
+    }
+
+    return options.optional ? 'skipped' : fallbackResult;
+  }
+
+  function waitForAudioPause(ms) {
+    if (ms <= 0 || isMuted) {
+      return Promise.resolve('ended');
+    }
+
+    clearPendingAudioDelay();
+
+    return new Promise(resolve => {
+      currentAudioDelayResolve = result => {
+        currentAudioDelayResolve = null;
+        resolve(result);
+      };
+      currentAudioDelayTimer = window.setTimeout(() => {
+        currentAudioDelayTimer = null;
+        if (currentAudioDelayResolve) {
+          const finish = currentAudioDelayResolve;
+          currentAudioDelayResolve = null;
+          finish('ended');
+        }
+      }, ms);
+    });
+  }
+
+  function createAudioController({ clips, onComplete, completeOnStop = false } = {}) {
+    const sequence = Array.isArray(clips) ? clips : [];
+
+    const runSequence = async () => {
+      stopCurrentAudio();
+      if (isMuted) {
+        if (completeOnStop && typeof onComplete === 'function') {
+          onComplete();
+        }
+        return;
+      }
+
+      for (const clip of sequence) {
+        if (isMuted) {
+          if (completeOnStop && typeof onComplete === 'function') {
+            onComplete();
+          }
+          return;
+        }
+
+        if (clip.pauseMs) {
+          const pauseResult = await waitForAudioPause(clip.pauseMs);
+          if (pauseResult === 'stopped') {
+            if (completeOnStop && typeof onComplete === 'function') {
+              onComplete();
+            }
+            return;
+          }
+          continue;
+        }
+
+        const result = await playAudioClip(clip.screen, clip.lang, clip);
+        if (result === 'stopped' || result === 'muted') {
+          if (completeOnStop && typeof onComplete === 'function') {
+            onComplete();
+          }
+          return;
+        }
+      }
+
+      if (!isMuted && typeof onComplete === 'function') {
+        onComplete();
+      }
+    };
+
+    return {
+      play: runSequence,
+      replay: runSequence,
     };
   }
 
@@ -540,6 +707,7 @@
 
   // ── Screens ──────────────────────────────────────────────────────────────
   function render(html) {
+    stopCurrentAudio();
     document.getElementById('app').innerHTML = html;
   }
 
@@ -712,13 +880,16 @@
   function showConsent({ attemptAutoplay = false } = {}) {
     consentGiven = null;
     consentTime = null;
+    const consentAudio = createAudioController({
+      clips: [{ screen: 'consent', lang: farmerLang }],
+    });
 
     render(`
       <div class="screen screen--consent">
+        ${renderMuteToggle()}
         <div class="consent-body">
           <div class="audio-section">
-            <div class="audio-status">🔊 Playing consent audio...</div>
-            <button class="btn btn--small" id="playBtn" style="display:none">Tap to play audio</button>
+            <div class="audio-status">🔊 Consent audio plays automatically when available.</div>
           </div>
           <div class="consent-text">
             <p>This video will be used by Fortune Coffee to share your story with customers who buy your coffee.</p>
@@ -731,9 +902,12 @@
         </div>
       </div>
     `);
+    setupMuteToggle();
 
     document.getElementById('consentYesBtn').addEventListener('click', async () => {
-      stopCurrentAudio();
+      if (!isMuted && !currentAudio) {
+        consentAudio.play();
+      }
       consentGiven = true;
       consentTime = new Date().toISOString();
       try {
@@ -760,9 +934,8 @@
       showConsentDecline();
     });
 
-    const audioPath = getAudioPath('consent', null, farmerLang);
     if (attemptAutoplay) {
-      playAudio(audioPath, () => {}, { buttonId: 'playBtn' });
+      consentAudio.play();
     }
   }
 
@@ -814,12 +987,15 @@
     showLoading();
     const cameraReady = await initCamera();
     if (!cameraReady) return;
-    showSelfieCapture({ showGuide: true });
+    showSelfieCapture({ showGuide: true, attemptAutoplay: true });
   }
 
-  function showSelfieCapture({ showGuide = false } = {}) {
+  function showSelfieCapture({ showGuide = false, attemptAutoplay = false } = {}) {
     const hasCapturedSelfie = !!(selfieBlob && selfieObjectUrl);
     const showFlipButton = !hasCapturedSelfie && hasMultipleVideoInputs;
+    const selfieAudio = createAudioController({
+      clips: [{ screen: 'selfie', lang: farmerLang }],
+    });
     const actionHtml = hasCapturedSelfie
       ? `
           <div class="selfie-actions">
@@ -836,6 +1012,7 @@
 
     render(`
       <div class="screen screen--selfie">
+        ${renderMuteToggle()}
         <div class="question-card">
           <p class="question-label">Selfie check</p>
           <p class="question-text">Center your face inside the oval, then take one clear photo.</p>
@@ -848,6 +1025,7 @@
         ${actionHtml}
       </div>
     `);
+    setupMuteToggle();
 
     if (hasCapturedSelfie) {
       const primaryAction = document.getElementById('retakeSelfieBtn');
@@ -887,6 +1065,10 @@
 
     if (showGuide) {
       showPhotoGuidanceOverlay();
+    }
+
+    if (attemptAutoplay && !hasCapturedSelfie) {
+      selfieAudio.play();
     }
   }
 
@@ -1022,20 +1204,25 @@
   // ── Question Screen (with audio) ───────────────────────────────────────────
   function showQuestion({ attemptAutoplay = true } = {}) {
     stopAudioMonitor();
+    const questionAudioKey = currentQuestion && (currentQuestion.audio_file || currentQuestion.id)
+      ? (currentQuestion.audio_file || currentQuestion.id)
+      : 'question';
     const updateInfoLink = isReturningFarmer
       ? `<a href="#" id="updateInfoLink" class="question-update-link">Update info / Rescind consent</a>`
       : '';
 
     render(`
       <div class="screen screen--question">
+        ${renderMuteToggle()}
         <div class="question-listen-card">
           <p class="question-listen-text">${currentQuestion.text_prompt}</p>
         </div>
-        <button class="btn btn--small" id="playBtn" style="display:none">Play question audio</button>
+        <button class="btn btn--small" id="playBtn" type="button">Replay audio</button>
         <button class="btn btn--record" id="readyToRecordBtn" style="display:none">Ready to record</button>
         ${updateInfoLink}
       </div>
     `);
+    setupMuteToggle();
 
     const revealReadyButton = () => {
       const readyButton = document.getElementById('readyToRecordBtn');
@@ -1043,10 +1230,32 @@
         readyButton.style.display = 'block';
       }
     };
+    const questionAudio = createAudioController({
+      clips: [
+        {
+          screen: 'question_intro',
+          lang: farmerLang,
+          optional: true,
+          skipEnglishFallback: true,
+        },
+        { pauseMs: 500 },
+        {
+          screen: 'question',
+          lang: farmerLang,
+          folder: 'questions',
+          baseName: questionAudioKey,
+        },
+      ],
+      completeOnStop: true,
+      onComplete: revealReadyButton,
+    });
 
     document.getElementById('readyToRecordBtn').addEventListener('click', () => {
       stopCurrentAudio();
       startRecording();
+    });
+    document.getElementById('playBtn').addEventListener('click', () => {
+      questionAudio.replay();
     });
 
     if (isReturningFarmer) {
@@ -1060,8 +1269,7 @@
     }
 
     if (attemptAutoplay) {
-      const audioPath = getAudioPath('question', currentQuestion.id, farmerLang);
-      playAudio(audioPath, revealReadyButton, { buttonId: 'playBtn' });
+      questionAudio.play();
     } else {
       revealReadyButton();
     }
@@ -1225,11 +1433,15 @@
     stopMediaStream();
     stopAudioMonitor();
     clearSelfieObjectUrl();
+    const successAudio = createAudioController({
+      clips: [{ screen: 'success', lang: farmerLang }],
+    });
 
     const displayName = farmerName ? `, ${farmerName}` : '';
 
     render(`
       <div class="screen screen--success">
+        ${renderMuteToggle()}
         <div class="success-card success-animate" id="successCard">
           <div class="success-icon" aria-hidden="true">
             <svg viewBox="0 0 80 80" role="img" focusable="false">
@@ -1245,11 +1457,14 @@
         </div>
       </div>
     `);
+    setupMuteToggle();
 
     requestAnimationFrame(() => {
       const card = document.getElementById('successCard');
       if (card) card.classList.add('is-visible');
     });
+
+    successAudio.play();
   }
 
   // ── Recording ────────────────────────────────────────────────────────────

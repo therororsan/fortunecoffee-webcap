@@ -1,0 +1,86 @@
+{
+  "voices": {
+    "default": "21m00Tcm4TlvDq8ikWAM",
+    "en": "XcXEQzuLXRU9RcfWzEJt"
+  },
+  "consent": {
+    "en": "Hello from Fortune Coffee! We're recording a short video of you today. This video will be shared with coffee buyers around the world, so they can learn about you and your work. If you agree to continue, press the green button. Thank you SO much for doing this!",
+    "am": "ከፎርቹን ቡና ሰላምታ። ዛሬ አጭር ቪዲዮ እንቀርጻለን። ይህ ቪዲዮ በዓለም ዙሪያ ለሚገኙ የቡና ገዢዎች ይጋራል፣ ስለርስዎና ስለሚሠሩት ሥራ እንዲያውቁ። በማንኛውም ጊዜ መቀጠል አለመቀጠል ይችላሉ። በቀጠሉ፣ ቪዲዮዎን እና ፎቶዎን ከፎርቹን ቡናና አጋሮቹ ጋር ለማጋራት ይስማማሉ። ለዚህ በጣም እናመሰግናለን።",
+    "sw": "Habari kutoka Fortune Coffee! Tunafanya video fupi yako leo. Video hii itashirikiwa na wanunuzi wa kahawa duniani kote, ili wajifunze kukuhusu wewe na kazi unayofanya. Unaweza kuamua kutofanya kurekodi wakati wowote. Kwa kuendelea, unakubaliana kushiriki video na picha yako na Fortune Coffee na washirika wake. Asante sana kwa kufanya hivi!",
+    "si": "Fortune Coffee වෙතින් ආයුබෝවන්! අද අපි ඔබේ කෙටි වීඩියෝවක් රෙකෝඩ් කරනවා. මෙම වීඩියෝව ලොව පුරා කෝපි ගැනුම්කරුවන් සමඟ බෙදා ගනු ලැබේ. ඔබට ඕනෑම වේලාවක රෙකෝඩ් නොකිරීමට තෝරාගත හැකිය. ඉදිරියට යාමෙන් ඔබ ඔබේ වීඩියෝව සහ ඡායාරූපය Fortune Coffee සමඟ බෙදා ගැනීමට එකඟ වේ. මෙය කිරීම ගැන ඔබට බොහෝම ස්තූතියි!",
+    "ta": "Fortune Coffee-இலிருந்து வணக்கம்! இன்று உங்களுடைய ஒரு சிறிய வீடியோவை பதிவு செய்கிறோம். இந்த வீடியோ உலகெங்கும் உள்ள காபி வாங்குபவர்களுடன் பகிரப்படும். நீங்கள் எந்த நேரத்திலும் பதிவு செய்யாமல் இருக்கலாம். தொடர்வதன் மூலம் உங்கள் வீடியோவையும் புகைப்படத்தையும் Fortune Coffee-உடன் பகிர்ந்துகொள்ள ஒப்புக்கொள்கிறீர்கள். இதை செய்வதற்கு மிகவும் நன்றி!",
+    "vi": "Xin chào từ Fortune Coffee! Hôm nay chúng tôi sẽ quay một video ngắn về bạn. Video này sẽ được chia sẻ với những người mua cà phê trên toàn thế giới. Bạn có thể chọn không quay video bất cứ lúc nào. Bằng cách tiếp tục, bạn đồng ý chia sẻ video và ảnh của mình với Fortune Coffee và các đối tác. Cảm ơn bạn rất nhiều vì đã làm điều này!",
+    "hi": "Fortune Coffee की ओर से नमस्ते! आज हम आपका एक छोटा वीडियो रिकॉर्ड कर रहे हैं। यह वीडियो दुनिया भर के कॉफी खरीदारों के साथ साझा किया जाएगा। आप किसी भी समय रिकॉर्डिंग न करने का चुनाव कर सकते हैं। आगे बढ़ने पर आप अपना वीडियो और फ़ोटो Fortune Coffee के साथ साझा करने के लिए सहमत होते हैं। यह करने के लिए आपका बहुत-बहुत धन्यवाद!",
+    "es": "¡Hola desde Fortune Coffee! Hoy vamos a grabar un video corto tuyo. Este video se compartirá con compradores de café de todo el mundo. Puedes elegir no grabar en cualquier momento. Al continuar, aceptas compartir tu video y foto con Fortune Coffee y sus socios. ¡Muchas gracias por hacer esto!",
+    "fr": "Bonjour de la part de Fortune Coffee! Nous allons enregistrer une courte vidéo de vous aujourd'hui. Cette vidéo sera partagée avec des acheteurs de café du monde entier. Vous pouvez choisir de ne pas enregistrer à tout moment. En continuant, vous acceptez de partager votre vidéo et photo avec Fortune Coffee et ses partenaires. Merci infiniment pour cela!",
+    "pt": "Olá da Fortune Coffee! Hoje vamos gravar um vídeo curto seu. Este vídeo será compartilhado com compradores de café de todo o mundo. Você pode escolher não gravar a qualquer momento. Ao continuar, você concorda em compartilhar seu vídeo e foto com a Fortune Coffee e seus parceiros. Muito obrigado por fazer isso!"
+  },
+  "selfie": {
+    "en": "Ready to take a selfie? Smile and make sure we see you!",
+    "am": "ሴልፊ ለማንሳት ተዘጋጅተዋል? ፈገግ ይበሉ፣ ፊትዎ ግልፅ እንዲታይ ያድርጉ!",
+    "sw": "Uko tayari kupiga selfie? Tabasamu na uhakikishe tunakuona!",
+    "si": "සෙල්ෆියක් ගන්න සූදානම්ද? හිනා වෙලා අපට හොඳට පෙනෙන්න ඉන්න!",
+    "ta": "செல்ஃபி எடுக்க தயாரா? சிரித்து, நாங்கள் உங்களை பார்க்கும்படி நில்லுங்கள்!",
+    "vi": "Sẵn sàng chụp ảnh selfie chưa? Hãy cười và đảm bảo chúng tôi nhìn thấy bạn!",
+    "hi": "सेल्फी लेने के लिए तैयार हैं? मुस्कुराइए और सुनिश्चित करें कि हम आपको देख सकें!",
+    "es": "¿Listo para tomarte una selfie? ¡Sonríe y asegúrate de que te veamos bien!",
+    "fr": "Prêt pour un selfie? Souriez et assurez-vous qu'on vous voit bien!",
+    "pt": "Pronto para uma selfie? Sorria e certifique-se de que podemos ver você!"
+  },
+  "question_intro": {
+    "en": "You ready? So here's my question to you —",
+    "am": "ዝግጁ ነዎት? ጥያቄዬ ይህ ነው —",
+    "sw": "Uko tayari? Hii hapa swali langu kwako —",
+    "si": "සූදානම්ද? ඉතින් මගේ ප්‍රශ්නය මෙන්න —",
+    "ta": "தயாரா? இதோ என் கேள்வி உங்களுக்கு —",
+    "vi": "Sẵn sàng chưa? Đây là câu hỏi của tôi dành cho bạn —",
+    "hi": "तैयार हैं? तो यह रहा मेरा सवाल आपसे —",
+    "es": "¿Listo? Aquí va mi pregunta para ti —",
+    "fr": "Vous êtes prêt? Voici ma question pour vous —",
+    "pt": "Pronto? Então aqui está minha pergunta para você —"
+  },
+  "success": {
+    "en": "Great job! Thanks for your submission — we are all set!",
+    "am": "እጅግ በጣም ጥሩ! ለምዝገባዎ እናመሰግናለን — ሁሉም ነገር ተሟልቷል!",
+    "sw": "Kazi nzuri sana! Asante kwa uwasilishaji wako — tumekamilisha!",
+    "si": "නියමයි! ඔබේ ඉදිරිපත් කිරීම ගැන ස්තූතියි — හැම දෙයක්ම හරි!",
+    "ta": "மிகவும் நன்று! உங்கள் சமர்ப்பணத்திற்கு நன்றி — எல்லாம் சரியாக உள்ளது!",
+    "vi": "Tuyệt vời! Cảm ơn bạn đã gửi — chúng ta đã hoàn tất!",
+    "hi": "शानदार काम! आपके सबमिशन के लिए धन्यवाद — सब कुछ तैयार है!",
+    "es": "¡Excelente trabajo! Gracias por tu envío — ¡ya está todo listo!",
+    "fr": "Excellent travail! Merci pour votre envoi — nous avons tout ce qu'il nous faut!",
+    "pt": "Ótimo trabalho! Obrigado pela sua submissão — estamos prontos!"
+  },
+  "questions": {
+    "q1": {
+      "en": "What is your favorite meal to share with guests?"
+    },
+    "q2": {
+      "en": "What is your favorite thing to drink — besides coffee?"
+    },
+    "q3": {
+      "en": "If a visitor came to your village, where is the first place you would take them?"
+    },
+    "q4": {
+      "en": "If you close your eyes on your farm right now, what do you hear?"
+    },
+    "q5": {
+      "en": "Who taught you to grow coffee, and what is the one thing they told you that you still remember?"
+    },
+    "q6": {
+      "en": "Tell us something about growing coffee that would surprise most people."
+    },
+    "q7": {
+      "en": "If your coffee could talk, what would it say about you?"
+    },
+    "q8": {
+      "en": "What is the best part of your day?"
+    },
+    "q9": {
+      "en": "If you could invite anyone in the world to visit your farm, who would you invite and why?"
+    },
+    "q10": {
+      "en": "What is something you are proud of that has nothing to do with coffee?"
+    }
+  }
+}

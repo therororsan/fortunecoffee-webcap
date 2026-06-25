@@ -1,10 +1,10 @@
 [
   {
     "id": "q1",
-    "text_prompt": "Please tell us: what is your favorite crop to grow, and why?",
+    "text_prompt": "What is your favorite meal to share with guests?",
     "audio_file": "q1",
     "text_translations": {
-      "en": "Please tell us: what is your favorite crop to grow, and why?",
+      "en": "What is your favorite meal to share with guests?",
       "am": null,
       "sw": null,
       "fr": null,
