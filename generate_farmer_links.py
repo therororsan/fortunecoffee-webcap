@@ -124,13 +124,14 @@ def extract_existing_counters(rows: list[list[str]], header_index: dict[str, int
     return counters
 
 
-def build_webcap_link(farmer_id: str, farmer_name: str, country: str, full_phone: str) -> str:
+def build_webcap_link(farmer_id: str, farmer_name: str, country: str, full_phone: str, language: str = "en") -> str:
     params = urlencode(
         {
             "id": farmer_id,
             "name": farmer_name,
             "country": country,
             "phone": full_phone,
+            "lang": language,
         }
     )
     return f"{BASE_URL}?{params}"
@@ -334,7 +335,7 @@ def main() -> None:
 
         webcap_link = row[header_index["webcap_link"]].strip()
         if not webcap_link:
-            webcap_link = build_webcap_link(farmer_id, farmer_name, country, full_phone or "")
+            webcap_link = build_webcap_link(farmer_id, farmer_name, country, full_phone or "", language)
             updates.append(
                 {
                     "range": f"{col_to_a1(header_index['webcap_link'])}{zero_based_index}",
