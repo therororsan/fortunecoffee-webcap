@@ -2,9 +2,16 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import os
 import sys
+sys.stdout = io.TextIOWrapper(
+    sys.stdout.buffer, encoding='utf-8', errors='replace'
+)
+sys.stderr = io.TextIOWrapper(
+    sys.stderr.buffer, encoding='utf-8', errors='replace'
+)
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -13,9 +20,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPT_DIR.parent
 SCRIPTS_JSON_PATH = SCRIPT_DIR / "tts_scripts.json"
 OUTPUT_ROOT = REPO_ROOT / "public" / "audio"
-SHARED_ENV_PATH = Path(
-    r"C:\Users\User\OneDrive\Claude\farmer-project\_shared\config\.env"
-)
+SHARED_ENV_PATH = Path(__file__).parent.parent.parent / "_shared" / "config" / ".env"
 
 STATIC_SCREEN_ORDER = ("consent", "selfie", "question_intro", "success")
 SCREEN_ORDER = STATIC_SCREEN_ORDER + ("questions",)
@@ -30,7 +35,7 @@ MIN_GENERATED_FILE_BYTES = 5_000
 
 GOOGLE_VOICE_CONFIG = {
     "am": {"language_code": "am-ET", "voice_name": "am-ET-Standard-A"},
-    "si": {"language_code": "si-LK", "voice_name": "si-LK-Standard-A"},
+    "si": {"language_code": "si-LK", "ssml_gender": "FEMALE"},
 }
 
 
@@ -95,7 +100,7 @@ def load_environment() -> None:
         return
 
     if SHARED_ENV_PATH.exists():
-        load_dotenv(SHARED_ENV_PATH, override=False)
+        load_dotenv(dotenv_path=SHARED_ENV_PATH, override=True)
 
 
 def validate_translation_block(
@@ -152,7 +157,7 @@ def load_scripts() -> dict[str, object]:
         for question_id, translations in questions.items():
             scripts["questions"][question_id] = validate_translation_block(
                 translations,
-                ("en",),
+                LANG_ORDER,
                 f"Question '{question_id}'",
             )
 
@@ -238,7 +243,8 @@ def voice_id_for_lang(voices: dict[str, str], lang: str) -> str:
 def voice_label_for_task(task: AudioTask, voices: dict[str, str]) -> str:
     if task.engine == "ElevenLabs":
         return voice_id_for_lang(voices, task.lang)
-    return GOOGLE_VOICE_CONFIG[task.lang]["voice_name"]
+    voice_config = GOOGLE_VOICE_CONFIG[task.lang]
+    return voice_config.get("voice_name", f'{voice_config["language_code"]} default')
 
 
 def planned_action(existing_size: int | None, force: bool) -> str:
@@ -317,12 +323,19 @@ def synthesize_google(task: AudioTask) -> None:
 
     voice_config = GOOGLE_VOICE_CONFIG[task.lang]
     client = texttospeech.TextToSpeechClient()
+    voice_params: dict[str, object] = {
+        "language_code": voice_config["language_code"],
+    }
+    if "voice_name" in voice_config:
+        voice_params["name"] = voice_config["voice_name"]
+    if "ssml_gender" in voice_config:
+        voice_params["ssml_gender"] = getattr(
+            texttospeech.SsmlVoiceGender, voice_config["ssml_gender"]
+        )
+
     response = client.synthesize_speech(
         input=texttospeech.SynthesisInput(text=task.text),
-        voice=texttospeech.VoiceSelectionParams(
-            language_code=voice_config["language_code"],
-            name=voice_config["voice_name"],
-        ),
+        voice=texttospeech.VoiceSelectionParams(**voice_params),
         audio_config=texttospeech.AudioConfig(
             audio_encoding=texttospeech.AudioEncoding.MP3
         ),
@@ -371,7 +384,7 @@ def main() -> int:
     )
     print(f"ElevenLabs: model={ELEVENLABS_MODEL_ID}, voices={voice_summary}, output={ELEVENLABS_OUTPUT_FORMAT}")
     print(
-        "Google Cloud TTS: am=am-ET-Standard-A, si=si-LK-Standard-A, output=MP3"
+        "Google Cloud TTS: am=am-ET-Standard-A, si=si-LK default female, output=MP3"
     )
 
     for index, task in enumerate(tasks, start=1):
