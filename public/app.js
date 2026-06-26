@@ -503,7 +503,7 @@
     });
   }
 
-  function playAudioPath(path) {
+  function playAudioPath(path, options = {}) {
     if (isMuted) {
       return Promise.resolve('muted');
     }
@@ -532,15 +532,23 @@
       audio.onerror = () => finish('error');
 
       const playPromise = audio.play();
-      if (playPromise && typeof playPromise.catch === 'function') {
-        playPromise.catch(() => finish('play-error'));
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise
+          .then(() => {
+            if (typeof options.onPlayStart === 'function') {
+              options.onPlayStart();
+            }
+          })
+          .catch(() => finish('play-error'));
+      } else if (typeof options.onPlayStart === 'function') {
+        options.onPlayStart();
       }
     });
   }
 
   async function playAudioClip(screen, lang, options = {}) {
     const primaryPath = resolveAudioPath(screen, lang, options);
-    const primaryResult = await playAudioPath(primaryPath);
+    const primaryResult = await playAudioPath(primaryPath, options);
 
     if (
       primaryResult === 'ended' ||
@@ -555,7 +563,7 @@
     }
 
     const fallbackPath = resolveAudioPath(screen, 'en', options);
-    const fallbackResult = await playAudioPath(fallbackPath);
+    const fallbackResult = await playAudioPath(fallbackPath, options);
     if (fallbackResult === 'ended' || fallbackResult === 'stopped' || fallbackResult === 'muted') {
       return fallbackResult;
     }
@@ -586,7 +594,7 @@
     });
   }
 
-  function createAudioController({ clips, onComplete, completeOnStop = false } = {}) {
+  function createAudioController({ clips, onComplete, onPlayStart, completeOnStop = false } = {}) {
     const sequence = Array.isArray(clips) ? clips : [];
 
     const runSequence = async () => {
@@ -597,6 +605,8 @@
         }
         return;
       }
+
+      let playStartHandled = false;
 
       for (const clip of sequence) {
         if (isMuted) {
@@ -617,7 +627,18 @@
           continue;
         }
 
-        const result = await playAudioClip(clip.screen, clip.lang, clip);
+        const result = await playAudioClip(clip.screen, clip.lang, {
+          ...clip,
+          onPlayStart: () => {
+            if (playStartHandled) {
+              return;
+            }
+            playStartHandled = true;
+            if (typeof onPlayStart === 'function') {
+              onPlayStart();
+            }
+          },
+        });
         if (result === 'stopped' || result === 'muted') {
           if (completeOnStop && typeof onComplete === 'function') {
             onComplete();
@@ -880,8 +901,15 @@
   function showConsent({ attemptAutoplay = false } = {}) {
     consentGiven = null;
     consentTime = null;
+    let consentAudioAutoplaySucceeded = false;
+    let isConsentAutoplayAttempt = false;
     const consentAudio = createAudioController({
       clips: [{ screen: 'consent', lang: farmerLang }],
+      onPlayStart: () => {
+        if (isConsentAutoplayAttempt) {
+          consentAudioAutoplaySucceeded = true;
+        }
+      },
     });
 
     render(`
@@ -905,7 +933,7 @@
     setupMuteToggle();
 
     document.getElementById('consentYesBtn').addEventListener('click', async () => {
-      if (!isMuted && !currentAudio) {
+      if (!isMuted && !currentAudio && !consentAudioAutoplaySucceeded) {
         consentAudio.play();
       }
       consentGiven = true;
@@ -935,7 +963,10 @@
     });
 
     if (attemptAutoplay) {
-      consentAudio.play();
+      isConsentAutoplayAttempt = true;
+      consentAudio.play().finally(() => {
+        isConsentAutoplayAttempt = false;
+      });
     }
   }
 
