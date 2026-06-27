@@ -916,9 +916,6 @@
       <div class="screen screen--consent">
         ${renderMuteToggle()}
         <div class="consent-body">
-          <div class="audio-section">
-            <div class="audio-status">🔊 Consent audio plays automatically when available.</div>
-          </div>
           <div class="consent-text">
             <p>This video will be used by Fortune Coffee to share your story with customers who buy your coffee.</p>
             <p><strong>Do you agree?</strong></p>
