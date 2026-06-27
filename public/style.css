@@ -536,9 +536,16 @@ html, body {
 
 /* ── Consent screen ───────────────────────────────────────────────────── */
 .screen--consent {
-  justify-content: space-between;
-  padding-top: 60px;
-  padding-bottom: 60px;
+  position: relative;
+  justify-content: flex-end;
+  padding-bottom: 48px;
+}
+
+.screen--consent > div:first-child {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: auto;
 }
 
 .consent-body {
