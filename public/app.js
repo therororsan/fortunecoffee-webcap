@@ -1456,6 +1456,37 @@
     document.getElementById('retryBtn').addEventListener('click', showReview);
   }
 
+  async function copyTextToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    textarea.remove();
+  }
+
+  function setupSuccessFarmerIdCopy() {
+    const button = document.getElementById('successFarmerId');
+    const copied = document.getElementById('successFarmerIdCopied');
+    if (!button || !copied) return;
+
+    button.addEventListener('click', async () => {
+      await copyTextToClipboard(farmerId);
+      copied.textContent = 'Copied';
+      window.setTimeout(() => {
+        copied.textContent = '';
+      }, 1200);
+    });
+  }
+
   function showSuccess() {
     // Release camera tracks once we're done
     stopMediaStream();
@@ -1483,9 +1514,22 @@
           <p class="success-next">We will be in touch when your farmer card is ready.</p>
           <p class="success-footer">FORTUNE COFFEE</p>
         </div>
+        <div style="position:fixed; left:0; right:0; bottom:calc(8px + env(safe-area-inset-bottom)); text-align:center;">
+          <button
+            id="successFarmerId"
+            type="button"
+            style="border:0; background:transparent; color:#c8c8c8; font-family:inherit; font-size:11px; line-height:1.2; padding:8px 12px; cursor:pointer;"
+          >${escapeHtml(farmerId)}</button>
+          <div
+            id="successFarmerIdCopied"
+            aria-live="polite"
+            style="min-height:13px; color:#9ca3af; font-size:11px; line-height:1.2;"
+          ></div>
+        </div>
       </div>
     `);
     setupMuteToggle();
+    setupSuccessFarmerIdCopy();
 
     requestAnimationFrame(() => {
       const card = document.getElementById('successCard');
