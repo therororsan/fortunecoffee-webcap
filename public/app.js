@@ -64,6 +64,8 @@
   let recordedBlob    = null;
   let mimeType        = 'video/webm';
   let countdownTimer  = null;
+  let recorderStopSafetyTimer = null;
+  let recordingStopHandled = false;
   let elapsedSeconds  = 0;
   let supabaseClient  = null;
   let cameraFacingMode = 'user'; // 'user' = front/selfie, 'environment' = back
@@ -1390,9 +1392,10 @@
           <span class="rec-label">REC</span>
           <span class="countdown" id="countdown">${MAX_DURATION_SEC}s</span>
         </div>
-        <div class="preview-wrap preview-wrap--frame-guide" id="recordingPreviewWrap">
+        <div class="preview-wrap preview-wrap--frame-guide" id="recordingPreviewWrap" style="position:relative;">
           <video id="preview" autoplay muted playsinline></video>
           <div class="frame-guide-overlay" aria-hidden="true"></div>
+          <span id="countdownWatermark" aria-hidden="true" style="display:none;position:absolute;bottom:16px;right:16px;font-size:48px;color:rgba(255,255,255,0.7);text-shadow:0 2px 10px rgba(0,0,0,0.8);z-index:3;pointer-events:none;font-weight:700;line-height:1;"></span>
         </div>
         <button class="btn btn--stop" id="stopBtn">Stop</button>
       </div>
@@ -1540,8 +1543,57 @@
   }
 
   // ── Recording ────────────────────────────────────────────────────────────
+  function clearRecorderStopSafetyTimer() {
+    if (recorderStopSafetyTimer) {
+      window.clearTimeout(recorderStopSafetyTimer);
+      recorderStopSafetyTimer = null;
+    }
+  }
+
+  function createRecordedBlob() {
+    recordedBlob = new Blob(recordedChunks, { type: mimeType });
+    return recordedBlob;
+  }
+
+  function finishRecordingToReview() {
+    if (recordingStopHandled) return;
+    recordingStopHandled = true;
+    clearInterval(countdownTimer);
+    clearRecorderStopSafetyTimer();
+    stopAudioMonitor();
+    createRecordedBlob();
+    showReview();
+  }
+
+  function failRecording(msg) {
+    if (recordingStopHandled) return;
+    recordingStopHandled = true;
+    clearInterval(countdownTimer);
+    clearRecorderStopSafetyTimer();
+    stopAudioMonitor();
+    showError(msg);
+  }
+
+  function updateCountdownWatermark(remaining) {
+    const watermark = document.getElementById('countdownWatermark');
+    if (!watermark) return;
+
+    if (remaining > 15) {
+      watermark.style.display = 'none';
+      return;
+    }
+
+    watermark.textContent = `${Math.max(0, remaining)}`;
+    watermark.style.display = 'block';
+    watermark.style.fontSize = remaining <= 5 ? '72px' : '48px';
+    watermark.style.color = remaining <= 5 ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.7)';
+  }
+
   async function startRecording() {
     recordedChunks = [];
+    recordedBlob = null;
+    recordingStopHandled = false;
+    clearRecorderStopSafetyTimer();
     elapsedSeconds = 0;
 
     try {
@@ -1558,11 +1610,14 @@
       if (e.data && e.data.size > 0) recordedChunks.push(e.data);
     };
 
-    mediaRecorder.onstop = () => {
-      clearInterval(countdownTimer);
-      stopAudioMonitor();
-      recordedBlob = new Blob(recordedChunks, { type: mimeType });
-      showReview();
+    mediaRecorder.onstop = finishRecordingToReview;
+
+    mediaRecorder.onerror = () => {
+      if (recordedChunks.length > 0) {
+        finishRecordingToReview();
+      } else {
+        failRecording('Recording stopped unexpectedly. Please try again.');
+      }
     };
 
     await showRecording();
@@ -1574,7 +1629,11 @@
       const remaining = MAX_DURATION_SEC - elapsedSeconds;
       const el = document.getElementById('countdown');
       if (el) el.textContent = `${remaining}s`;
-      if (remaining <= 0) stopRecording();
+      updateCountdownWatermark(remaining);
+      if (remaining <= 0) {
+        createRecordedBlob();
+        stopRecording();
+      }
     }, 1000);
   }
 
@@ -1582,6 +1641,12 @@
     clearInterval(countdownTimer);
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
+      clearRecorderStopSafetyTimer();
+      recorderStopSafetyTimer = window.setTimeout(() => {
+        finishRecordingToReview();
+      }, 3000);
+    } else if (mediaRecorder && !recordingStopHandled) {
+      finishRecordingToReview();
     }
   }
 
