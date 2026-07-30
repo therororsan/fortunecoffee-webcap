@@ -415,7 +415,11 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       questions = await res.json();
       if (!questions.length) throw new Error('Empty question list');
-      currentQuestion = questions[0]; // Current repo-authored rotation uses questions[0].
+      const rotationQuestions = questions.filter(question => question.in_rotation === true);
+      if (rotationQuestions.length !== 1) {
+        throw new Error(`Expected exactly one rotation question, found ${rotationQuestions.length}`);
+      }
+      currentQuestion = rotationQuestions[0];
       if (!currentQuestionIdentity() || !currentQuestion.audio_key || !currentQuestion.file_slot_key || !currentQuestionText()) {
         throw new Error('Invalid current question');
       }

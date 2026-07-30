@@ -1,8 +1,18 @@
 [
   {
+    "question_id": "q_20260528_favorite_crop_to_grow",
+    "audio_key": "q1",
+    "file_slot_key": "q1",
+    "in_rotation": false,
+    "text": {
+      "en": "Please tell us: what is your favorite crop to grow, and why?"
+    }
+  },
+  {
     "question_id": "q_20260625_favorite_meal_to_share",
     "audio_key": "q1",
     "file_slot_key": "q1",
+    "in_rotation": true,
     "text": {
       "en": "What is your favorite meal to share with guests?",
       "sw": "Chakula unachopenda zaidi kula pamoja na wageni ni kipi?",

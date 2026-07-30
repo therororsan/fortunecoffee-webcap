@@ -70,6 +70,7 @@ def load_source(path: Path) -> list[dict[str, str | None]]:
     question_id = question.get("question_id")
     audio_key = question.get("audio_key")
     file_slot_key = question.get("file_slot_key")
+    in_rotation = question.get("in_rotation")
     text = question.get("text")
 
     if not isinstance(question_id, str) or not question_id.startswith("q_"):
@@ -78,6 +79,8 @@ def load_source(path: Path) -> list[dict[str, str | None]]:
       raise SystemExit(f"questions.json entry {question_id} missing audio_key.")
     if not isinstance(file_slot_key, str) or not file_slot_key:
       raise SystemExit(f"questions.json entry {question_id} missing file_slot_key.")
+    if not isinstance(in_rotation, bool):
+      raise SystemExit(f"questions.json entry {question_id} missing boolean in_rotation.")
     if not isinstance(text, dict) or not text:
       raise SystemExit(f"questions.json entry {question_id} missing text map.")
 
