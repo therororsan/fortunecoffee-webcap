@@ -1,28 +1,19 @@
 [
   {
-    "id": "q1",
-    "text_prompt": "What is your favorite meal to share with guests?",
-    "audio_file": "q1",
-    "text_translations": {
+    "question_id": "q_20260625_favorite_meal_to_share",
+    "audio_key": "q1",
+    "file_slot_key": "q1",
+    "text": {
       "en": "What is your favorite meal to share with guests?",
-      "am": null,
-      "sw": null,
-      "fr": null,
-      "pt": null,
-      "es": null
-    }
-  },
-  {
-    "id": "q2",
-    "text_prompt": "How do you decide when to plant your crops?",
-    "audio_file": "q2",
-    "text_translations": {
-      "en": "How do you decide when to plant your crops?",
-      "am": null,
-      "sw": null,
-      "fr": null,
-      "pt": null,
-      "es": null
+      "sw": "Chakula unachopenda zaidi kula pamoja na wageni ni kipi?",
+      "am": "ከእንግዶች ጋር ለማጋራት በጣም የሚወዱት ምግብ ምንድን ነው?",
+      "si": "අමුත්තන් සමඟ බෙදා ගැනීමට ඔබ වඩාත් කැමති ආහාරය කුමක්ද?",
+      "ta": "விருந்தினர்களுடன் பகிர்ந்து கொள்ள உங்களுக்கு மிகவும் பிடித்த உணவு எது?",
+      "vi": "Món ăn bạn thích nhất để mời khách là món gì?",
+      "hi": "मेहमानों के साथ खाने के लिए आपका सबसे पसंदीदा खाना कौन-सा है?",
+      "es": "¿Cuál es su comida favorita para compartir con los invitados?",
+      "fr": "Quel est votre repas préféré à partager avec vos invités ?",
+      "pt": "Qual é a sua refeição favorita para compartilhar com os convidados?"
     }
   }
 ]

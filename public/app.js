@@ -415,12 +415,59 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       questions = await res.json();
       if (!questions.length) throw new Error('Empty question list');
-      currentQuestion = questions[0]; // Phase 1: always q1
+      currentQuestion = questions[0]; // Current repo-authored rotation uses questions[0].
+      if (!currentQuestionIdentity() || !currentQuestion.audio_key || !currentQuestion.file_slot_key || !currentQuestionText()) {
+        throw new Error('Invalid current question');
+      }
       return true;
     } catch (err) {
       showError('Could not load questions. Please try again later.');
       return false;
     }
+  }
+
+  function questionTextForLanguage(question, lang) {
+    if (!question || !question.text) return null;
+    const requestedText = question.text[lang];
+    const englishText = question.text[DEFAULT_LANG];
+    return (requestedText && requestedText.trim()) || (englishText && englishText.trim()) || null;
+  }
+
+  function questionTextLanguage(question, lang) {
+    if (question && question.text && question.text[lang] && question.text[lang].trim()) {
+      return lang;
+    }
+    if (question && question.text && question.text[DEFAULT_LANG] && question.text[DEFAULT_LANG].trim()) {
+      return DEFAULT_LANG;
+    }
+    return null;
+  }
+
+  function currentQuestionText() {
+    return questionTextForLanguage(currentQuestion, farmerLang);
+  }
+
+  function currentQuestionTextLanguage() {
+    return questionTextLanguage(currentQuestion, farmerLang);
+  }
+
+  function currentQuestionIdentity() {
+    return currentQuestion && currentQuestion.question_id
+      ? currentQuestion.question_id
+      : null;
+  }
+
+  function currentQuestionAudioKey() {
+    return currentQuestion && currentQuestion.audio_key
+      ? currentQuestion.audio_key
+      : 'question';
+  }
+
+  function currentQuestionFileSlotKey() {
+    // Filenames stay on the qN slot key; immutable question_id is DB-only.
+    return currentQuestion && currentQuestion.file_slot_key
+      ? currentQuestion.file_slot_key
+      : currentQuestionAudioKey();
   }
 
   // ── Language & Audio ──────────────────────────────────────────────────────
@@ -1234,9 +1281,9 @@
   // ── Question Screen (with audio) ───────────────────────────────────────────
   function showQuestion({ attemptAutoplay = true } = {}) {
     stopAudioMonitor();
-    const questionAudioKey = currentQuestion && (currentQuestion.audio_file || currentQuestion.id)
-      ? (currentQuestion.audio_file || currentQuestion.id)
-      : 'question';
+    const questionAudioKey = currentQuestionAudioKey();
+    const questionText = currentQuestionText();
+    const questionLanguage = currentQuestionTextLanguage() || DEFAULT_LANG;
     const updateInfoLink = isReturningFarmer
       ? `<a href="#" id="updateInfoLink" class="question-update-link">Update info / Rescind consent</a>`
       : '';
@@ -1245,7 +1292,7 @@
       <div class="screen screen--question">
         ${renderMuteToggle()}
         <div class="question-listen-card">
-          <p class="question-listen-text">${currentQuestion.text_prompt}</p>
+          <p class="question-listen-text">${escapeHtml(questionText || '')}</p>
         </div>
         <button class="btn btn--small" id="playBtn" type="button">Replay audio</button>
         <button class="btn btn--record" id="readyToRecordBtn" style="display:none">Ready to record</button>
@@ -1271,7 +1318,7 @@
         { pauseMs: 500 },
         {
           screen: 'question',
-          lang: farmerLang,
+          lang: questionLanguage,
           folder: 'questions',
           baseName: questionAudioKey,
         },
@@ -1407,6 +1454,7 @@
 
   function showReview() {
     const sizeMB    = (recordedBlob.size / 1024 / 1024).toFixed(1);
+    const questionText = currentQuestionText();
     clearReviewObjectUrl();
     reviewObjectUrl = URL.createObjectURL(recordedBlob);
 
@@ -1414,7 +1462,7 @@
       <div class="screen screen--review">
         <div class="question-card">
           <p class="question-label">Review your response</p>
-          <p class="question-text">${currentQuestion.text_prompt}</p>
+          <p class="question-text">${escapeHtml(questionText || '')}</p>
         </div>
         <div class="preview-wrap">
           <video id="playback" controls playsinline></video>
@@ -1669,7 +1717,11 @@
 
     const ext       = fileExtension();
     const timestamp = Date.now();
-    const filePath  = `${farmerId}/${currentQuestion.id}_${timestamp}.${ext}`;
+    const questionId = currentQuestionIdentity();
+    const askedLanguage = currentQuestionTextLanguage();
+    const questionTextAsAsked = currentQuestionText();
+    const fileSlotKey = currentQuestionFileSlotKey();
+    const filePath  = `${farmerId}/${fileSlotKey}_${timestamp}.${ext}`;
     const selfiePath = `farmers/${farmerId}/selfie.jpg`;
 
     // Supabase JS v2 doesn't expose upload progress events, so we animate
@@ -1719,7 +1771,9 @@
         .from(SUBMISSIONS_TABLE)
         .insert({
           farmer_id:   farmerId,
-          question_id: currentQuestion.id,
+          question_id: questionId,
+          asked_language: askedLanguage,
+          question_text_as_asked: questionTextAsAsked,
           video_path:  filePath,
           video_url:   publicUrl,
           status:      'received',
