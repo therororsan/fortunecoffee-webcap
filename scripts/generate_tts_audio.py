@@ -24,8 +24,8 @@ SHARED_ENV_PATH = Path(__file__).parent.parent.parent / "_shared" / "config" / "
 
 STATIC_SCREEN_ORDER = ("consent", "selfie", "question_intro", "success")
 SCREEN_ORDER = STATIC_SCREEN_ORDER + ("questions",)
-LANG_ORDER = ("en", "sw", "am", "si", "ta", "vi", "hi", "es", "fr", "pt")
-ELEVENLABS_LANGS = frozenset(("en", "sw", "ta", "vi", "hi", "es", "fr", "pt"))
+LANG_ORDER = ("en", "sw", "am", "si", "ta", "vi", "hi", "es", "fr", "pt", "fil")
+ELEVENLABS_LANGS = frozenset(("en", "sw", "ta", "vi", "hi", "es", "fr", "pt", "fil"))
 GOOGLE_LANGS = frozenset(("am", "si"))
 
 ELEVENLABS_MODEL_ID = "eleven_multilingual_v2"

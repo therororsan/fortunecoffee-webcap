@@ -8,21 +8,21 @@
   const MAX_DURATION_SEC     = 90;
   const VIDEO_BITRATE        = 2_000_000; // 2 Mbps — keeps 90s video under ~50 MB
   const QUESTIONS_URL        = '/questions/questions.json';
-  const SUPPORTED_LANGS      = ['en', 'sw', 'am', 'si', 'ta', 'vi', 'hi', 'es', 'fr', 'pt'];
+  const SUPPORTED_LANGS      = ['en', 'sw', 'am', 'si', 'ta', 'vi', 'hi', 'es', 'fr', 'pt', 'fil'];
   const DEFAULT_LANG         = 'en';
   const DEBUG_SELFIE_CHECK   = false;
   const SOUND_LEVEL_THRESHOLD = 0.01;
   const SOUND_CHECK_BAR_COUNT = 6;
   const COUNTRY_OPTIONS = [
     'Brazil', 'Colombia', 'Ethiopia', 'Guatemala', 'Honduras',
-    'India', 'Indonesia', 'Kenya', 'Mexico', 'Peru',
+    'India', 'Indonesia', 'Kenya', 'Mexico', 'Peru', 'Philippines',
     'Rwanda', 'Tanzania', 'Uganda', 'Vietnam', 'Yemen', 'Other',
   ];
   const DIAL_CODES = {
     'Brazil': '+55',    'Colombia': '+57',  'Ethiopia': '+251',
     'Guatemala': '+502','Honduras': '+504', 'India': '+91',
     'Indonesia': '+62', 'Kenya': '+254',    'Mexico': '+52',
-    'Peru': '+51',      'Rwanda': '+250',   'Tanzania': '+255',
+    'Peru': '+51',      'Philippines': '+63','Rwanda': '+250',   'Tanzania': '+255',
     'Uganda': '+256',   'Vietnam': '+84',   'Yemen': '+967',
     'Other': '',
   };
@@ -30,7 +30,8 @@
     'bra': 'Brazil',       'col': 'Colombia',      'eth': 'Ethiopia',
     'gtm': 'Guatemala',    'hnd': 'Honduras',       'ind': 'India',
     'idn': 'Indonesia',    'ken': 'Kenya',          'mex': 'Mexico',
-    'per': 'Peru',         'rwa': 'Rwanda',         'tza': 'Tanzania',
+    'per': 'Peru',         'phl': 'Philippines',    'rwa': 'Rwanda',
+    'tza': 'Tanzania',
     'uga': 'Uganda',       'vnm': 'Vietnam',        'yem': 'Yemen',
     'lka': 'Sri Lanka',    'chn': 'China',          'hkg': 'Hong Kong',
     'gbr': 'United Kingdom',
@@ -44,7 +45,8 @@
   const FLAG_CODES = {
     'Brazil': 'br',    'Colombia': 'co',  'Ethiopia': 'et', 'Guatemala': 'gt',
     'Honduras': 'hn',  'India': 'in',     'Indonesia': 'id','Kenya': 'ke',
-    'Mexico': 'mx',    'Peru': 'pe',      'Rwanda': 'rw',   'Tanzania': 'tz',
+    'Mexico': 'mx',    'Peru': 'pe',      'Philippines': 'ph','Rwanda': 'rw',
+    'Tanzania': 'tz',
     'Uganda': 'ug',    'Vietnam': 'vn',   'Yemen': 'ye',
   };
 
