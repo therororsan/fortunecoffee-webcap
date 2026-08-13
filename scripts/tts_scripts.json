@@ -4,7 +4,7 @@
     "en": "XcXEQzuLXRU9RcfWzEJt"
   },
   "consent": {
-    "en": "Thank you for being part of Fortune Coffee. We're recording a short video of you today. This video will be shared with coffee buyers around the world, so they can learn about you and your work. If you agree to continue, press the green button. Thank you so much for doing this.",
+    "en": "Hello! We will now record a video of you. Anyone with the link can open it on a public web page. A computer will also make a drawing of you for our cards. If this is ok, press the green button.",
     "sw": "Asante kwa kuwa sehemu ya Fortune Coffee. Leo tunarekodi video fupi inayokuhusu. Video hii itashirikiwa na wanunuzi wa kahawa duniani kote, ili waweze kujifunza kuhusu wewe na kazi yako. Ukikubali kuendelea, bonyeza kitufe cha kijani. Asante sana kwa kufanya hivi.",
     "am": "የFortune Coffee አካል ስለሆኑ እናመሰግናለን። ዛሬ የእርስዎን አጭር ቪዲዮ እየቀረፅን ነው። ይህ ቪዲዮ በዓለም ዙሪያ ካሉ የቡና ገዢዎች ጋር ይጋራል፣ ስለዚህ ስለ እርስዎ እና ስለ ስራዎ ማወቅ ይችላሉ። ለመቀጠል ከተስማሙ አረንጓዴውን ቁልፍ ይጫኑ። ይህን ስላደረጉ በጣም እናመሰግናለን።",
     "si": "Fortune Coffee හි කොටසක් වීම ගැන ඔයාට ස්තූතියි. අපි අද ඔයා ගැන කෙටි වීඩියෝ එකක් රෙකෝඩ් කරනවා. ලෝකය පුරා ඉන්න කෝපි ගනුදෙනුකරුවන්ට ඔයාව සහ ඔයාගේ වැඩ ගැන දැනගන්න පුළුවන් වෙන්න අපි මේ වීඩියෝ එක බෙදාගන්නවා. ඉස්සරහට යන්න කැමති නම්, කොළ පාට බොත්තම ඔබන්න. මේ දේ කරනවාට ගොඩක් ස්තූතියි.",
@@ -13,7 +13,8 @@
     "hi": "Fortune Coffee का हिस्सा बनने के लिए आपका धन्यवाद। आज हम आपका एक छोटा-सा वीडियो रिकॉर्ड कर रहे हैं। यह वीडियो दुनिया भर के कॉफ़ी खरीदारों के साथ साझा किया जाएगा, ताकि वे आपके और आपके काम के बारे में जान सकें। अगर आप आगे बढ़ने के लिए सहमत हैं, तो हरा बटन दबाएँ। ऐसा करने के लिए आपका बहुत-बहुत धन्यवाद।",
     "es": "Gracias por ser parte de Fortune Coffee. Hoy vamos a grabar un video corto de usted. Este video se compartirá con compradores de café de todo el mundo, para que puedan conocer más sobre usted y su trabajo. Si está de acuerdo en continuar, presione el botón verde. Muchas gracias por hacer esto.",
     "fr": "Merci de faire partie de Fortune Coffee. Aujourd'hui nous enregistrons une courte vidéo de vous. Cette vidéo sera partagée avec des acheteurs de café du monde entier, pour qu'ils puissent en apprendre davantage sur vous et votre travail. Si vous êtes d'accord pour continuer, appuyez sur le bouton vert. Merci beaucoup de faire cela.",
-    "pt": "Obrigado por fazer parte da Fortune Coffee. Hoje estamos gravando um vídeo curto de você. Este vídeo será compartilhado com compradores de café de todo o mundo, para que eles possam conhecer você e o seu trabalho. Se você concordar em continuar, aperte o botão verde. Muito obrigado por fazer isso."
+    "pt": "Obrigado por fazer parte da Fortune Coffee. Hoje estamos gravando um vídeo curto de você. Este vídeo será compartilhado com compradores de café de todo o mundo, para que eles possam conhecer você e o seu trabalho. Se você concordar em continuar, aperte o botão verde. Muito obrigado por fazer isso.",
+    "fil": "Kumusta po! Kukuha po tayo ngayon ng video ninyo. Kahit sinong may link ay puwedeng buksan ito sa isang pampublikong web page. Gagawa rin po ang computer ng isang guhit ninyo para sa aming mga card. Kung ayos lang po ito, pindutin ang berdeng button."
   },
   "selfie": {
     "en": "Ready to take a selfie? Smile and make sure we see you!",
@@ -25,7 +26,8 @@
     "hi": "सेल्फी लेने के लिए तैयार हैं? मुस्कुराइए और सुनिश्चित करें कि हम आपको देख सकें!",
     "es": "¿Listo para tomarte una selfie? ¡Sonríe y asegúrate de que te veamos bien!",
     "fr": "Prêt pour un selfie? Souriez et assurez-vous qu'on vous voit bien!",
-    "pt": "Pronto para uma selfie? Sorria e certifique-se de que podemos ver você!"
+    "pt": "Pronto para uma selfie? Sorria e certifique-se de que podemos ver você!",
+    "fil": "Handa na po ba kayong mag-selfie? Ngumiti po kayo at siguraduhing kita namin kayo!"
   },
   "question_intro": {
     "en": "You ready? So here's my question to you —",
@@ -37,7 +39,8 @@
     "hi": "तैयार हैं? तो यह रहा मेरा सवाल आपसे —",
     "es": "¿Listo? Aquí va mi pregunta para ti —",
     "fr": "Vous êtes prêt? Voici ma question pour vous —",
-    "pt": "Pronto? Então aqui está minha pergunta para você —"
+    "pt": "Pronto? Então aqui está minha pergunta para você —",
+    "fil": "Handa na po ba kayo? Ito po ang tanong ko sa inyo."
   },
   "success": {
     "en": "Great job! Thanks for your submission — we are all set!",
@@ -49,56 +52,61 @@
     "hi": "शानदार काम! आपके सबमिशन के लिए धन्यवाद — सब कुछ तैयार है!",
     "es": "¡Excelente trabajo! Gracias por tu envío — ¡ya está todo listo!",
     "fr": "Excellent travail! Merci pour votre envoi — nous avons tout ce qu'il nous faut!",
-    "pt": "Ótimo trabalho! Obrigado pela sua submissão — estamos prontos!"
+    "pt": "Ótimo trabalho! Obrigado pela sua submissão — estamos prontos!",
+    "fil": "Ayos po! Salamat sa inyong video. Tapos na po tayo!"
   },
   "questions": {
     "q1": {
-      "en": "What is your favorite meal to share with guests?",
-      "sw": "Chakula unachopenda zaidi kula pamoja na wageni ni kipi?",
-      "am": "ከእንግዶች ጋር ለማጋራት በጣም የሚወዱት ምግብ ምንድን ነው?",
-      "si": "අමුත්තන් සමඟ බෙදා ගැනීමට ඔබ වඩාත් කැමති ආහාරය කුමක්ද?",
-      "ta": "விருந்தினர்களுடன் பகிர்ந்து கொள்ள உங்களுக்கு மிகவும் பிடித்த உணவு எது?",
-      "vi": "Món ăn bạn thích nhất để mời khách là món gì?",
-      "hi": "मेहमानों के साथ खाने के लिए आपका सबसे पसंदीदा खाना कौन-सा है?",
-      "es": "¿Cuál es su comida favorita para compartir con los invitados?",
-      "fr": "Quel est votre repas préféré à partager avec vos invités ?",
-      "pt": "Qual é a sua refeição favorita para compartilhar com os convidados?"
+      "en": "What is your favorite meal to share with guests, and why?",
+      "sw": "Chakula unachopenda zaidi kula pamoja na wageni ni kipi, na kwa nini?",
+      "am": "ከእንግዶች ጋር ለማጋራት በጣም የሚወዱት ምግብ ምንድን ነው፣ እና ለምን?",
+      "si": "අමුත්තන් සමඟ බෙදා ගැනීමට ඔබ වඩාත් කැමති ආහාරය කුමක්ද, ඇයි?",
+      "ta": "விருந்தினர்களுடன் பகிர்ந்து கொள்ள உங்களுக்கு மிகவும் பிடித்த உணவு எது, ஏன்?",
+      "vi": "Món ăn bạn thích nhất để mời khách là món gì, và vì sao?",
+      "hi": "मेहमानों के साथ खाने के लिए आपका सबसे पसंदीदा खाना कौन-सा है, और क्यों?",
+      "es": "¿Cuál es su comida favorita para compartir con los invitados, y por qué?",
+      "fr": "Quel est votre repas préféré à partager avec vos invités, et pourquoi ?",
+      "pt": "Qual é a sua refeição favorita para compartilhar com os convidados, e por quê?",
+      "fil": "Ano po ang paborito ninyong pagkaing ihanda para sa mga bisita, at bakit?"
     },
     "q2": {
-      "en": "What is your favorite thing to drink — besides coffee?",
-      "sw": "Kinywaji unachokipenda zaidi, mbali na kahawa, ni kipi?",
-      "am": "ከቡና በስተቀር በጣም የሚወዱት መጠጥ ምንድን ነው?",
-      "si": "කෝපි හැර, ඔබ වඩාත් කැමති බීම කුමක්ද?",
-      "ta": "காபி தவிர, உங்களுக்கு மிகவும் பிடித்த பானம் எது?",
-      "vi": "Ngoài cà phê, thức uống yêu thích nhất của bạn là gì?",
-      "hi": "कॉफ़ी के अलावा, आपको पीने की कौन-सी चीज़ सबसे ज़्यादा पसंद है?",
-      "es": "¿Cuál es su bebida favorita, aparte del café?",
-      "fr": "Quelle est votre boisson préférée, à part le café ?",
-      "pt": "Qual é a sua bebida favorita, além do café?"
+      "en": "Besides coffee, what is your favorite thing to drink? Tell us why.",
+      "sw": "Kinywaji unachokipenda zaidi, mbali na kahawa, ni kipi? Tuambie kwa nini.",
+      "am": "ከቡና በስተቀር በጣም የሚወዱት መጠጥ ምንድን ነው? ለምን እንደሆነ ይንገሩን።",
+      "si": "කෝපි හැර, ඔබ වඩාත් කැමති බීම කුමක්ද? ඇයි කියලා අපට කියන්න.",
+      "ta": "காபி தவிர, உங்களுக்கு மிகவும் பிடித்த பானம் எது? ஏன் என்று எங்களிடம் சொல்லுங்கள்.",
+      "vi": "Ngoài cà phê, thức uống yêu thích nhất của bạn là gì? Hãy cho chúng tôi biết vì sao.",
+      "hi": "कॉफ़ी के अलावा, आपको पीने की कौन-सी चीज़ सबसे ज़्यादा पसंद है? हमें बताइए क्यों।",
+      "es": "¿Cuál es su bebida favorita, aparte del café? Cuéntenos por qué.",
+      "fr": "Quelle est votre boisson préférée, à part le café ? Dites-nous pourquoi.",
+      "pt": "Qual é a sua bebida favorita, além do café? Conte-nos por quê.",
+      "fil": "Bukod sa kape, ano po ang paborito ninyong inumin? Sabihin po ninyo sa amin kung bakit."
     },
     "q3": {
-      "en": "If a visitor came to your village, where is the first place you would take them?",
-      "sw": "Mgeni akija kijijini kwako, ungempeleka wapi kwanza?",
-      "am": "አንድ ጎብኝ ወደ መንደርዎ ቢመጣ፣ በመጀመሪያ የሚወስዱት ቦታ የት ነው?",
-      "si": "අමුත්තෙකු ඔබේ ගමට ආවොත්, ඔබ ඔවුන්ව මුලින්ම ගෙන යන්නේ කොහේද?",
-      "ta": "உங்கள் கிராமத்திற்கு ஒரு விருந்தினர் வந்தால், நீங்கள் அவர்களை முதலில் எங்கு அழைத்துச் செல்வீர்கள்?",
-      "vi": "Nếu có khách đến thăm làng của bạn, nơi đầu tiên bạn sẽ đưa họ đến là đâu?",
-      "hi": "अगर कोई मेहमान आपके गाँव में आए, तो आप उन्हें सबसे पहले कहाँ ले जाएँगे?",
-      "es": "Si un visitante llegara a su pueblo, ¿cuál es el primer lugar al que lo llevaría?",
-      "fr": "Si un visiteur venait dans votre village, quel est le premier endroit où vous l'emmèneriez ?",
-      "pt": "Se um visitante viesse à sua aldeia, qual é o primeiro lugar para onde você o levaria?"
+      "en": "If a visitor came to your village, where is the first place you would take them? Tell us why.",
+      "sw": "Mgeni akija kijijini kwako, ungempeleka wapi kwanza? Tuambie kwa nini.",
+      "am": "አንድ ጎብኝ ወደ መንደርዎ ቢመጣ፣ በመጀመሪያ የሚወስዱት ቦታ የት ነው? ለምን እንደሆነ ይንገሩን።",
+      "si": "අමුත්තෙකු ඔබේ ගමට ආවොත්, ඔබ ඔවුන්ව මුලින්ම ගෙන යන්නේ කොහේද? ඇයි කියලා අපට කියන්න.",
+      "ta": "உங்கள் கிராமத்திற்கு ஒரு விருந்தினர் வந்தால், நீங்கள் அவர்களை முதலில் எங்கு அழைத்துச் செல்வீர்கள்? ஏன் என்று எங்களிடம் சொல்லுங்கள்.",
+      "vi": "Nếu có khách đến thăm làng của bạn, nơi đầu tiên bạn sẽ đưa họ đến là đâu? Hãy cho chúng tôi biết vì sao.",
+      "hi": "अगर कोई मेहमान आपके गाँव में आए, तो आप उन्हें सबसे पहले कहाँ ले जाएँगे? हमें बताइए क्यों।",
+      "es": "Si un visitante llegara a su pueblo, ¿cuál es el primer lugar al que lo llevaría? Cuéntenos por qué.",
+      "fr": "Si un visiteur venait dans votre village, quel est le premier endroit où vous l'emmèneriez ? Dites-nous pourquoi.",
+      "pt": "Se um visitante viesse à sua aldeia, qual é o primeiro lugar para onde você o levaria? Conte-nos por quê.",
+      "fil": "Kung may bisitang dumating sa lugar ninyo, saan po ninyo siya unang dadalhin? Sabihin po ninyo sa amin kung bakit."
     },
     "q4": {
-      "en": "If you close your eyes on your farm right now, what do you hear?",
-      "sw": "Ukifunga macho yako shambani kwako sasa hivi, unasikia nini?",
-      "am": "አሁን በእርሻዎ ላይ ዓይኖችዎን ቢዘጉ ምን ይሰማዎታል?",
-      "si": "දැන් ඔබේ ගොවිපළේ ඇස් වහගත්තොත්, ඔබට මොනවද ඇසෙන්නේ?",
-      "ta": "இப்போது உங்கள் தோட்டத்தில் கண்களை மூடினால், உங்களுக்கு என்ன கேட்கிறது?",
-      "vi": "Nếu bây giờ bạn nhắm mắt lại ở nông trại của mình, bạn nghe thấy gì?",
-      "hi": "अगर आप अभी अपने खेत पर आँखें बंद करें, तो आपको क्या सुनाई देता है?",
-      "es": "Si cierra los ojos en su finca ahora mismo, ¿qué escucha?",
-      "fr": "Si vous fermez les yeux ici, dans votre ferme, qu'est-ce que vous entendez ?",
-      "pt": "Se você fechar os olhos na sua fazenda agora mesmo, o que você ouve?"
+      "en": "What sounds do you hear on the farm? Please choose one sound and tell us why you remember it.",
+      "sw": "Ni sauti gani unazosikia shambani? Tafadhali chagua sauti moja na utuambie kwa nini unaikumbuka.",
+      "am": "በእርሻው ላይ ምን ድምፆች ይሰማዎታል? እባክዎ አንድ ድምፅ ይምረጡና ለምን እንደሚያስታውሱት ይንገሩን።",
+      "si": "ගොවිපළේදී ඔබට ඇසෙන ශබ්ද මොනවාද? කරුණාකර එක් ශබ්දයක් තෝරාගෙන, ඔබට එය මතක ඇයි කියලා අපට කියන්න.",
+      "ta": "தோட்டத்தில் உங்களுக்கு என்னென்ன சத்தங்கள் கேட்கின்றன? தயவுசெய்து ஒரு சத்தத்தைத் தேர்ந்தெடுத்து, அது ஏன் உங்கள் நினைவில் இருக்கிறது என்று எங்களிடம் சொல்லுங்கள்.",
+      "vi": "Bạn nghe thấy những âm thanh gì ở nông trại? Hãy chọn một âm thanh và cho chúng tôi biết vì sao bạn nhớ âm thanh đó.",
+      "hi": "खेत पर आपको कौन-कौन सी आवाज़ें सुनाई देती हैं? कृपया एक आवाज़ चुनिए और हमें बताइए कि आपको वह क्यों याद रहती है।",
+      "es": "¿Qué sonidos escucha en la finca? Por favor, elija un sonido y cuéntenos por qué lo recuerda.",
+      "fr": "Quels sons entendez-vous à la ferme ? Veuillez choisir un son et nous dire pourquoi vous vous en souvenez.",
+      "pt": "Que sons você ouve na fazenda? Por favor, escolha um som e conte-nos por que você se lembra dele.",
+      "fil": "Anong mga tunog po ang naririnig ninyo sa sakahan? Pumili po kayo ng isang tunog at sabihin po ninyo sa amin kung bakit ninyo ito naaalala."
     },
     "q5": {
       "en": "Who taught you to grow coffee, and what is the one thing they told you that you still remember?",
@@ -110,7 +118,8 @@
       "hi": "आपको कॉफ़ी उगाना किसने सिखाया, और उन्होंने जो एक बात कही थी वो क्या है जो आपको आज भी याद है?",
       "es": "¿Quién le enseñó a cultivar café, y qué es algo que esa persona le dijo y que usted todavía recuerda?",
       "fr": "Qui vous a appris à cultiver le café, et qu'est-ce que cette personne vous a dit que vous n'avez jamais oublié ?",
-      "pt": "Quem ensinou você a cultivar café, e qual foi uma coisa que essa pessoa disse e que você ainda lembra?"
+      "pt": "Quem ensinou você a cultivar café, e qual foi uma coisa que essa pessoa disse e que você ainda lembra?",
+      "fil": "Sino po ang nagturo sa inyong magtanim ng kape, at ano po ang isang bagay na sinabi nila na naaalala pa ninyo hanggang ngayon?"
     },
     "q6": {
       "en": "Tell us something about growing coffee that would surprise most people.",
@@ -122,43 +131,47 @@
       "hi": "कॉफ़ी उगाने के बारे में कोई ऐसी बात बताइए जो ज़्यादातर लोगों को हैरान कर दे।",
       "es": "Cuéntenos algo sobre cultivar café que sorprendería a la mayoría de las personas.",
       "fr": "Dites-nous quelque chose sur la culture du café qui surprendrait la plupart des gens.",
-      "pt": "Conte-nos algo sobre cultivar café que surpreenderia a maioria das pessoas."
+      "pt": "Conte-nos algo sobre cultivar café que surpreenderia a maioria das pessoas.",
+      "fil": "Ikuwento po ninyo sa amin ang isang bagay tungkol sa pagtatanim ng kape na magugulat ang maraming tao kapag nalaman nila."
     },
     "q7": {
-      "en": "If your coffee could talk, what would it say about you?",
-      "sw": "Kahawa yako ingeweza kuongea, ingesema nini kukuhusu?",
-      "am": "ቡናዎ መናገር ቢችል ስለ እርስዎ ምን ይላል?",
-      "si": "ඔබේ කෝපිට කතා කළ හැකි නම්, එය ඔබ ගැන මොනවද කියන්නේ?",
-      "ta": "உங்கள் காபி பேச முடிந்தால், அது உங்களைப் பற்றி என்ன சொல்லும்?",
-      "vi": "Nếu cà phê của bạn có thể nói được, nó sẽ nói gì về bạn?",
-      "hi": "अगर आपकी कॉफ़ी बोल पाती, तो वो आपके बारे में क्या कहती?",
-      "es": "Si su café pudiera hablar, ¿qué diría de usted?",
-      "fr": "Si votre café pouvait parler, que dirait-il de vous ?",
-      "pt": "Se o seu café pudesse falar, o que ele diria sobre você?"
+      "en": "If your coffee could talk, what would it say about you? Tell us why it would say that.",
+      "sw": "Kahawa yako ingeweza kuongea, ingesema nini kukuhusu? Tuambie kwa nini ingesema hivyo.",
+      "am": "ቡናዎ መናገር ቢችል ስለ እርስዎ ምን ይላል? ለምን እንደዚያ እንደሚል ይንገሩን።",
+      "si": "ඔබේ කෝපිට කතා කළ හැකි නම්, එය ඔබ ගැන මොනවද කියන්නේ? එය එහෙම කියන්නේ ඇයි කියලා අපට කියන්න.",
+      "ta": "உங்கள் காபி பேச முடிந்தால், அது உங்களைப் பற்றி என்ன சொல்லும்? அது ஏன் அப்படிச் சொல்லும் என்று எங்களிடம் சொல்லுங்கள்.",
+      "vi": "Nếu cà phê của bạn có thể nói được, nó sẽ nói gì về bạn? Hãy cho chúng tôi biết vì sao nó sẽ nói như vậy.",
+      "hi": "अगर आपकी कॉफ़ी बोल पाती, तो वो आपके बारे में क्या कहती? हमें बताइए कि वह ऐसा क्यों कहती।",
+      "es": "Si su café pudiera hablar, ¿qué diría de usted? Cuéntenos por qué diría eso.",
+      "fr": "Si votre café pouvait parler, que dirait-il de vous ? Dites-nous pourquoi il dirait cela.",
+      "pt": "Se o seu café pudesse falar, o que ele diria sobre você? Conte-nos por que ele diria isso.",
+      "fil": "Kung nakakapagsalita po ang kape ninyo, ano kaya ang sasabihin nito tungkol sa inyo? Sabihin po ninyo sa amin kung bakit nito sasabihin iyon."
     },
     "q8": {
-      "en": "What is the best part of your day?",
-      "sw": "Ni wakati gani mzuri zaidi katika siku yako?",
-      "am": "ከቀንዎ ውስጥ በጣም ጥሩው ክፍል ምንድን ነው?",
-      "si": "ඔබේ දවසේ හොඳම කොටස කුමක්ද?",
-      "ta": "உங்கள் நாளின் மிகச் சிறந்த பகுதி எது?",
-      "vi": "Khoảng thời gian nào trong ngày bạn thích nhất?",
-      "hi": "आपके दिन का सबसे अच्छा हिस्सा कौन सा है?",
-      "es": "¿Cuál es la mejor parte de su día?",
-      "fr": "Quel est le meilleur moment de votre journée ?",
-      "pt": "Qual é a melhor parte do seu dia?"
+      "en": "What is the best part of your day? Tell us why.",
+      "sw": "Ni wakati gani mzuri zaidi katika siku yako? Tuambie kwa nini.",
+      "am": "ከቀንዎ ውስጥ በጣም ጥሩው ክፍል ምንድን ነው? ለምን እንደሆነ ይንገሩን።",
+      "si": "ඔබේ දවසේ හොඳම කොටස කුමක්ද? ඇයි කියලා අපට කියන්න.",
+      "ta": "உங்கள் நாளின் மிகச் சிறந்த பகுதி எது? ஏன் என்று எங்களிடம் சொல்லுங்கள்.",
+      "vi": "Khoảng thời gian nào trong ngày bạn thích nhất? Hãy cho chúng tôi biết vì sao.",
+      "hi": "आपके दिन का सबसे अच्छा हिस्सा कौन सा है? हमें बताइए क्यों।",
+      "es": "¿Cuál es la mejor parte de su día? Cuéntenos por qué.",
+      "fr": "Quel est le meilleur moment de votre journée ? Dites-nous pourquoi.",
+      "pt": "Qual é a melhor parte do seu dia? Conte-nos por quê.",
+      "fil": "Ano po ang pinakamagandang parte ng araw ninyo? Sabihin po ninyo sa amin kung bakit."
     },
     "q9": {
-      "en": "If you could invite anyone in the world to visit your farm, who would you invite and why?",
-      "sw": "Kama ungeweza kumwalika mtu yeyote duniani kuja kutembelea shamba lako, ungemwalika nani na kwa nini?",
-      "am": "በዓለም ላይ ማንኛውንም ሰው ወደ እርሻዎ ለመጋበዝ ቢችሉ ማንን ይጋብዛሉ እና ለምን?",
-      "si": "ලෝකයේ ඕනෑම කෙනෙකුට ඔබේ ගොවිපළට ආරාධනා කළ හැකි නම්, ඔබ කාව ආරාධනා කරනවාද, ඇයි?",
-      "ta": "உலகில் யாரையாவது உங்கள் தோட்டத்திற்கு வர அழைக்க முடிந்தால், யாரை அழைப்பீர்கள், ஏன்?",
-      "vi": "Nếu bạn có thể mời bất kỳ ai trên thế giới đến thăm nông trại của mình, bạn sẽ mời ai và tại sao?",
-      "hi": "अगर आप दुनिया में किसी को भी अपने खेत पर बुला सकते, तो किसे बुलाते और क्यों?",
-      "es": "Si pudiera invitar a cualquier persona del mundo a visitar su finca, ¿a quién invitaría y por qué?",
-      "fr": "Si vous pouviez inviter n'importe qui au monde à visiter votre ferme, qui inviteriez-vous et pourquoi ?",
-      "pt": "Se você pudesse convidar qualquer pessoa do mundo para visitar a sua fazenda, quem você convidaria e por quê?"
+      "en": "If you could invite anyone in the world to visit your farm, who would you invite? Tell us why.",
+      "sw": "Kama ungeweza kumwalika mtu yeyote duniani kuja kutembelea shamba lako, ungemwalika nani? Tuambie kwa nini.",
+      "am": "በዓለም ላይ ማንኛውንም ሰው ወደ እርሻዎ ለመጋበዝ ቢችሉ፣ ማንን ይጋብዛሉ? ለምን እንደሆነ ይንገሩን።",
+      "si": "ලෝකයේ ඕනෑම කෙනෙකුට ඔබේ ගොවිපළට ආරාධනා කළ හැකි නම්, ඔබ කාව ආරාධනා කරනවාද? ඇයි කියලා අපට කියන්න.",
+      "ta": "உலகில் யாரையாவது உங்கள் தோட்டத்திற்கு வர அழைக்க முடிந்தால், யாரை அழைப்பீர்கள்? ஏன் என்று எங்களிடம் சொல்லுங்கள்.",
+      "vi": "Nếu bạn có thể mời bất kỳ ai trên thế giới đến thăm nông trại của mình, bạn sẽ mời ai? Hãy cho chúng tôi biết vì sao.",
+      "hi": "अगर आप दुनिया में किसी को भी अपने खेत पर बुला सकते, तो किसे बुलाते? हमें बताइए क्यों।",
+      "es": "Si pudiera invitar a cualquier persona del mundo a visitar su finca, ¿a quién invitaría? Cuéntenos por qué.",
+      "fr": "Si vous pouviez inviter n'importe qui au monde à visiter votre ferme, qui inviteriez-vous ? Dites-nous pourquoi.",
+      "pt": "Se você pudesse convidar qualquer pessoa do mundo para visitar a sua fazenda, quem você convidaria? Conte-nos por quê.",
+      "fil": "Kung puwede po kayong mag-imbita ng kahit sino sa buong mundo na bumisita sa sakahan ninyo, sino po ang iimbitahin ninyo? Sabihin po ninyo sa amin kung bakit."
     },
     "q10": {
       "en": "What is something you are proud of that has nothing to do with coffee?",
@@ -170,7 +183,8 @@
       "hi": "ऐसी कौन सी चीज़ है जिस पर आपको गर्व है, जिसका कॉफ़ी से कोई लेना-देना नहीं?",
       "es": "¿Qué es algo que le da orgullo y que no tiene nada que ver con el café?",
       "fr": "De quoi êtes-vous fier et qui n'a rien à voir avec le café ?",
-      "pt": "Qual é uma coisa de que você se orgulha e que não tem nada a ver com café?"
+      "pt": "Qual é uma coisa de que você se orgulha e que não tem nada a ver com café?",
+      "fil": "Ano po ang isang bagay na ipinagmamalaki ninyo na walang kinalaman sa kape?"
     }
   }
 }

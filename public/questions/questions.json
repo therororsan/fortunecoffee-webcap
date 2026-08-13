@@ -5,7 +5,8 @@
     "file_slot_key": "q1",
     "in_rotation": false,
     "text": {
-      "en": "Please tell us: what is your favorite crop to grow, and why?"
+      "en": "Please tell us: what is your favorite crop to grow, and why?",
+      "fil": "Pakisabi po sa amin: ano po ang paborito ninyong pananim, at bakit?"
     }
   },
   {
@@ -14,16 +15,17 @@
     "file_slot_key": "q1",
     "in_rotation": true,
     "text": {
-      "en": "What is your favorite meal to share with guests?",
-      "sw": "Chakula unachopenda zaidi kula pamoja na wageni ni kipi?",
-      "am": "ከእንግዶች ጋር ለማጋራት በጣም የሚወዱት ምግብ ምንድን ነው?",
-      "si": "අමුත්තන් සමඟ බෙදා ගැනීමට ඔබ වඩාත් කැමති ආහාරය කුමක්ද?",
-      "ta": "விருந்தினர்களுடன் பகிர்ந்து கொள்ள உங்களுக்கு மிகவும் பிடித்த உணவு எது?",
-      "vi": "Món ăn bạn thích nhất để mời khách là món gì?",
-      "hi": "मेहमानों के साथ खाने के लिए आपका सबसे पसंदीदा खाना कौन-सा है?",
-      "es": "¿Cuál es su comida favorita para compartir con los invitados?",
-      "fr": "Quel est votre repas préféré à partager avec vos invités ?",
-      "pt": "Qual é a sua refeição favorita para compartilhar com os convidados?"
+      "en": "What is your favorite meal to share with guests, and why?",
+      "sw": "Chakula unachopenda zaidi kula pamoja na wageni ni kipi, na kwa nini?",
+      "am": "ከእንግዶች ጋር ለማጋራት በጣም የሚወዱት ምግብ ምንድን ነው፣ እና ለምን?",
+      "si": "අමුත්තන් සමඟ බෙදා ගැනීමට ඔබ වඩාත් කැමති ආහාරය කුමක්ද, ඇයි?",
+      "ta": "விருந்தினர்களுடன் பகிர்ந்து கொள்ள உங்களுக்கு மிகவும் பிடித்த உணவு எது, ஏன்?",
+      "vi": "Món ăn bạn thích nhất để mời khách là món gì, và vì sao?",
+      "hi": "मेहमानों के साथ खाने के लिए आपका सबसे पसंदीदा खाना कौन-सा है, और क्यों?",
+      "es": "¿Cuál es su comida favorita para compartir con los invitados, y por qué?",
+      "fr": "Quel est votre repas préféré à partager avec vos invités, et pourquoi ?",
+      "pt": "Qual é a sua refeição favorita para compartilhar com os convidados, e por quê?",
+      "fil": "Ano po ang paborito ninyong pagkaing ihanda para sa mga bisita, at bakit?"
     }
   }
 ]

@@ -94,36 +94,32 @@ Principles 7–10 apply where suitable.
 ## Active Questions
 
 ### Q1
-What is your favorite meal to share with guests?
+What is your favorite meal to share with guests, and why?
 
 ### Q2
-What is your favorite thing to drink — besides coffee?
+Besides coffee, what is your favorite thing to drink? Tell us why.
 
 ### Q3
-If a visitor came to your village, where is the first
-place you would take them?
+If a visitor came to your village, where is the first place you would take them? Tell us why.
 
 ### Q4
-If you close your eyes on your farm right now,
-what do you hear?
+What sounds do you hear on the farm? Please choose one sound and tell us why you remember it.
 
 ### Q5
-Who taught you to grow coffee, and what is the one
-thing they told you that you still remember?
+Who taught you to grow coffee, and what is the one thing they told you that you still remember?
 
 ### Q6
 Tell us something about growing coffee that would
 surprise most people.
 
 ### Q7 — Curveball
-If your coffee could talk, what would it say about you?
+If your coffee could talk, what would it say about you? Tell us why it would say that.
 
 ### Q8
-What is the best part of your day?
+What is the best part of your day? Tell us why.
 
 ### Q9
-If you could invite anyone in the world to visit your
-farm, who would you invite and why?
+If you could invite anyone in the world to visit your farm, who would you invite? Tell us why.
 
 ### Q10
 What is something you are proud of that has nothing
