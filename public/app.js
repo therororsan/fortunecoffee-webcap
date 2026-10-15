@@ -89,6 +89,9 @@
   let analyserData    = null;
   let audioMonitorFrame = null;
   let currentMicLevel = 0;
+  let soundCheckHeard = false;
+  let soundCheckTimedOut = false;
+  let soundCheckTimer = null;
   let faceDetector    = null;
   let isFaceDetectionSupported = false;
   let hasMultipleVideoInputs = false;
@@ -161,22 +164,11 @@
       });
     }
 
-    const status = document.getElementById('soundStatus');
-    const statusDetail = document.getElementById('soundStatusDetail');
-    const continueAnyway = document.getElementById('continueAnywayBtn');
-    if (status) {
-      const canHear = currentMicLevel >= SOUND_LEVEL_THRESHOLD;
-      status.textContent = canHear ? 'We can hear you ✓' : 'No sound detected';
-      status.className = `sound-status ${canHear ? 'sound-status--good' : 'sound-status--warn'}`;
-      if (statusDetail) {
-        statusDetail.textContent = canHear
-          ? 'Your microphone is picking up your voice.'
-          : 'Try speaking closer to the phone or check your mic.';
-      }
-      if (continueAnyway) {
-        continueAnyway.style.display = canHear ? 'none' : 'inline-block';
-      }
+    if (document.getElementById('soundStatus') && currentMicLevel >= SOUND_LEVEL_THRESHOLD) {
+      soundCheckHeard = true;
+      clearSoundCheckTimer();
     }
+    updateSoundCheckUi();
 
     audioMonitorFrame = window.requestAnimationFrame(renderAudioMonitorFrame);
   }
@@ -194,6 +186,52 @@
       window.cancelAnimationFrame(audioMonitorFrame);
       audioMonitorFrame = null;
     }
+  }
+
+  function clearSoundCheckTimer() {
+    if (soundCheckTimer) {
+      window.clearTimeout(soundCheckTimer);
+      soundCheckTimer = null;
+    }
+  }
+
+  function updateSoundCheckUi() {
+    const status = document.getElementById('soundStatus');
+    const statusDetail = document.getElementById('soundStatusDetail');
+    const primary = document.getElementById('soundCheckPrimaryBtn');
+    const continueAnyway = document.getElementById('continueAnywayBtn');
+    if (!status || !statusDetail || !primary || !continueAnyway) return;
+
+    if (soundCheckHeard) {
+      status.textContent = 'We can hear you';
+      status.className = 'sound-status sound-status--good';
+      statusDetail.textContent = 'Your microphone is picking up your voice.';
+      primary.textContent = 'Next';
+      continueAnyway.style.display = 'none';
+    } else if (soundCheckTimedOut) {
+      status.textContent = 'No sound detected';
+      status.className = 'sound-status sound-status--warn';
+      statusDetail.textContent = 'Try speaking closer to the phone or check your mic.';
+      primary.textContent = 'Try again';
+      continueAnyway.style.display = 'inline-block';
+    } else {
+      status.textContent = '';
+      status.className = 'sound-status';
+      statusDetail.textContent = '';
+      primary.textContent = 'Next';
+      continueAnyway.style.display = 'none';
+    }
+  }
+
+  function resetSoundCheckWindow() {
+    clearSoundCheckTimer();
+    soundCheckHeard = false;
+    soundCheckTimedOut = false;
+    updateSoundCheckUi();
+    soundCheckTimer = window.setTimeout(() => {
+      soundCheckTimedOut = true;
+      updateSoundCheckUi();
+    }, 3000);
   }
 
   async function ensureFaceDetector() {
@@ -976,8 +1014,8 @@
             <p><strong>Do you agree?</strong></p>
           </div>
           <div class="consent-actions">
-            <button class="btn btn--consent btn--yes" id="consentYesBtn">✅ AGREE</button>
-            <button class="btn btn--consent btn--no" id="consentNoBtn">❌ DISAGREE</button>
+            <button class="btn btn--consent btn--yes" id="consentYesBtn">✓ Agree</button>
+            <button class="btn btn--consent btn--no" id="consentNoBtn">✕ Disagree</button>
           </div>
         </div>
       </div>
@@ -1082,8 +1120,8 @@
     const actionHtml = hasCapturedSelfie
       ? `
           <div class="selfie-actions">
-            <button class="btn btn--record" id="retakeSelfieBtn">${selfieFeedbackTone === 'warn' ? 'Retake' : 'Use this photo'}</button>
-            <button class="btn btn--secondary" id="useSelfieBtn">${selfieFeedbackTone === 'warn' ? 'Use this photo' : 'Retake'}</button>
+            <button class="btn btn--record" id="useSelfieBtn">✓ Use this photo</button>
+            <button class="btn btn--secondary" id="retakeSelfieBtn">Retake</button>
           </div>
         `
       : `
@@ -1111,27 +1149,14 @@
     setupMuteToggle();
 
     if (hasCapturedSelfie) {
-      const primaryAction = document.getElementById('retakeSelfieBtn');
-      const secondaryAction = document.getElementById('useSelfieBtn');
-      if (selfieFeedbackTone === 'warn') {
-        primaryAction.addEventListener('click', () => {
-          resetSelfieCaptureState();
-          showSelfieCapture();
-        });
-        secondaryAction.addEventListener('click', () => {
-          console.log('[webcap] selfie: "Use Photo" tapped', { selfieFeedbackTone, selfieBlob: !!selfieBlob });
-          showSoundCheck();
-        });
-      } else {
-        primaryAction.addEventListener('click', () => {
-          console.log('[webcap] selfie: "Use Photo" tapped', { selfieFeedbackTone, selfieBlob: !!selfieBlob });
-          showSoundCheck();
-        });
-        secondaryAction.addEventListener('click', () => {
-          resetSelfieCaptureState();
-          showSelfieCapture();
-        });
-      }
+      document.getElementById('useSelfieBtn').addEventListener('click', () => {
+        console.log('[webcap] selfie: "Use Photo" tapped', { selfieFeedbackTone, selfieBlob: !!selfieBlob });
+        showSoundCheck();
+      });
+      document.getElementById('retakeSelfieBtn').addEventListener('click', () => {
+        resetSelfieCaptureState();
+        showSelfieCapture();
+      });
     } else {
       const preview = document.getElementById('preview');
       if (preview) {
@@ -1301,7 +1326,7 @@
           <p class="question-listen-text">${escapeHtml(questionText || '')}</p>
         </div>
         <button class="btn btn--small" id="playBtn" type="button">Replay audio</button>
-        <button class="btn btn--record" id="readyToRecordBtn" style="display:none">Ready to record</button>
+        <button class="btn btn--record" id="readyToRecordBtn">Ready to record</button>
         ${updateInfoLink}
       </div>
     `);
@@ -1373,10 +1398,10 @@
           <div class="sound-bars" aria-hidden="true">
             ${Array.from({ length: SOUND_CHECK_BAR_COUNT }, () => '<span class="sound-bar"></span>').join('')}
           </div>
-          <p class="sound-status sound-status--warn" id="soundStatus">No sound detected</p>
-          <p class="sound-status-detail" id="soundStatusDetail">Try speaking closer to the phone or check your mic.</p>
+          <p class="sound-status" id="soundStatus"></p>
+          <p class="sound-status-detail" id="soundStatusDetail"></p>
         </div>
-        <button class="btn btn--record" id="soundCheckContinueBtn">Start Recording</button>
+        <button class="btn btn--record" id="soundCheckPrimaryBtn">Next</button>
         <button class="btn btn--link" id="continueAnywayBtn" style="display:none">Continue anyway</button>
       </div>
     `);
@@ -1387,14 +1412,22 @@
     }
 
     await startAudioMonitor();
+    resetSoundCheckWindow();
 
     const continueToQuestion = () => {
+      clearSoundCheckTimer();
       stopCurrentAudio();
       stopAudioMonitor();
       showQuestion({ attemptAutoplay: true });
     };
 
-    document.getElementById('soundCheckContinueBtn').addEventListener('click', continueToQuestion);
+    document.getElementById('soundCheckPrimaryBtn').addEventListener('click', () => {
+      if (!soundCheckHeard && soundCheckTimedOut) {
+        resetSoundCheckWindow();
+        return;
+      }
+      continueToQuestion();
+    });
     document.getElementById('continueAnywayBtn').addEventListener('click', continueToQuestion);
   }
 
@@ -1438,19 +1471,20 @@
   }
 
   async function showRecording() {
+    const questionText = currentQuestionText();
     render(`
       <div class="screen screen--recording">
         <div class="recording-header">
           <span class="rec-dot"></span>
-          <span class="rec-label">REC</span>
-          <span class="countdown" id="countdown">${MAX_DURATION_SEC}s</span>
+          <span class="rec-label">Recording</span>
         </div>
+        <p class="recording-question-band">${escapeHtml(questionText || '')}</p>
         <div class="preview-wrap preview-wrap--frame-guide" id="recordingPreviewWrap" style="position:relative;">
+          <div class="recording-progress" aria-hidden="true"><div class="recording-progress__bar" id="recordingProgress"></div></div>
           <video id="preview" autoplay muted playsinline></video>
           <div class="frame-guide-overlay" aria-hidden="true"></div>
-          <span id="countdownWatermark" aria-hidden="true" style="display:none;position:absolute;bottom:16px;right:16px;font-size:48px;color:rgba(255,255,255,0.7);text-shadow:0 2px 10px rgba(0,0,0,0.8);z-index:3;pointer-events:none;font-weight:700;line-height:1;"></span>
         </div>
-        <button class="btn btn--stop" id="stopBtn">Stop</button>
+        <button class="btn btn--stop" id="stopBtn">■ Stop</button>
       </div>
     `);
     const preview = document.getElementById('preview');
@@ -1513,37 +1547,6 @@
     document.getElementById('retryBtn').addEventListener('click', showReview);
   }
 
-  async function copyTextToClipboard(text) {
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(text);
-      return;
-    }
-
-    const textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.setAttribute('readonly', '');
-    textarea.style.position = 'fixed';
-    textarea.style.left = '-9999px';
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand('copy');
-    textarea.remove();
-  }
-
-  function setupSuccessFarmerIdCopy() {
-    const button = document.getElementById('successFarmerId');
-    const copied = document.getElementById('successFarmerIdCopied');
-    if (!button || !copied) return;
-
-    button.addEventListener('click', async () => {
-      await copyTextToClipboard(farmerId);
-      copied.textContent = 'Copied';
-      window.setTimeout(() => {
-        copied.textContent = '';
-      }, 1200);
-    });
-  }
-
   function showSuccess() {
     // Release camera tracks once we're done
     stopMediaStream();
@@ -1571,22 +1574,9 @@
           <p class="success-next">We will be in touch when your farmer card is ready.</p>
           <p class="success-footer">Buna Baraka</p>
         </div>
-        <div style="position:fixed; left:0; right:0; bottom:calc(8px + env(safe-area-inset-bottom)); text-align:center;">
-          <button
-            id="successFarmerId"
-            type="button"
-            style="border:0; background:transparent; color:#c8c8c8; font-family:inherit; font-size:11px; line-height:1.2; padding:8px 12px; cursor:pointer;"
-          >${escapeHtml(farmerId)}</button>
-          <div
-            id="successFarmerIdCopied"
-            aria-live="polite"
-            style="min-height:13px; color:#9ca3af; font-size:11px; line-height:1.2;"
-          ></div>
-        </div>
       </div>
     `);
     setupMuteToggle();
-    setupSuccessFarmerIdCopy();
 
     requestAnimationFrame(() => {
       const card = document.getElementById('successCard');
@@ -1628,21 +1618,6 @@
     showError(msg);
   }
 
-  function updateCountdownWatermark(remaining) {
-    const watermark = document.getElementById('countdownWatermark');
-    if (!watermark) return;
-
-    if (remaining > 15) {
-      watermark.style.display = 'none';
-      return;
-    }
-
-    watermark.textContent = `${Math.max(0, remaining)}`;
-    watermark.style.display = 'block';
-    watermark.style.fontSize = remaining <= 5 ? '72px' : '48px';
-    watermark.style.color = remaining <= 5 ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.7)';
-  }
-
   async function startRecording() {
     recordedChunks = [];
     recordedBlob = null;
@@ -1681,9 +1656,8 @@
     countdownTimer = setInterval(() => {
       elapsedSeconds++;
       const remaining = MAX_DURATION_SEC - elapsedSeconds;
-      const el = document.getElementById('countdown');
-      if (el) el.textContent = `${remaining}s`;
-      updateCountdownWatermark(remaining);
+      const progress = document.getElementById('recordingProgress');
+      if (progress) progress.style.width = `${Math.max(0, (remaining / MAX_DURATION_SEC) * 100)}%`;
       if (remaining <= 0) {
         createRecordedBlob();
         stopRecording();
