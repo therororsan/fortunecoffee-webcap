@@ -1,4 +1,20 @@
-/* ── Reset & base ─────────────────────────────────────────────────────── */
+/* ── Fonts, reset & base ──────────────────────────────────────────────── */
+@font-face {
+  font-family: 'IM Fell English';
+  src: url('fonts/IMFellEnglish-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist';
+  src: url('fonts/Geist-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -6,16 +22,19 @@
 }
 
 :root {
-  --bg:           #0f0f1a;
-  --surface:      #1a1a2e;
-  --accent:       #e94560;
-  --accent-dim:   #a83040;
-  --success:      #4caf7d;
-  --text:         #eaeaea;
-  --text-muted:   #8892b0;
-  --btn-secondary:#2a2a4a;
+  --bg:           #f3ecdd;
+  --surface:      #fffaf0;
+  --border:       #d6c9ae;
+  --accent:       #b15d2b;
+  --accent-dim:   #8f4820;
+  --success:      #4f8a59;
+  --danger:       #b7443e;
+  --text:         #313323;
+  --text-muted:   #5d5941;
+  --btn-secondary:#e7ddc8;
   --radius:       12px;
-  --font:         -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font:         'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-heading: 'IM Fell English', Georgia, 'Times New Roman', serif;
 }
 
 html, body {
@@ -47,6 +66,7 @@ html, body {
 .question-card {
   width: 100%;
   background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px;
 }
@@ -54,7 +74,6 @@ html, body {
 .question-label {
   font-size: 11px;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
   color: var(--text-muted);
   margin-bottom: 10px;
 }
@@ -63,6 +82,7 @@ html, body {
   font-size: 20px;
   line-height: 1.5;
   font-weight: 500;
+  font-family: var(--font-heading);
 }
 
 /* ── Camera preview / playback ────────────────────────────────────────── */
@@ -98,6 +118,7 @@ html, body {
   border-radius: var(--radius);
   font-size: 18px;
   font-weight: 600;
+  font-family: var(--font);
   cursor: pointer;
   transition: opacity 0.15s;
   -webkit-tap-highlight-color: transparent;
@@ -107,17 +128,17 @@ html, body {
 
 .btn--record {
   background: var(--accent);
-  color: #fff;
+  color: var(--surface);
 }
 
 .btn--stop {
   background: var(--accent);
-  color: #fff;
+  color: var(--surface);
 }
 
 .btn--upload {
-  background: var(--success);
-  color: #fff;
+  background: var(--accent);
+  color: var(--surface);
   flex: 1;
 }
 
@@ -150,6 +171,7 @@ html, body {
   align-items: center;
   gap: 10px;
   background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 14px 20px;
   width: 100%;
@@ -172,15 +194,40 @@ html, body {
 .rec-label {
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--accent);
+  color: var(--text);
 }
 
-.countdown {
-  margin-left: auto;
-  font-size: 22px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+.recording-question-band {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--font-heading);
+  font-size: 18px;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.recording-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  z-index: 3;
+  background: rgba(255, 250, 240, 0.35);
+}
+
+.recording-progress__bar {
+  height: 100%;
+  width: 100%;
+  background: var(--accent);
+  transition: width 1s linear;
 }
 
 /* ── Review actions ───────────────────────────────────────────────────── */
@@ -210,8 +257,8 @@ html, body {
 
 .progress-bar-wrap {
   width: 100%;
-  height: 8px;
-  background: var(--surface);
+  height: 10px;
+  background: var(--border);
   border-radius: 4px;
   overflow: hidden;
 }
@@ -240,6 +287,7 @@ html, body {
   width: 100%;
   max-width: 420px;
   background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 24px;
   padding: 36px 24px 30px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
@@ -286,7 +334,6 @@ html, body {
 .success-eyebrow {
   font-size: 12px;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: var(--success);
   font-weight: 700;
 }
@@ -296,6 +343,7 @@ html, body {
   line-height: 1.2;
   margin-top: 4px;
   color: var(--text);
+  font-family: var(--font-heading);
 }
 
 .screen--success p {
@@ -369,6 +417,7 @@ html, body {
   width: 100%;
   max-width: 400px;
   background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 28px 20px;
 }
@@ -376,6 +425,7 @@ html, body {
 .card h2 {
   font-size: 22px;
   margin-bottom: 8px;
+  font-family: var(--font-heading);
 }
 
 .card p {
@@ -400,7 +450,7 @@ html, body {
 .form-group select {
   width: 100%;
   padding: 14px;
-  border: none;
+  border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg);
   color: var(--text);
@@ -420,6 +470,7 @@ html, body {
   padding: 14px;
   border-radius: 8px;
   background: var(--bg);
+  border: 1px solid var(--border);
   color: var(--text-muted);
   font-size: 16px;
   font-family: var(--font);
@@ -440,6 +491,7 @@ html, body {
   justify-content: space-between;
   padding: 14px;
   background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
@@ -472,6 +524,7 @@ html, body {
   left: 0;
   right: 0;
   background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 0 0 8px 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   z-index: 50;
@@ -493,7 +546,7 @@ html, body {
   color: var(--text);
 }
 
-.cs-opt:hover { background: rgba(255, 255, 255, 0.07); }
+.cs-opt:hover { background: var(--bg); }
 
 .cs-opt--empty { color: var(--text-muted); }
 
@@ -502,6 +555,7 @@ html, body {
   display: flex;
   align-items: stretch;
   background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -530,7 +584,7 @@ html, body {
 
 .btn--primary {
   background: var(--accent);
-  color: #fff;
+  color: var(--surface);
   margin-top: 12px;
 }
 
@@ -576,14 +630,15 @@ html, body {
 
 .consent-text {
   background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 24px;
-  text-align: center;
+  text-align: left;
   max-width: 340px;
 }
 
 .consent-text p {
-  font-size: 17px;
+  font-size: 18px;
   line-height: 1.6;
   margin-bottom: 12px;
 }
@@ -608,12 +663,12 @@ html, body {
 
 .btn--consent.btn--yes {
   background: var(--success);
-  color: #fff;
+  color: var(--surface);
 }
 
 .btn--consent.btn--no {
-  background: var(--accent);
-  color: #fff;
+  background: var(--danger);
+  color: var(--surface);
 }
 
 /* ── Consent decline screen ───────────────────────────────────────────── */
@@ -643,27 +698,28 @@ html, body {
   padding-top: 48px;
   padding-bottom: 48px;
   text-align: center;
-  background: linear-gradient(180deg, #23422b 0%, #122118 100%);
+  background: var(--bg);
 }
 
 .question-listen-card {
   width: 100%;
   padding: 40px 28px;
   border-radius: 24px;
-  background: rgba(9, 16, 11, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 48px rgba(49, 51, 35, 0.12);
 }
 
 .question-listen-text {
   font-size: clamp(32px, 8vw, 42px);
   line-height: 1.2;
   font-weight: 700;
+  font-family: var(--font-heading);
 }
 
 .question-update-link {
   font-size: 12px;
-  color: #dce8d7;
+  color: var(--text-muted);
   text-decoration: underline;
   margin-top: 4px;
   display: inline-block;
@@ -717,6 +773,7 @@ html, body {
 .sound-check-card {
   width: 100%;
   background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 8px 12px;
   text-align: center;
@@ -735,7 +792,7 @@ html, body {
   width: 12px;
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(76, 175, 125, 0.95), rgba(233, 69, 96, 0.85));
+  background: linear-gradient(180deg, var(--success), var(--accent));
   transform-origin: center bottom;
   transform: scaleY(0.08);
   transition: transform 0.12s ease-out;
@@ -751,7 +808,7 @@ html, body {
 }
 
 .sound-status--warn {
-  color: #f0c36a;
+  color: var(--danger);
 }
 
 .sound-status-detail {
@@ -765,7 +822,7 @@ html, body {
   border: 4px solid transparent;
 }
 
-/* Constrain camera preview on sound-check screen so Start Recording stays visible
+/* Constrain camera preview on sound-check screen so the primary action stays visible
    on a 667px viewport without scrolling. Other screens keep the 68vh default. */
 .screen--sound-check .preview-wrap {
   max-height: 38vh;
@@ -941,8 +998,8 @@ html, body {
   line-height: 1;
 }
 
-.guidance-mark--bad  { color: #e94560; }
-.guidance-mark--good { color: #4caf7d; }
+.guidance-mark--bad  { color: var(--danger); }
+.guidance-mark--good { color: var(--success); }
 
 /* ── Desktop: constrain to phone-width, centered ──────────────────────── */
 /* Mobile (< 600px) is completely unaffected by this block.                */
@@ -950,7 +1007,7 @@ html, body {
   body {
     display: flex;
     justify-content: center;
-    background: #070710; /* slightly darker than --bg to frame the app column */
+    background: var(--bg);
   }
 
   #app {
