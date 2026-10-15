@@ -97,6 +97,8 @@
   let hasMultipleVideoInputs = false;
   let deliveredCameraSettings = null;
   let uploadInProgress = false;
+  let previewViewportCleanup = null;
+  let hasShownCameraPermissionNote = false;
 
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -764,6 +766,7 @@
           facingMode: { ideal: cameraFacingMode }, // 'user' = front, 'environment' = back
           width:  { ideal: 720  },
           height: { ideal: 1280 },
+          aspectRatio: { ideal: 9 / 16 },
         },
         audio: true,
       });
@@ -817,50 +820,70 @@
     return (deliveredCameraSettings && deliveredCameraSettings.facingMode || cameraFacingMode) === 'user';
   }
 
-  function previewAspect(settings, video) {
-    if (settings && Number.isFinite(settings.aspectRatio) && settings.aspectRatio > 0) {
-      return settings.aspectRatio;
-    }
-    if (settings && settings.width && settings.height) {
-      return settings.width / settings.height;
-    }
-    if (video.videoWidth && video.videoHeight) {
-      return video.videoWidth / video.videoHeight;
-    }
-    return null;
-  }
-
   function sizePreviewViewport(video, settings = deliveredCameraSettings) {
     const wrap = video.closest('.preview-wrap');
     if (!wrap) return;
 
     const applySize = () => {
-      const aspect = previewAspect(settings, video);
+      const metadataWidth = video.videoWidth || video.naturalWidth;
+      const metadataHeight = video.videoHeight || video.naturalHeight;
+      const hasMetadata = metadataWidth && metadataHeight;
+      const width = hasMetadata ? metadataWidth : settings && settings.width;
+      const height = hasMetadata ? metadataHeight : settings && settings.height;
+      const aspect = width && height
+        ? width / height
+        : settings && Number.isFinite(settings.aspectRatio) && settings.aspectRatio > 0
+          ? settings.aspectRatio
+          : null;
       if (!aspect) return;
+
+      const isLandscape = aspect > 1;
+      const viewportAspect = isLandscape ? 3 / 4 : aspect;
       const screen = wrap.closest('.screen');
       const maxHeight = (screen && screen.classList.contains('screen--sound-check') ? 0.38 : 0.62)
         * (window.visualViewport ? window.visualViewport.height : window.innerHeight);
       const availableWidth = wrap.parentElement ? wrap.parentElement.clientWidth : window.innerWidth;
-      const width = Math.min(availableWidth, maxHeight * aspect);
-      wrap.style.setProperty('--camera-aspect-ratio', String(aspect));
-      wrap.style.setProperty('--preview-width', `${Math.floor(width)}px`);
+      const viewportWidth = Math.min(availableWidth, maxHeight * viewportAspect);
+      wrap.classList.toggle('preview-wrap--landscape-crop', isLandscape);
+      wrap.style.setProperty('--camera-aspect-ratio', String(viewportAspect));
+      wrap.style.setProperty('--preview-width', `${Math.floor(viewportWidth)}px`);
+
+      if (hasMetadata) {
+        console.log('[webcap] preview orientation:', {
+          width: metadataWidth,
+          height: metadataHeight,
+          orientation: isLandscape ? 'landscape' : 'portrait',
+          cropRule: isLandscape ? 'center 3:4, sides only' : 'contain full frame',
+        });
+      }
     };
 
+    if (previewViewportCleanup) previewViewportCleanup();
     applySize();
-    video.addEventListener('loadedmetadata', () => {
-      if (!previewAspect(settings, video)) {
-        sizePreviewViewport(video, null);
-      } else {
-        applySize();
-      }
-    }, { once: true });
+    video.addEventListener('loadedmetadata', applySize);
+    video.addEventListener('resize', applySize);
+    video.addEventListener('load', applySize);
+    window.addEventListener('resize', applySize);
+    window.addEventListener('orientationchange', applySize);
+    previewViewportCleanup = () => {
+      video.removeEventListener('loadedmetadata', applySize);
+      video.removeEventListener('resize', applySize);
+      video.removeEventListener('load', applySize);
+      window.removeEventListener('resize', applySize);
+      window.removeEventListener('orientationchange', applySize);
+    };
   }
 
   function renderHeadAndShouldersGuide() {
     return `
-      <svg class="framing-guide" viewBox="0 0 100 140" aria-hidden="true" focusable="false">
-        <path class="framing-guide__outline" d="M34 25c0-14 32-14 32 0v26c0 14-8 25-16 25s-16-11-16-25V25Z M34 42h-7m39 0h7 M22 129c3-25 16-38 28-38s25 13 28 38" />
-        <path class="framing-guide__eyes" d="M35 45h30" />
+      <svg class="framing-guide" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <defs>
+          <mask id="bustAperture">
+            <rect width="100" height="100" fill="white" />
+            <path fill="black" d="M50 9C37 9 31 18 31 30c0 9 4 15 10 18v10c-10 3-19 7-24 12-4 4-5 11-5 19h76c0-8-1-15-5-19-5-5-14-9-24-12V48c6-3 10-9 10-18C69 18 63 9 50 9Z" />
+          </mask>
+        </defs>
+        <rect class="framing-guide__mask" width="100" height="100" mask="url(#bustAperture)" />
       </svg>
     `;
   }
@@ -904,6 +927,10 @@
   // ── Screens ──────────────────────────────────────────────────────────────
   function render(html) {
     stopCurrentAudio();
+    if (previewViewportCleanup) {
+      previewViewportCleanup();
+      previewViewportCleanup = null;
+    }
     document.getElementById('app').innerHTML = html;
   }
 
@@ -1187,6 +1214,43 @@
     stopAudioMonitor();
     resetSelfieCaptureState();
     cameraFacingMode = 'user';
+    if (await shouldShowCameraPermissionNote()) {
+      showCameraPermissionNote();
+      return;
+    }
+    startSelfieCamera();
+  }
+
+  async function shouldShowCameraPermissionNote() {
+    if (hasShownCameraPermissionNote) return false;
+    if (!navigator.permissions || typeof navigator.permissions.query !== 'function') return true;
+    try {
+      const permissions = await Promise.all([
+        navigator.permissions.query({ name: 'camera' }),
+        navigator.permissions.query({ name: 'microphone' }),
+      ]);
+      return permissions.some(permission => permission.state !== 'granted');
+    } catch {
+      return true;
+    }
+  }
+
+  function showCameraPermissionNote() {
+    hasShownCameraPermissionNote = true;
+    render(`
+      <div class="screen screen--selfie screen--camera-permission">
+        <div class="camera-permission-icons" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M4 7h3l1.5-2h7L17 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm8 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" /></svg>
+          <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-5 8a5 5 0 0 0 10 0M12 16v4m-4 0h8" /></svg>
+        </div>
+        <p class="camera-permission-copy">Your phone will ask to use the camera and microphone. Please tap Allow.</p>
+        <button class="btn btn--record" id="cameraPermissionContinueBtn">Continue</button>
+      </div>
+    `);
+    document.getElementById('cameraPermissionContinueBtn').addEventListener('click', startSelfieCamera);
+  }
+
+  async function startSelfieCamera() {
     showLoading();
     const cameraReady = await initCamera();
     if (!cameraReady) return;
@@ -1331,15 +1395,23 @@
     const canvas = document.createElement('canvas');
     const width = preview.videoWidth || 720;
     const height = preview.videoHeight || 1280;
-    canvas.width = width;
+    const isLandscape = width > height;
+    const cropWidth = isLandscape ? Math.floor(height * (3 / 4)) : width;
+    const cropX = isLandscape ? Math.floor((width - cropWidth) / 2) : 0;
+    canvas.width = cropWidth;
     canvas.height = height;
 
     const context = canvas.getContext('2d', { willReadFrequently: true });
-    context.drawImage(preview, 0, 0, width, height);
+    context.drawImage(preview, cropX, 0, cropWidth, height, 0, 0, cropWidth, height);
 
-    const centralLum = measureCentralLuminance(context, width, height);
+    const centralLum = measureCentralLuminance(context, cropWidth, height);
     const isTooDark = centralLum < 52;
-    const subjectMissing = !hasSubjectInCenter(context, width, height);
+    const subjectMissing = !hasSubjectInCenter(context, cropWidth, height);
+
+    console.log('[webcap] selfie crop rule:', {
+      orientation: isLandscape ? 'landscape' : 'portrait',
+      cropRule: isLandscape ? 'center 3:4, sides only' : 'full frame',
+    });
 
     const blob = await canvasToJpegBlob(canvas);
     console.log('[webcap] selfie: blob created', { size: blob ? blob.size : null, type: blob ? blob.type : null });
@@ -1353,9 +1425,9 @@
     selfieObjectUrl = URL.createObjectURL(blob);
 
     if (DEBUG_SELFIE_CHECK) {
-      const roiX = Math.floor(width * 0.25);
+      const roiX = Math.floor(cropWidth * 0.25);
       const roiY = Math.floor(height * 0.10);
-      const roiW = Math.floor(width * 0.50);
+      const roiW = Math.floor(cropWidth * 0.50);
       const roiH = Math.floor(height * 0.65);
       const { data } = context.getImageData(roiX, roiY, roiW, roiH);
       const luminances = [];

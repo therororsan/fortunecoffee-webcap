@@ -110,6 +110,12 @@ html, body {
   display: block;
 }
 
+.preview-wrap--landscape-crop video,
+.preview-wrap--landscape-crop img {
+  object-fit: cover;
+  object-position: center;
+}
+
 .camera-preview-content {
   position: absolute;
   inset: 0;
@@ -846,29 +852,16 @@ html, body {
 
 .framing-guide {
   position: absolute;
-  top: 11%;
-  left: 16%;
-  width: 68%;
-  height: 76%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.88));
   transition: opacity 0.5s ease;
 }
 
-.framing-guide__outline {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.94);
-  stroke-width: 3.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 7 5;
-}
-
-.framing-guide__eyes {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.52);
-  stroke-width: 1.5;
-  stroke-linecap: round;
+.framing-guide__mask {
+  fill: #000;
+  opacity: 0.45;
 }
 
 .framing-guide--faded {
@@ -887,6 +880,36 @@ html, body {
   line-height: 1;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
   pointer-events: none;
+}
+
+.screen--camera-permission {
+  justify-content: center;
+  text-align: center;
+}
+
+.camera-permission-icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  color: var(--accent);
+}
+
+.camera-permission-icons svg {
+  width: 52px;
+  height: 52px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.camera-permission-copy {
+  max-width: 28ch;
+  font-family: var(--font-heading);
+  font-size: 22px;
+  line-height: 1.35;
 }
 
 .recording-warning-banner {
