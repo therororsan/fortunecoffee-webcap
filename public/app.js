@@ -972,7 +972,7 @@
         ${renderMuteToggle()}
         <div class="consent-body">
           <div class="consent-text">
-            <p>This video will be used by Fortune Coffee to share your story with customers who buy your coffee.</p>
+            <p>This video will be used by Buna Baraka to share your story with customers who buy your coffee.</p>
             <p><strong>Do you agree?</strong></p>
           </div>
           <div class="consent-actions">
@@ -1569,7 +1569,7 @@
           <h1>Thank you${displayName}!</h1>
           <p class="success-copy">Your video has been received successfully.</p>
           <p class="success-next">We will be in touch when your farmer card is ready.</p>
-          <p class="success-footer">FORTUNE COFFEE</p>
+          <p class="success-footer">Buna Baraka</p>
         </div>
         <div style="position:fixed; left:0; right:0; bottom:calc(8px + env(safe-area-inset-bottom)); text-align:center;">
           <button
