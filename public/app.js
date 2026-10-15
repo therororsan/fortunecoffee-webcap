@@ -12,7 +12,6 @@
   const DEFAULT_LANG         = 'en';
   const DEBUG_SELFIE_CHECK   = false;
   const SOUND_LEVEL_THRESHOLD = 0.01;
-  const SOUND_CHECK_BAR_COUNT = 6;
   const COUNTRY_OPTIONS = [
     'Brazil', 'Colombia', 'Ethiopia', 'Guatemala', 'Honduras',
     'India', 'Indonesia', 'Kenya', 'Mexico', 'Peru', 'Philippines',
@@ -68,6 +67,7 @@
   let countdownTimer  = null;
   let recorderStopSafetyTimer = null;
   let recordingStopHandled = false;
+  let recordingStopRequested = false;
   let elapsedSeconds  = 0;
   let supabaseClient  = null;
   let cameraFacingMode = 'user'; // 'user' = front/selfie, 'environment' = back
@@ -95,6 +95,8 @@
   let faceDetector    = null;
   let isFaceDetectionSupported = false;
   let hasMultipleVideoInputs = false;
+  let deliveredCameraSettings = null;
+  let uploadInProgress = false;
 
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -154,16 +156,6 @@
   function renderAudioMonitorFrame() {
     currentMicLevel = sampleMicLevel();
 
-    const bars = Array.from(document.querySelectorAll('.sound-bars .sound-bar'));
-    if (bars.length) {
-      const normalized = Math.max(0.08, Math.min(1, currentMicLevel / 0.08));
-      bars.forEach((bar, index) => {
-        const offset = 0.18 + (index % 3) * 0.1;
-        const scale = Math.min(1, normalized + offset);
-        bar.style.transform = `scaleY(${scale.toFixed(3)})`;
-      });
-    }
-
     if (document.getElementById('soundStatus') && currentMicLevel >= SOUND_LEVEL_THRESHOLD) {
       soundCheckHeard = true;
       clearSoundCheckTimer();
@@ -196,25 +188,29 @@
   }
 
   function updateSoundCheckUi() {
+    const indicator = document.getElementById('soundIndicator');
     const status = document.getElementById('soundStatus');
     const statusDetail = document.getElementById('soundStatusDetail');
     const primary = document.getElementById('soundCheckPrimaryBtn');
     const continueAnyway = document.getElementById('continueAnywayBtn');
-    if (!status || !statusDetail || !primary || !continueAnyway) return;
+    if (!indicator || !status || !statusDetail || !primary || !continueAnyway) return;
 
     if (soundCheckHeard) {
+      indicator.classList.add('sound-indicator--detected');
       status.textContent = 'We can hear you';
       status.className = 'sound-status sound-status--good';
       statusDetail.textContent = 'Your microphone is picking up your voice.';
       primary.textContent = 'Next';
       continueAnyway.style.display = 'none';
     } else if (soundCheckTimedOut) {
+      indicator.classList.remove('sound-indicator--detected');
       status.textContent = 'No sound detected';
       status.className = 'sound-status sound-status--warn';
       statusDetail.textContent = 'Try speaking closer to the phone or check your mic.';
       primary.textContent = 'Try again';
       continueAnyway.style.display = 'inline-block';
     } else {
+      indicator.classList.remove('sound-indicator--detected');
       status.textContent = '';
       status.className = 'sound-status';
       statusDetail.textContent = '';
@@ -268,16 +264,22 @@
     clearSelfieObjectUrl();
     selfieFeedbackTone = null;
     selfieFeedbackMessage = '';
-    const wrap = document.getElementById('selfiePreviewWrap');
-    if (wrap) {
-      wrap.classList.remove('selfie-with-face-guide');
-    }
   }
 
   function handleUploadAttempt() {
     clearReviewObjectUrl();
     uploadVideo();
   }
+
+  function setUploadInProgress(value) {
+    uploadInProgress = value;
+  }
+
+  window.addEventListener('beforeunload', event => {
+    if (!uploadInProgress) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
 
   // ── Startup ──────────────────────────────────────────────────────────────
   async function init() {
@@ -765,6 +767,21 @@
         },
         audio: true,
       });
+      const videoTrack = mediaStream.getVideoTracks()[0];
+      if (videoTrack) {
+        const capabilities = typeof videoTrack.getCapabilities === 'function'
+          ? videoTrack.getCapabilities()
+          : null;
+        if (capabilities && capabilities.zoom && Number.isFinite(capabilities.zoom.min)) {
+          try {
+            await videoTrack.applyConstraints({ advanced: [{ zoom: capabilities.zoom.min }] });
+          } catch (err) {
+            console.warn('[webcap] camera zoom minimum unavailable:', err);
+          }
+        }
+        deliveredCameraSettings = videoTrack.getSettings();
+        console.log('[webcap] camera delivered settings:', deliveredCameraSettings);
+      }
       if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
         try {
           const devices = await navigator.mediaDevices.enumerateDevices();
@@ -796,6 +813,70 @@
     mediaStream = null;
   }
 
+  function isUsingFrontCamera() {
+    return (deliveredCameraSettings && deliveredCameraSettings.facingMode || cameraFacingMode) === 'user';
+  }
+
+  function previewAspect(settings, video) {
+    if (settings && Number.isFinite(settings.aspectRatio) && settings.aspectRatio > 0) {
+      return settings.aspectRatio;
+    }
+    if (settings && settings.width && settings.height) {
+      return settings.width / settings.height;
+    }
+    if (video.videoWidth && video.videoHeight) {
+      return video.videoWidth / video.videoHeight;
+    }
+    return null;
+  }
+
+  function sizePreviewViewport(video, settings = deliveredCameraSettings) {
+    const wrap = video.closest('.preview-wrap');
+    if (!wrap) return;
+
+    const applySize = () => {
+      const aspect = previewAspect(settings, video);
+      if (!aspect) return;
+      const screen = wrap.closest('.screen');
+      const maxHeight = (screen && screen.classList.contains('screen--sound-check') ? 0.38 : 0.62)
+        * (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+      const availableWidth = wrap.parentElement ? wrap.parentElement.clientWidth : window.innerWidth;
+      const width = Math.min(availableWidth, maxHeight * aspect);
+      wrap.style.setProperty('--camera-aspect-ratio', String(aspect));
+      wrap.style.setProperty('--preview-width', `${Math.floor(width)}px`);
+    };
+
+    applySize();
+    video.addEventListener('loadedmetadata', () => {
+      if (!previewAspect(settings, video)) {
+        sizePreviewViewport(video, null);
+      } else {
+        applySize();
+      }
+    }, { once: true });
+  }
+
+  function renderHeadAndShouldersGuide() {
+    return `
+      <svg class="framing-guide" viewBox="0 0 100 140" aria-hidden="true" focusable="false">
+        <path class="framing-guide__outline" d="M34 25c0-14 32-14 32 0v26c0 14-8 25-16 25s-16-11-16-25V25Z M34 42h-7m39 0h7 M22 129c3-25 16-38 28-38s25 13 28 38" />
+        <path class="framing-guide__eyes" d="M35 45h30" />
+      </svg>
+    `;
+  }
+
+  function renderCameraPreview({ id = '', mirrored = isUsingFrontCamera(), recording = false } = {}) {
+    return `
+      <div class="preview-wrap preview-wrap--camera${mirrored ? ' preview-wrap--mirrored' : ''}${recording ? ' preview-wrap--recording' : ''}"${id ? ` id="${id}"` : ''}>
+        ${recording ? '<div class="recording-progress" aria-hidden="true"><div class="recording-progress__bar" id="recordingProgress"></div></div>' : ''}
+        <div class="camera-preview-content">
+          <video id="preview" autoplay muted playsinline></video>
+          ${renderHeadAndShouldersGuide()}
+        </div>
+      </div>
+    `;
+  }
+
   async function switchCamera() {
     // Toggle between front and back cameras
     cameraFacingMode = cameraFacingMode === 'user' ? 'environment' : 'user';
@@ -815,8 +896,9 @@
     }
     const selfieWrap = document.getElementById('selfiePreviewWrap');
     if (selfieWrap) {
-      selfieWrap.classList.toggle('preview-wrap--mirrored', cameraFacingMode === 'user');
+      selfieWrap.classList.toggle('preview-wrap--mirrored', isUsingFrontCamera());
     }
+    if (preview) sizePreviewViewport(preview);
   }
 
   // ── Screens ──────────────────────────────────────────────────────────────
@@ -1136,19 +1218,21 @@
         ${renderMuteToggle()}
         <div class="question-card">
           <p class="question-label">Selfie check</p>
-          <p class="question-text">Center your face inside the oval, then take one clear photo.</p>
+          <p class="question-text">Center your head and shoulders inside the outline, then take one clear photo.</p>
         </div>
-        <div class="preview-wrap preview-wrap--frame-guide ${!hasCapturedSelfie && cameraFacingMode === 'user' ? 'preview-wrap--mirrored' : ''}" id="selfiePreviewWrap">
-          ${hasCapturedSelfie
-            ? `<img id="selfiePreviewImage" src="${selfieObjectUrl}" alt="Selfie preview">`
-            : '<video id="preview" autoplay muted playsinline></video><div class="frame-guide-overlay" aria-hidden="true"></div>'}
-        </div>
+        ${hasCapturedSelfie
+          ? `<div class="preview-wrap" id="selfiePreviewWrap">
+              <img id="selfiePreviewImage" src="${selfieObjectUrl}" alt="Selfie preview">
+            </div>`
+          : renderCameraPreview({ id: 'selfiePreviewWrap' })}
         ${actionHtml}
       </div>
     `);
     setupMuteToggle();
 
     if (hasCapturedSelfie) {
+      const selfieImage = document.getElementById('selfiePreviewImage');
+      if (selfieImage) sizePreviewViewport(selfieImage);
       document.getElementById('useSelfieBtn').addEventListener('click', () => {
         console.log('[webcap] selfie: "Use Photo" tapped', { selfieFeedbackTone, selfieBlob: !!selfieBlob });
         showSoundCheck();
@@ -1161,14 +1245,13 @@
       const preview = document.getElementById('preview');
       if (preview) {
         preview.srcObject = mediaStream;
+        sizePreviewViewport(preview);
       }
-      const wrap = document.getElementById('selfiePreviewWrap');
-      if (wrap) wrap.classList.add('selfie-with-face-guide');
       const flipButton = document.getElementById('selfieFlipBtn');
       if (flipButton) {
         flipButton.addEventListener('click', switchCamera);
       }
-      document.getElementById('takeSelfieBtn').addEventListener('click', captureSelfie);
+      document.getElementById('takeSelfieBtn').addEventListener('click', startSelfieCountdown);
     }
 
     if (showGuide) {
@@ -1300,13 +1383,34 @@
       selfieFeedbackMessage = 'Photo looks dark - try again in better light';
     } else if (subjectMissing) {
       selfieFeedbackTone = 'warn';
-      selfieFeedbackMessage = "We couldn't see you clearly - center your face in the oval and retake";
+      selfieFeedbackMessage = "We couldn't see you clearly - center your head and shoulders in the outline and retake";
     } else {
       selfieFeedbackTone = 'good';
       selfieFeedbackMessage = 'Looks good ✓';
     }
 
     showSelfieCapture();
+  }
+
+  async function startSelfieCountdown() {
+    const previewWrap = document.getElementById('selfiePreviewWrap');
+    const takeButton = document.getElementById('takeSelfieBtn');
+    const flipButton = document.getElementById('selfieFlipBtn');
+    if (!previewWrap || !takeButton || takeButton.disabled) return;
+
+    takeButton.disabled = true;
+    if (flipButton) flipButton.disabled = true;
+    const countdown = document.createElement('div');
+    countdown.className = 'selfie-countdown';
+    previewWrap.appendChild(countdown);
+
+    for (const number of [3, 2, 1]) {
+      countdown.textContent = String(number);
+      await new Promise(resolve => window.setTimeout(resolve, 400));
+    }
+
+    if (countdown.parentNode) countdown.remove();
+    await captureSelfie();
   }
 
   // ── Question Screen (with audio) ───────────────────────────────────────────
@@ -1326,7 +1430,7 @@
           <p class="question-listen-text">${escapeHtml(questionText || '')}</p>
         </div>
         <button class="btn btn--small" id="playBtn" type="button">Replay audio</button>
-        <button class="btn btn--record" id="readyToRecordBtn">Ready to record</button>
+        <button class="btn btn--record" id="readyToRecordBtn">Start recording</button>
         ${updateInfoLink}
       </div>
     `);
@@ -1390,13 +1494,11 @@
           <p class="question-label">Sound check</p>
           <p class="question-text">Say a few words so we can check your microphone.</p>
         </div>
-        <div class="preview-wrap preview-wrap--frame-guide">
-          <video id="preview" autoplay muted playsinline></video>
-          <div class="frame-guide-overlay" aria-hidden="true"></div>
-        </div>
+        ${renderCameraPreview()}
         <div class="sound-check-card">
-          <div class="sound-bars" aria-hidden="true">
-            ${Array.from({ length: SOUND_CHECK_BAR_COUNT }, () => '<span class="sound-bar"></span>').join('')}
+          <div class="sound-indicator" id="soundIndicator" aria-hidden="true">
+            <svg class="sound-microphone" viewBox="0 0 24 24" focusable="false"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-5 8a5 5 0 0 0 10 0M12 16v4m-4 0h8" /></svg>
+            <span class="sound-checkmark">✓</span>
           </div>
           <p class="sound-status" id="soundStatus"></p>
           <p class="sound-status-detail" id="soundStatusDetail"></p>
@@ -1409,6 +1511,7 @@
     const preview = document.getElementById('preview');
     if (preview) {
       preview.srcObject = mediaStream;
+      sizePreviewViewport(preview);
     }
 
     await startAudioMonitor();
@@ -1479,21 +1582,17 @@
           <span class="rec-label">Recording</span>
         </div>
         <p class="recording-question-band">${escapeHtml(questionText || '')}</p>
-        <div class="preview-wrap preview-wrap--frame-guide" id="recordingPreviewWrap" style="position:relative;">
-          <div class="recording-progress" aria-hidden="true"><div class="recording-progress__bar" id="recordingProgress"></div></div>
-          <video id="preview" autoplay muted playsinline></video>
-          <div class="frame-guide-overlay" aria-hidden="true"></div>
-        </div>
+        ${renderCameraPreview({ id: 'recordingPreviewWrap', recording: true })}
         <button class="btn btn--stop" id="stopBtn">■ Stop</button>
       </div>
     `);
     const preview = document.getElementById('preview');
     preview.srcObject = mediaStream;
-    document.getElementById('stopBtn').addEventListener('click', stopRecording);
+    sizePreviewViewport(preview);
+    document.getElementById('stopBtn').addEventListener('click', () => stopRecording({ userInitiated: true }));
   }
 
   function showReview() {
-    const sizeMB    = (recordedBlob.size / 1024 / 1024).toFixed(1);
     const questionText = currentQuestionText();
     clearReviewObjectUrl();
     reviewObjectUrl = URL.createObjectURL(recordedBlob);
@@ -1504,10 +1603,11 @@
           <p class="question-label">Review your response</p>
           <p class="question-text">${escapeHtml(questionText || '')}</p>
         </div>
-        <div class="preview-wrap">
-          <video id="playback" controls playsinline></video>
+        <div class="preview-wrap${isUsingFrontCamera() ? ' preview-wrap--mirrored' : ''}">
+          <div class="camera-preview-content">
+            <video id="playback" controls playsinline></video>
+          </div>
         </div>
-        <p class="file-size">File size: ~${sizeMB} MB</p>
         <div class="review-actions">
           <button class="btn btn--secondary" id="rerecordBtn">Re-record</button>
           <button class="btn btn--upload" id="uploadBtn">Upload</button>
@@ -1516,7 +1616,9 @@
     `);
 
     // Set src after render so the element exists
-    document.getElementById('playback').src = reviewObjectUrl;
+    const playback = document.getElementById('playback');
+    playback.src = reviewObjectUrl;
+    sizePreviewViewport(playback);
     document.getElementById('rerecordBtn').addEventListener('click', () => {
       clearReviewObjectUrl();
       reRecord();
@@ -1570,8 +1672,7 @@
           </div>
           <p class="success-eyebrow">Submission complete</p>
           <h1>Thank you${displayName}!</h1>
-          <p class="success-copy">Your video has been received successfully.</p>
-          <p class="success-next">We will be in touch when your farmer card is ready.</p>
+          <p class="success-copy">Thank you! Your video has been sent.</p>
           <p class="success-footer">Buna Baraka</p>
         </div>
       </div>
@@ -1622,6 +1723,7 @@
     recordedChunks = [];
     recordedBlob = null;
     recordingStopHandled = false;
+    recordingStopRequested = false;
     clearRecorderStopSafetyTimer();
     elapsedSeconds = 0;
 
@@ -1652,6 +1754,10 @@
     await showRecording();
     await startAudioMonitor();
     mediaRecorder.start(1000); // collect a chunk every second
+    window.setTimeout(() => {
+      const guide = document.querySelector('.screen--recording .framing-guide');
+      if (guide) guide.classList.add('framing-guide--faded');
+    }, 4000);
 
     countdownTimer = setInterval(() => {
       elapsedSeconds++;
@@ -1665,8 +1771,23 @@
     }, 1000);
   }
 
-  function stopRecording() {
+  function stopRecording({ userInitiated = false } = {}) {
+    if (recordingStopRequested) return;
+    recordingStopRequested = true;
     clearInterval(countdownTimer);
+    if (userInitiated) {
+      const stopButton = document.getElementById('stopBtn');
+      if (stopButton) {
+        stopButton.disabled = true;
+        stopButton.textContent = 'Saving…';
+      }
+      window.setTimeout(stopActiveRecorder, 1000);
+      return;
+    }
+    stopActiveRecorder();
+  }
+
+  function stopActiveRecorder() {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
       clearRecorderStopSafetyTimer();
@@ -1694,6 +1815,8 @@
       showUploadError('Missing selfie photo. Please retake your photo and try again.');
       return;
     }
+
+    setUploadInProgress(true);
 
     const ext       = fileExtension();
     const timestamp = Date.now();
@@ -1778,10 +1901,12 @@
       const bar = progressBar();
       if (bar) bar.style.width = '100%';
 
+      setUploadInProgress(false);
       setTimeout(showSuccess, 400);
 
     } catch (err) {
       clearInterval(ticker);
+      setUploadInProgress(false);
       console.error('[webcap] upload error:', err);
       showUploadError(err.message || 'Unknown error. Please try again.');
     }

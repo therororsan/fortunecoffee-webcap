@@ -87,25 +87,36 @@ html, body {
 
 /* ── Camera preview / playback ────────────────────────────────────────── */
 .preview-wrap {
+  --camera-aspect-ratio: 3 / 4;
+  --preview-width: 100%;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  width: var(--preview-width);
+  max-width: 100%;
+  aspect-ratio: var(--camera-aspect-ratio);
   background: #000;
   border-radius: var(--radius);
   overflow: hidden;
   flex-shrink: 0;
   position: relative;
-  max-height: 68vh;
+  max-height: 62vh;
+  margin-inline: auto;
 }
 
 .preview-wrap video,
 .preview-wrap img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
-.preview-wrap--mirrored video {
+.camera-preview-content {
+  position: absolute;
+  inset: 0;
+  transform-origin: center;
+}
+
+.preview-wrap--mirrored .camera-preview-content {
   transform: scaleX(-1);
 }
 
@@ -114,6 +125,7 @@ html, body {
   display: block;
   width: 100%;
   padding: 18px;
+  min-height: 52px;
   border: none;
   border-radius: var(--radius);
   font-size: 18px;
@@ -132,7 +144,8 @@ html, body {
 }
 
 .btn--stop {
-  background: var(--accent);
+  min-height: 56px;
+  background: #313323;
   color: var(--surface);
 }
 
@@ -199,7 +212,7 @@ html, body {
 
 .recording-question-band {
   width: 100%;
-  padding: 10px 14px;
+  padding: 16px 18px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -218,9 +231,9 @@ html, body {
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 6px;
   z-index: 3;
-  background: rgba(255, 250, 240, 0.35);
+  background: rgba(49, 51, 35, 0.58);
 }
 
 .recording-progress__bar {
@@ -228,19 +241,19 @@ html, body {
   width: 100%;
   background: var(--accent);
   transition: width 1s linear;
+  animation: recording-progress-breathe 1.6s ease-in-out infinite;
+}
+
+@keyframes recording-progress-breathe {
+  50% { opacity: 0.72; }
 }
 
 /* ── Review actions ───────────────────────────────────────────────────── */
 .review-actions {
   display: flex;
+  flex-direction: column;
   gap: 12px;
   width: 100%;
-}
-
-.file-size {
-  font-size: 13px;
-  color: var(--text-muted);
-  align-self: flex-start;
 }
 
 /* ── Upload screen ────────────────────────────────────────────────────── */
@@ -354,11 +367,6 @@ html, body {
 
 .success-copy {
   margin-top: 4px;
-}
-
-.success-next {
-  max-width: 28ch;
-  margin: 0 auto;
 }
 
 .success-footer {
@@ -649,6 +657,7 @@ html, body {
 
 .consent-actions {
   display: flex;
+  flex-direction: column;
   gap: 16px;
   width: 100%;
   max-width: 340px;
@@ -763,6 +772,7 @@ html, body {
 .selfie-camera-controls {
   width: 100%;
   display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
@@ -779,24 +789,34 @@ html, body {
   text-align: center;
 }
 
-.sound-bars {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 10px;
-  height: 28px;
-  margin-bottom: 6px;
+.sound-indicator {
+  width: 34px;
+  height: 34px;
+  margin: 0 auto 6px;
+  display: grid;
+  place-items: center;
 }
 
-.sound-bar {
-  width: 12px;
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(180deg, var(--success), var(--accent));
-  transform-origin: center bottom;
-  transform: scaleY(0.08);
-  transition: transform 0.12s ease-out;
+.sound-microphone {
+  width: 30px;
+  height: 30px;
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
+
+.sound-checkmark {
+  display: none;
+  color: var(--success);
+  font-size: 34px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sound-indicator--detected .sound-microphone { display: none; }
+.sound-indicator--detected .sound-checkmark { display: block; }
 
 .sound-status {
   font-size: 18px;
@@ -818,53 +838,55 @@ html, body {
   line-height: 1.4;
 }
 
-.preview-wrap--frame-guide {
-  border: 4px solid transparent;
-}
-
 /* Constrain camera preview on sound-check screen so the primary action stays visible
-   on a 667px viewport without scrolling. Other screens keep the 68vh default. */
+   on a 667px viewport without scrolling. Other screens use the 62vh cap. */
 .screen--sound-check .preview-wrap {
   max-height: 38vh;
 }
 
-.selfie-with-face-guide {
-  position: relative;
-}
-
-.selfie-with-face-guide .frame-guide-overlay {
+.framing-guide {
   position: absolute;
-  top: 8%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 58%;
-  height: 68%;
-  border: 5px solid rgba(255,255,255,0.9);
-  border-radius: 50% / 40%;
-  box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+  top: 11%;
+  left: 16%;
+  width: 68%;
+  height: 76%;
   pointer-events: none;
-  z-index: 2;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.88));
+  transition: opacity 0.5s ease;
 }
 
-.selfie-with-face-guide .frame-guide-overlay::after {
-  content: '';
-  position: absolute;
-  bottom: -8%;
-  left: 22%;
-  width: 56%;
-  height: 18%;
-  border: 3px solid rgba(255,255,255,0.55);
-  border-radius: 50%;
-  border-top: none;
+.framing-guide__outline {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.94);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 7 5;
 }
 
-.frame-guide-overlay {
+.framing-guide__eyes {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.52);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.framing-guide--faded {
+  opacity: 0.2;
+}
+
+.selfie-countdown {
   position: absolute;
-  inset: 12% 12%;
-  border: 3px solid rgba(255, 255, 255, 0.82);
-  border-radius: 20px;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: clamp(72px, 28vw, 128px);
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
   pointer-events: none;
-  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.12);
 }
 
 .recording-warning-banner {
