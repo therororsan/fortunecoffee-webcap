@@ -2,9 +2,11 @@
 from __future__ import annotations
 
 import argparse
+import html
 import io
 import json
 import os
+import re
 import sys
 sys.stdout = io.TextIOWrapper(
     sys.stdout.buffer, encoding='utf-8', errors='replace'
@@ -79,6 +81,15 @@ def parse_args() -> argparse.Namespace:
         help=(
             "Optional ElevenLabs voice speed (0.7 to 1.2). "
             "When omitted, uses the voice's current/default speed."
+        ),
+    )
+    parser.add_argument(
+        "--google-speaking-rate",
+        type=float,
+        default=None,
+        help=(
+            "Optional Google Cloud TTS speaking rate. "
+            "When omitted, uses the voice's current/default rate."
         ),
     )
     return parser.parse_args()
@@ -327,7 +338,7 @@ def synthesize_elevenlabs(
     write_audio_stream(audio_stream, task.output_path)
 
 
-def synthesize_google(task: AudioTask) -> None:
+def synthesize_google(task: AudioTask, speaking_rate: float | None) -> None:
     credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     if not credentials_path:
         raise RuntimeError("GOOGLE_APPLICATION_CREDENTIALS is not set.")
@@ -352,12 +363,29 @@ def synthesize_google(task: AudioTask) -> None:
             texttospeech.SsmlVoiceGender, voice_config["ssml_gender"]
         )
 
+    if "<break" in task.text:
+        ssml_parts = re.split(r"(<break\b[^>]*>)", task.text)
+        synthesis_input = texttospeech.SynthesisInput(
+            ssml="<speak>"
+            + "".join(
+                part if part.startswith("<break") else html.escape(part)
+                for part in ssml_parts
+            )
+            + "</speak>"
+        )
+    else:
+        synthesis_input = texttospeech.SynthesisInput(text=task.text)
+
+    audio_config: dict[str, object] = {
+        "audio_encoding": texttospeech.AudioEncoding.MP3,
+    }
+    if speaking_rate is not None:
+        audio_config["speaking_rate"] = speaking_rate
+
     response = client.synthesize_speech(
-        input=texttospeech.SynthesisInput(text=task.text),
+        input=synthesis_input,
         voice=texttospeech.VoiceSelectionParams(**voice_params),
-        audio_config=texttospeech.AudioConfig(
-            audio_encoding=texttospeech.AudioEncoding.MP3
-        ),
+        audio_config=texttospeech.AudioConfig(**audio_config),
     )
     write_audio_stream(response.audio_content, task.output_path)
 
@@ -406,6 +434,8 @@ def main() -> int:
     print(f"ElevenLabs: model={ELEVENLABS_MODEL_ID}, voices={voice_summary}, output={ELEVENLABS_OUTPUT_FORMAT}")
     if args.speed is not None:
         print(f"ElevenLabs voice speed: {args.speed}")
+    if args.google_speaking_rate is not None:
+        print(f"Google Cloud TTS speaking rate: {args.google_speaking_rate}")
     print(
         "Google Cloud TTS: am=am-ET-Standard-A, si=si-LK default female, output=MP3"
     )
@@ -451,7 +481,7 @@ def main() -> int:
             if task.engine == "ElevenLabs":
                 synthesize_elevenlabs(task, voices, args.speed)
             else:
-                synthesize_google(task)
+                synthesize_google(task, args.google_speaking_rate)
             output_size = validate_generated_output(task)
         except Exception as exc:
             failures.append(f"{relative_output}: {exc}")
