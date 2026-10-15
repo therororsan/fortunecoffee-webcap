@@ -72,6 +72,15 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Overwrite existing valid files instead of skipping them.",
     )
+    parser.add_argument(
+        "--speed",
+        type=float,
+        default=None,
+        help=(
+            "Optional ElevenLabs voice speed (0.7 to 1.2). "
+            "When omitted, uses the voice's current/default speed."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -291,19 +300,29 @@ def validate_generated_output(task: AudioTask) -> int:
     return output_size
 
 
-def synthesize_elevenlabs(task: AudioTask, voices: dict[str, str]) -> None:
+def synthesize_elevenlabs(
+    task: AudioTask,
+    voices: dict[str, str],
+    speed: float | None,
+) -> None:
     api_key = os.getenv("ELEVENLABS_API_KEY")
     if not api_key:
         raise RuntimeError("ELEVENLABS_API_KEY is not set.")
 
     from elevenlabs.client import ElevenLabs
+    from elevenlabs.types import VoiceSettings
 
     client = ElevenLabs(api_key=api_key)
+    request_options: dict[str, object] = {
+        "voice_id": voice_id_for_lang(voices, task.lang),
+        "model_id": ELEVENLABS_MODEL_ID,
+        "output_format": ELEVENLABS_OUTPUT_FORMAT,
+        "text": task.text,
+    }
+    if speed is not None:
+        request_options["voice_settings"] = VoiceSettings(speed=speed)
     audio_stream = client.text_to_speech.convert(
-        voice_id=voice_id_for_lang(voices, task.lang),
-        model_id=ELEVENLABS_MODEL_ID,
-        output_format=ELEVENLABS_OUTPUT_FORMAT,
-        text=task.text,
+        **request_options,
     )
     write_audio_stream(audio_stream, task.output_path)
 
@@ -365,6 +384,8 @@ def main() -> int:
         args = parse_args()
         screens = parse_csv_list(args.screens, SCREEN_ORDER, "screens")
         langs = parse_csv_list(args.langs, LANG_ORDER, "languages")
+        if args.speed is not None and not 0.7 <= args.speed <= 1.2:
+            raise ValueError("--speed must be between 0.7 and 1.2.")
         load_environment()
         scripts = load_scripts()
         voices = load_voices(scripts)
@@ -383,6 +404,8 @@ def main() -> int:
         f"{lang}={voice_id}" for lang, voice_id in sorted(voices.items())
     )
     print(f"ElevenLabs: model={ELEVENLABS_MODEL_ID}, voices={voice_summary}, output={ELEVENLABS_OUTPUT_FORMAT}")
+    if args.speed is not None:
+        print(f"ElevenLabs voice speed: {args.speed}")
     print(
         "Google Cloud TTS: am=am-ET-Standard-A, si=si-LK default female, output=MP3"
     )
@@ -426,7 +449,7 @@ def main() -> int:
         print(f"[{index}/{len(tasks)}] {action} {relative_output} ({task.engine})")
         try:
             if task.engine == "ElevenLabs":
-                synthesize_elevenlabs(task, voices)
+                synthesize_elevenlabs(task, voices, args.speed)
             else:
                 synthesize_google(task)
             output_size = validate_generated_output(task)

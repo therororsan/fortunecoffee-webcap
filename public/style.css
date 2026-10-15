@@ -317,7 +317,6 @@ html, body {
   margin-top: 12px;
   font-size: 12px;
   letter-spacing: 0.18em;
-  text-transform: uppercase;
   color: var(--text-muted);
 }
 

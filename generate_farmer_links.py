@@ -141,7 +141,7 @@ def build_contact_link(contact_app: str, farmer_name: str, webcap_link: str, ful
     normalized_app = contact_app.strip().lower()
     readable_webcap_link = unquote(webcap_link)
     message = (
-        f"Hi {farmer_name}, Fortune Coffee would like to hear your story.\n"
+        f"Hi {farmer_name}, Buna Baraka would like to hear your story.\n"
         f"Please tap this link to record a short video: {readable_webcap_link}"
     )
     encoded_message = quote(message, safe="")
