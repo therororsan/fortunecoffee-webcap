@@ -12,11 +12,11 @@
   const DEFAULT_LANG         = 'en';
   const DEBUG_SELFIE_CHECK   = false;
   const SOUND_LEVEL_THRESHOLD = 0.01;
-  const SOUND_CHECK_BAR_COUNT = 6;
   const COUNTRY_OPTIONS = [
     'Brazil', 'Colombia', 'Ethiopia', 'Guatemala', 'Honduras',
     'India', 'Indonesia', 'Kenya', 'Mexico', 'Peru', 'Philippines',
-    'Rwanda', 'Tanzania', 'Uganda', 'Vietnam', 'Yemen', 'Other',
+    'Rwanda', 'Tanzania', 'Uganda', 'Vietnam', 'Yemen', 'Sri Lanka',
+    'China', 'Hong Kong', 'Other',
   ];
   const DIAL_CODES = {
     'Brazil': '+55',    'Colombia': '+57',  'Ethiopia': '+251',
@@ -24,6 +24,7 @@
     'Indonesia': '+62', 'Kenya': '+254',    'Mexico': '+52',
     'Peru': '+51',      'Philippines': '+63','Rwanda': '+250',   'Tanzania': '+255',
     'Uganda': '+256',   'Vietnam': '+84',   'Yemen': '+967',
+    'Sri Lanka': '+94', 'China': '+86',     'Hong Kong': '+852',
     'Other': '',
   };
   const ISO3_COUNTRY_NAMES = {
@@ -42,12 +43,143 @@
     return ISO3_COUNTRY_NAMES[code.toLowerCase()] || code;
   }
 
+  function countryOptionFromValue(value) {
+    if (!value) return '';
+    const raw = String(value).trim();
+    const fromCode = ISO3_COUNTRY_NAMES[raw.toLowerCase()];
+    if (fromCode && COUNTRY_OPTIONS.includes(fromCode)) return fromCode;
+    return COUNTRY_OPTIONS.find(country => country.toLowerCase() === raw.toLowerCase()) || '';
+  }
+
+  function suggestedCountryFromTimeZone() {
+    const suggestions = {
+      'Africa/Addis_Ababa': 'Ethiopia', 'Africa/Nairobi': 'Kenya',
+      'Africa/Dar_es_Salaam': 'Tanzania', 'Africa/Kampala': 'Uganda',
+      'Asia/Colombo': 'Sri Lanka', 'Asia/Kolkata': 'India',
+      'Asia/Ho_Chi_Minh': 'Vietnam', 'Asia/Manila': 'Philippines',
+      'America/Bogota': 'Colombia', 'America/Guatemala': 'Guatemala',
+      'America/Tegucigalpa': 'Honduras', 'Asia/Hong_Kong': 'Hong Kong',
+      'Asia/Shanghai': 'China',
+    };
+    try {
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (suggestions[timeZone]) return suggestions[timeZone];
+      return /^America\/(Araguaina|Bahia|Belem|Boa_Vista|Campo_Grande|Cuiaba|Eirunepe|Fortaleza|Maceio|Manaus|Noronha|Porto_Velho|Recife|Rio_Branco|Santarem|Sao_Paulo)$/.test(timeZone)
+        ? 'Brazil'
+        : '';
+    } catch {
+      return '';
+    }
+  }
+
   const FLAG_CODES = {
     'Brazil': 'br',    'Colombia': 'co',  'Ethiopia': 'et', 'Guatemala': 'gt',
     'Honduras': 'hn',  'India': 'in',     'Indonesia': 'id','Kenya': 'ke',
     'Mexico': 'mx',    'Peru': 'pe',      'Philippines': 'ph','Rwanda': 'rw',
     'Tanzania': 'tz',
     'Uganda': 'ug',    'Vietnam': 'vn',   'Yemen': 'ye',
+    'Sri Lanka': 'lk', 'China': 'cn',     'Hong Kong': 'hk',
+  };
+
+  const COUNTRY_NAME_EXAMPLES = {
+    'Ethiopia': 'Abebe Kebede', 'Kenya': 'Wanjiru Kamau',
+    'Tanzania': 'Neema Mushi', 'Uganda': 'Grace Nakato',
+    'Sri Lanka': 'Nimal Perera', 'India': 'Priya Sharma',
+    'Vietnam': 'Nguyễn Văn An', 'Philippines': 'Maria Santos',
+    'Colombia': 'Jorge Rodríguez', 'Guatemala': 'Ana López',
+    'Honduras': 'Carlos Mejía', 'Brazil': 'João Silva',
+    'China': 'Wang Fang', 'Hong Kong': 'Chan Tai Man',
+  };
+
+  const CONSENT_TEXTS = {
+    en: [
+      'Hi.',
+      'We would like to share your story with coffee drinkers.',
+      'We will take your photo and video, and put them on the internet.',
+      'A computer will also make a drawing of you for our cards.',
+      'You can say no, or ask us later to remove them.',
+      'If you agree, press the green button.',
+    ],
+    es: [
+      'Hola.',
+      'Nos gustaría compartir su historia con las personas que toman café.',
+      'Tomaremos su foto y un video, y los pondremos en internet.',
+      'Una computadora también hará un dibujo de usted para nuestras tarjetas.',
+      'Usted puede decir que no, o pedirnos más adelante que los quitemos.',
+      'Si está de acuerdo, presione el botón verde.',
+    ],
+    fr: [
+      'Bonjour.',
+      'Nous aimerions partager votre histoire avec les personnes qui boivent du café.',
+      'Nous prendrons votre photo et enregistrerons une vidéo, puis nous les mettrons sur internet.',
+      'Un ordinateur fera aussi un dessin de vous pour nos cartes.',
+      'Vous pouvez dire non, ou nous demander plus tard de les retirer.',
+      "Si vous êtes d'accord, appuyez sur le bouton vert.",
+    ],
+    pt: [
+      'Olá.',
+      'Gostaríamos de compartilhar a sua história com as pessoas que tomam café.',
+      'Vamos tirar sua foto e gravar um vídeo, e colocá-los na internet.',
+      'Um computador também vai fazer um desenho seu para os nossos cartões.',
+      'Você pode dizer não, ou pedir depois para que a gente os retire.',
+      'Se concordar, aperte o botão verde.',
+    ],
+    sw: [
+      'Habari.',
+      'Tungependa kushiriki hadithi yako na watu wanaokunywa kahawa.',
+      'Tutakupiga picha na kurekodi video, na kuziweka mtandaoni.',
+      'Kompyuta pia itatengeneza mchoro wako kwa ajili ya kadi zetu.',
+      'Unaweza kukataa, au baadaye utuombe tuziondoe.',
+      'Ukikubali, bonyeza kitufe cha kijani.',
+    ],
+    vi: [
+      'Xin chào.',
+      'Chúng tôi muốn chia sẻ câu chuyện của quý vị với những người uống cà phê.',
+      'Chúng tôi sẽ chụp ảnh và quay video quý vị, rồi đăng lên mạng.',
+      'Máy tính cũng sẽ vẽ một hình vẽ của quý vị cho các tấm thẻ của chúng tôi.',
+      'Quý vị có thể từ chối, hoặc sau này nhờ chúng tôi gỡ ảnh và video xuống.',
+      'Nếu quý vị đồng ý, hãy bấm nút màu xanh lá.',
+    ],
+    hi: [
+      'नमस्ते।',
+      'हम आपकी कहानी कॉफ़ी पीने वालों के साथ बाँटना चाहते हैं।',
+      'हम आपकी फ़ोटो और वीडियो लेंगे, और उन्हें इंटरनेट पर डालेंगे।',
+      'कंप्यूटर हमारे कार्डों के लिए आपका एक चित्र भी बनाएगा।',
+      'आप मना कर सकते हैं, या बाद में हमसे उन्हें हटाने के लिए कह सकते हैं।',
+      'अगर आप सहमत हैं, तो हरा बटन दबाएँ।',
+    ],
+    ta: [
+      'வணக்கம்.',
+      'உங்கள் கதையை காபி குடிப்பவர்களுடன் பகிர விரும்புகிறோம்.',
+      'உங்கள் புகைப்படத்தையும் வீடியோவையும் எடுத்து, இன்டர்நெட்டில் வைப்போம்.',
+      'எங்கள் அட்டைகளுக்காக, கணினி உங்கள் ஓவியம் ஒன்றையும் உருவாக்கும்.',
+      'நீங்கள் மறுக்கலாம், அல்லது பின்னர் அவற்றை நீக்க எங்களிடம் சொல்லலாம்.',
+      'நீங்கள் சம்மதித்தால், பச்சை பட்டனை அழுத்துங்கள்.',
+    ],
+    si: [
+      'ආයුබෝවන්.',
+      'ඔබේ කතාව කෝපි බොන අය සමඟ බෙදාගන්න අපි කැමතියි.',
+      'අපි ඔබේ ඡායාරූපයක් සහ වීඩියෝවක් අරගෙන, ඒවා අන්තර්ජාලයට දමනවා.',
+      'අපගේ කාඩ්පත් සඳහා පරිගණකයක් ඔබේ චිත්‍රයක්ද සාදනවා.',
+      'ඔබට ප්‍රතික්ෂේප කළ හැකියි, නැත්නම් පසුව ඒවා ඉවත් කරන්න කියා අපෙන් ඉල්ලන්න පුළුවන්.',
+      'ඔබ එකඟ නම්, කොළ පාට බොත්තම ඔබන්න.',
+    ],
+    am: [
+      'ሰላም።',
+      'ታሪክዎን ቡና ከሚጠጡ ሰዎች ጋር ማካፈል እንፈልጋለን።',
+      'ፎቶዎንና ቪዲዮዎን አንስተን በኢንተርኔት ላይ እናስቀምጣቸዋለን።',
+      'ኮምፒውተር ደግሞ ለካርዶቻችን የእርስዎን ስዕል ይሰራል።',
+      'እምቢ ማለት ይችላሉ፣ ወይም በኋላ እንድናስወግዳቸው ሊጠይቁን ይችላሉ።',
+      'ከተስማሙ፣ አረንጓዴውን ቁልፍ ይጫኑ።',
+    ],
+    fil: [
+      'Kumusta po.',
+      'Gusto po naming ibahagi ang inyong kuwento sa mga taong umiinom ng kape.',
+      'Kukunan po namin kayo ng larawan at video, at ilalagay ang mga ito sa internet.',
+      'Gagawa rin po ang computer ng guhit ninyo para sa aming mga card.',
+      'Puwede po kayong tumanggi, o hilingin sa amin sa ibang araw na alisin ang mga ito.',
+      'Kung pumapayag po kayo, pindutin ang berdeng button.',
+    ],
   };
 
   // ── State ────────────────────────────────────────────────────────────────
@@ -68,6 +200,7 @@
   let countdownTimer  = null;
   let recorderStopSafetyTimer = null;
   let recordingStopHandled = false;
+  let recordingStopRequested = false;
   let elapsedSeconds  = 0;
   let supabaseClient  = null;
   let cameraFacingMode = 'user'; // 'user' = front/selfie, 'environment' = back
@@ -77,6 +210,9 @@
   let currentAudioDelayTimer = null;
   let currentAudioDelayResolve = null;
   let isMuted         = false;
+  let screenAudioController = null;
+  let audioToggleState = 'idle';
+  let audioToggleTimer = null;
   let reviewObjectUrl = null;
   let selfieBlob      = null;
   let selfieObjectUrl = null;
@@ -92,9 +228,40 @@
   let soundCheckHeard = false;
   let soundCheckTimedOut = false;
   let soundCheckTimer = null;
+  let soundCheckListening = false;
+  let soundCheckListeningTimer = null;
   let faceDetector    = null;
   let isFaceDetectionSupported = false;
   let hasMultipleVideoInputs = false;
+  let deliveredCameraSettings = null;
+  let uploadInProgress = false;
+  let previewViewportCleanup = null;
+  let hasShownCameraPermissionNote = false;
+  let activeHistoryScreen = 'registration';
+  let appHistoryReady = false;
+
+  const HISTORY_BLOCKED_SCREENS = new Set([
+    'countdown', 'recording', 'recording-review', 'upload',
+  ]);
+
+  function setHistoryScreen(screen, { push = true } = {}) {
+    activeHistoryScreen = screen;
+    if (appHistoryReady && push) {
+      history.pushState({ screen }, '', window.location.href);
+    }
+  }
+
+  function restoreHistoryScreen(screen) {
+    activeHistoryScreen = screen;
+    if (appHistoryReady) {
+      history.replaceState({ screen }, '', window.location.href);
+    }
+  }
+
+  function clearConsentForRegistration() {
+    consentGiven = null;
+    consentTime = null;
+  }
 
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -154,17 +321,17 @@
   function renderAudioMonitorFrame() {
     currentMicLevel = sampleMicLevel();
 
-    const bars = Array.from(document.querySelectorAll('.sound-bars .sound-bar'));
-    if (bars.length) {
-      const normalized = Math.max(0.08, Math.min(1, currentMicLevel / 0.08));
-      bars.forEach((bar, index) => {
-        const offset = 0.18 + (index % 3) * 0.1;
-        const scale = Math.min(1, normalized + offset);
-        bar.style.transform = `scaleY(${scale.toFixed(3)})`;
-      });
+    const indicator = document.getElementById('soundIndicator');
+    if (indicator) {
+      const level = Math.min(1, currentMicLevel / 0.08);
+      indicator.style.setProperty('--sound-level', level.toFixed(3));
     }
 
-    if (document.getElementById('soundStatus') && currentMicLevel >= SOUND_LEVEL_THRESHOLD) {
+    if (
+      soundCheckListening
+      && document.getElementById('soundStatus')
+      && currentMicLevel >= SOUND_LEVEL_THRESHOLD
+    ) {
       soundCheckHeard = true;
       clearSoundCheckTimer();
     }
@@ -186,6 +353,8 @@
       window.cancelAnimationFrame(audioMonitorFrame);
       audioMonitorFrame = null;
     }
+    soundCheckListening = false;
+    clearSoundCheckListeningTimer();
   }
 
   function clearSoundCheckTimer() {
@@ -195,26 +364,37 @@
     }
   }
 
+  function clearSoundCheckListeningTimer() {
+    if (soundCheckListeningTimer) {
+      window.clearTimeout(soundCheckListeningTimer);
+      soundCheckListeningTimer = null;
+    }
+  }
+
   function updateSoundCheckUi() {
+    const indicator = document.getElementById('soundIndicator');
     const status = document.getElementById('soundStatus');
     const statusDetail = document.getElementById('soundStatusDetail');
     const primary = document.getElementById('soundCheckPrimaryBtn');
     const continueAnyway = document.getElementById('continueAnywayBtn');
-    if (!status || !statusDetail || !primary || !continueAnyway) return;
+    if (!indicator || !status || !statusDetail || !primary || !continueAnyway) return;
 
     if (soundCheckHeard) {
+      indicator.classList.add('sound-indicator--detected');
       status.textContent = 'We can hear you';
       status.className = 'sound-status sound-status--good';
       statusDetail.textContent = 'Your microphone is picking up your voice.';
-      primary.textContent = 'Next';
+      primary.textContent = 'Next →';
       continueAnyway.style.display = 'none';
     } else if (soundCheckTimedOut) {
+      indicator.classList.remove('sound-indicator--detected');
       status.textContent = 'No sound detected';
       status.className = 'sound-status sound-status--warn';
       statusDetail.textContent = 'Try speaking closer to the phone or check your mic.';
       primary.textContent = 'Try again';
       continueAnyway.style.display = 'inline-block';
     } else {
+      indicator.classList.remove('sound-indicator--detected');
       status.textContent = '';
       status.className = 'sound-status';
       statusDetail.textContent = '';
@@ -225,6 +405,8 @@
 
   function resetSoundCheckWindow() {
     clearSoundCheckTimer();
+    clearSoundCheckListeningTimer();
+    soundCheckListening = true;
     soundCheckHeard = false;
     soundCheckTimedOut = false;
     updateSoundCheckUi();
@@ -268,10 +450,6 @@
     clearSelfieObjectUrl();
     selfieFeedbackTone = null;
     selfieFeedbackMessage = '';
-    const wrap = document.getElementById('selfiePreviewWrap');
-    if (wrap) {
-      wrap.classList.remove('selfie-with-face-guide');
-    }
   }
 
   function handleUploadAttempt() {
@@ -279,9 +457,23 @@
     uploadVideo();
   }
 
+  function setUploadInProgress(value) {
+    uploadInProgress = value;
+  }
+
+  window.addEventListener('beforeunload', event => {
+    if (!uploadInProgress) return;
+    event.preventDefault();
+    event.returnValue = '';
+  });
+
   // ── Startup ──────────────────────────────────────────────────────────────
   async function init() {
     console.log('[webcap] build marker: no-created-at-query-2026-05-28');
+
+    history.replaceState({ screen: 'registration' }, '', window.location.href);
+    activeHistoryScreen = 'registration';
+    appHistoryReady = true;
 
     const params = new URLSearchParams(window.location.search);
     // Support both ?id= and ?farmer_id= URL param names
@@ -521,29 +713,88 @@
     return `/audio/${folder}/${baseName}_${lang}.mp3`;
   }
 
+  function renderMuteToggleIcon(muted) {
+    const isPlaying = !muted && audioToggleState === 'playing';
+    return `
+      <svg class="mute-toggle-icon${isPlaying ? ' is-playing' : ''}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M4 10v4h3l4 3V7l-4 3H4Z"></path>
+        ${muted
+          ? '<path d="m5 5 14 14"></path>'
+          : '<path class="mute-toggle-wave mute-toggle-wave--1" d="M15 9.5a4 4 0 0 1 0 5"></path><path class="mute-toggle-wave mute-toggle-wave--2" d="M18 7a7 7 0 0 1 0 10"></path><path class="mute-toggle-wave mute-toggle-wave--3" d="M20.5 4.5a10.5 10.5 0 0 1 0 15"></path>'}
+      </svg>
+    `;
+  }
+
+  function muteToggleShowsLabel() {
+    return audioToggleState !== 'playing';
+  }
+
+  function renderMuteToggleContent() {
+    return `${renderMuteToggleIcon(isMuted)}${muteToggleShowsLabel() ? '<span class="mute-toggle-label">Tap for sound</span>' : ''}`;
+  }
+
   function renderMuteToggle() {
     return `
-      <div style="width:100%; display:flex; justify-content:flex-end;">
+      <div class="mute-toggle-wrap" style="width:100%; display:flex; justify-content:flex-end;">
         <button
           class="btn btn--small"
           id="muteToggleBtn"
           data-mute-toggle
           type="button"
           style="width:auto; min-width:56px; padding:10px 14px;"
-        >${isMuted ? '🔇' : '🔊'}</button>
+        >${renderMuteToggleContent()}</button>
       </div>
+    `;
+  }
+
+  function renderAudioReplayButton(id, className = '') {
+    return `
+      <button class="audio-replay-icon${className ? ` ${className}` : ''}" id="${id}" type="button" aria-label="Replay audio">
+        <span aria-hidden="true">↺</span>
+      </button>
+    `;
+  }
+
+  function renderCameraIcon(className = '') {
+    return `
+      <svg class="button-icon${className ? ` ${className}` : ''}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M4 7h3l1.5-2h7L17 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"></path>
+        <circle cx="12" cy="13" r="3.5"></circle>
+      </svg>
     `;
   }
 
   function syncMuteToggleButton(button) {
     if (!button) return;
-    button.textContent = isMuted ? '🔇' : '🔊';
-    button.setAttribute('aria-label', isMuted ? 'Unmute audio' : 'Mute audio');
-    button.setAttribute('title', isMuted ? 'Unmute audio' : 'Mute audio');
+    button.innerHTML = renderMuteToggleContent();
+    const action = audioToggleState === 'playing' ? 'Mute audio' : 'Play audio';
+    button.setAttribute('aria-label', action);
+    button.setAttribute('title', action);
   }
 
   function syncMuteToggleButtons() {
     document.querySelectorAll('[data-mute-toggle]').forEach(syncMuteToggleButton);
+  }
+
+  function clearAudioToggleTimer() {
+    if (audioToggleTimer) {
+      window.clearTimeout(audioToggleTimer);
+      audioToggleTimer = null;
+    }
+  }
+
+  function setAudioToggleState(nextState) {
+    audioToggleState = nextState;
+    if (nextState === 'playing' || nextState === 'needs-tap') {
+      clearAudioToggleTimer();
+    }
+    syncMuteToggleButtons();
+  }
+
+  function resetScreenAudioController() {
+    clearAudioToggleTimer();
+    screenAudioController = null;
+    audioToggleState = 'idle';
   }
 
   function clearPendingAudioDelay() {
@@ -577,22 +828,40 @@
     if (typeof settle === 'function') {
       settle('stopped');
     }
+    if (!isMuted) audioToggleState = 'idle';
+    syncMuteToggleButtons();
   }
 
   function setMuted(nextMuted) {
     isMuted = !!nextMuted;
     if (isMuted) {
+      audioToggleState = 'needs-tap';
       stopCurrentAudio();
     }
     syncMuteToggleButtons();
   }
 
-  function setupMuteToggle() {
+  function setupMuteToggle(controller) {
     const button = document.getElementById('muteToggleBtn');
     if (!button) return;
+    screenAudioController = controller || null;
+    audioToggleState = isMuted ? 'needs-tap' : 'idle';
+    clearAudioToggleTimer();
+    if (!isMuted && screenAudioController) {
+      audioToggleTimer = window.setTimeout(() => {
+        if (audioToggleState !== 'playing') setAudioToggleState('needs-tap');
+      }, 1000);
+    }
     syncMuteToggleButton(button);
     button.addEventListener('click', () => {
-      setMuted(!isMuted);
+      if (audioToggleState === 'playing') {
+        setMuted(true);
+        return;
+      }
+      if (!screenAudioController) return;
+      if (isMuted) setMuted(false);
+      setAudioToggleState('idle');
+      screenAudioController.replay();
     });
   }
 
@@ -616,25 +885,52 @@
         }
         audio.onended = null;
         audio.onerror = null;
+        syncMuteToggleButtons();
         resolve(status);
       };
 
       currentAudio = audio;
       currentAudioSettle = finish;
-      audio.onended = () => finish('ended');
-      audio.onerror = () => finish('error');
+      audio.addEventListener('play', () => {
+        if (currentAudio === audio) setAudioToggleState('playing');
+      });
+      audio.addEventListener('playing', () => {
+        if (currentAudio === audio) setAudioToggleState('playing');
+      });
+      audio.addEventListener('pause', () => {
+        if (currentAudio === audio) setAudioToggleState('idle');
+      });
+      audio.onended = () => {
+        if (currentAudio === audio) setAudioToggleState('idle');
+        finish('ended');
+      };
+      audio.onerror = () => {
+        if (currentAudio === audio) setAudioToggleState('needs-tap');
+        finish('error');
+      };
 
       const playPromise = audio.play();
       if (playPromise && typeof playPromise.then === 'function') {
         playPromise
           .then(() => {
+            // Some mobile browsers resolve playback before they dispatch a
+            // paintable `playing` event, so mirror the real play promise too.
+            if (currentAudio === audio) setAudioToggleState('playing');
             if (typeof options.onPlayStart === 'function') {
               options.onPlayStart();
             }
+            syncMuteToggleButtons();
           })
-          .catch(() => finish('play-error'));
-      } else if (typeof options.onPlayStart === 'function') {
-        options.onPlayStart();
+          .catch(() => {
+            if (currentAudio === audio) setAudioToggleState('needs-tap');
+            finish('play-error');
+          });
+      } else {
+        if (currentAudio === audio) setAudioToggleState('playing');
+        if (typeof options.onPlayStart === 'function') {
+          options.onPlayStart();
+        }
+        syncMuteToggleButtons();
       }
     });
   }
@@ -696,17 +992,18 @@
         if (completeOnStop && typeof onComplete === 'function') {
           onComplete();
         }
-        return;
+        return 'muted';
       }
 
       let playStartHandled = false;
+      let finalResult = 'ended';
 
       for (const clip of sequence) {
         if (isMuted) {
           if (completeOnStop && typeof onComplete === 'function') {
             onComplete();
           }
-          return;
+          return 'muted';
         }
 
         if (clip.pauseMs) {
@@ -715,7 +1012,7 @@
             if (completeOnStop && typeof onComplete === 'function') {
               onComplete();
             }
-            return;
+            return 'stopped';
           }
           continue;
         }
@@ -736,13 +1033,15 @@
           if (completeOnStop && typeof onComplete === 'function') {
             onComplete();
           }
-          return;
+          return result;
         }
+        finalResult = result;
       }
 
       if (!isMuted && typeof onComplete === 'function') {
         onComplete();
       }
+      return finalResult;
     };
 
     return {
@@ -760,11 +1059,27 @@
       mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: cameraFacingMode }, // 'user' = front, 'environment' = back
-          width:  { ideal: 720  },
-          height: { ideal: 1280 },
+          width:  { ideal: 1280 },
+          height: { ideal: 960  },
+          aspectRatio: { ideal: 4 / 3 },
         },
         audio: true,
       });
+      const videoTrack = mediaStream.getVideoTracks()[0];
+      if (videoTrack) {
+        const capabilities = typeof videoTrack.getCapabilities === 'function'
+          ? videoTrack.getCapabilities()
+          : null;
+        if (capabilities && capabilities.zoom && Number.isFinite(capabilities.zoom.min)) {
+          try {
+            await videoTrack.applyConstraints({ advanced: [{ zoom: capabilities.zoom.min }] });
+          } catch (err) {
+            console.warn('[webcap] camera zoom minimum unavailable:', err);
+          }
+        }
+        deliveredCameraSettings = videoTrack.getSettings();
+        console.log('[webcap] camera delivered settings:', deliveredCameraSettings);
+      }
       if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
         try {
           const devices = await navigator.mediaDevices.enumerateDevices();
@@ -796,6 +1111,187 @@
     mediaStream = null;
   }
 
+  function stopCameraResourcesForHistory() {
+    stopAudioMonitor();
+    if (audioSourceNode) {
+      try {
+        audioSourceNode.disconnect();
+      } catch {}
+    }
+    audioSourceNode = null;
+    analyserNode = null;
+    analyserData = null;
+    audioStreamForMonitor = null;
+    stopMediaStream();
+  }
+
+  function returnToRegistrationFromHistory() {
+    stopCurrentAudio();
+    stopCameraResourcesForHistory();
+    clearConsentForRegistration();
+    restoreHistoryScreen('registration');
+    showRegistryForm();
+  }
+
+  function returnToConsentFromHistory() {
+    stopCurrentAudio();
+    stopCameraResourcesForHistory();
+    resetSelfieCaptureState();
+    restoreHistoryScreen('consent');
+    showConsent({ attemptAutoplay: false, history: false });
+  }
+
+  async function returnToSelfieLiveFromHistory() {
+    stopAudioMonitor();
+    if (!mediaStream && !await initCamera()) return;
+    restoreHistoryScreen('selfie-live');
+    showSelfieCapture({ showGuide: true, attemptAutoplay: false, forceLive: true, history: false });
+  }
+
+  function returnToSelfieReviewFromHistory() {
+    stopCurrentAudio();
+    stopAudioMonitor();
+    if (!selfieBlob || !selfieObjectUrl) {
+      void returnToSelfieLiveFromHistory();
+      return;
+    }
+    restoreHistoryScreen('selfie-review');
+    showSelfieCapture({ history: false });
+  }
+
+  async function returnToSoundCheckFromHistory() {
+    stopCurrentAudio();
+    stopAudioMonitor();
+    if (!mediaStream && !await initCamera()) return;
+    restoreHistoryScreen('soundcheck');
+    await showSoundCheck({ history: false });
+  }
+
+  function handleHistoryPopState() {
+    const fromScreen = activeHistoryScreen;
+
+    if (fromScreen === 'registration' || fromScreen === 'success') {
+      return;
+    }
+    if (HISTORY_BLOCKED_SCREENS.has(fromScreen)) {
+      history.pushState({ screen: fromScreen }, '', window.location.href);
+      return;
+    }
+
+    switch (fromScreen) {
+      case 'prepermission':
+      case 'consent':
+        returnToRegistrationFromHistory();
+        break;
+      case 'selfie-live':
+        returnToConsentFromHistory();
+        break;
+      case 'selfie-review':
+        void returnToSelfieLiveFromHistory();
+        break;
+      case 'soundcheck':
+        returnToSelfieReviewFromHistory();
+        break;
+      case 'question':
+        void returnToSoundCheckFromHistory();
+        break;
+      default:
+        break;
+    }
+  }
+
+  function isUsingFrontCamera() {
+    return (deliveredCameraSettings && deliveredCameraSettings.facingMode || cameraFacingMode) === 'user';
+  }
+
+  function sizePreviewViewport(video, settings = deliveredCameraSettings) {
+    const wrap = video.closest('.preview-wrap');
+    if (!wrap) return;
+
+    const applySize = () => {
+      const metadataWidth = video.videoWidth || video.naturalWidth;
+      const metadataHeight = video.videoHeight || video.naturalHeight;
+      const hasMetadata = metadataWidth && metadataHeight;
+      const width = hasMetadata ? metadataWidth : settings && settings.width;
+      const height = hasMetadata ? metadataHeight : settings && settings.height;
+      const aspect = width && height
+        ? width / height
+        : settings && Number.isFinite(settings.aspectRatio) && settings.aspectRatio > 0
+          ? settings.aspectRatio
+          : null;
+      if (!aspect) return;
+
+      const isLandscape = aspect > 1;
+      const isRecordingPreview = wrap.classList.contains('preview-wrap--recording');
+      const viewportAspect = isLandscape
+        ? (isRecordingPreview ? 4 / 5 : 3 / 4)
+        : aspect;
+      const screen = wrap.closest('.screen');
+      const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      const isSelfieScreen = screen && screen.classList.contains('screen--selfie')
+        && !screen.classList.contains('screen--camera-permission');
+      const isSoundCheckScreen = screen && screen.classList.contains('screen--sound-check');
+      const fillsAvailableSlot = (isSelfieScreen || isSoundCheckScreen)
+        && wrap.parentElement
+        && wrap.parentElement.clientHeight > 0;
+      const maxHeight = fillsAvailableSlot
+        ? wrap.parentElement.clientHeight
+        : 0.62 * viewportHeight;
+      const availableWidth = wrap.parentElement ? wrap.parentElement.clientWidth : window.innerWidth;
+      const viewportWidth = Math.min(availableWidth, maxHeight * viewportAspect);
+      wrap.classList.toggle('preview-wrap--landscape-crop', isLandscape);
+      wrap.style.setProperty('--camera-aspect-ratio', String(viewportAspect));
+      wrap.style.setProperty('--preview-width', `${Math.floor(viewportWidth)}px`);
+
+      if (hasMetadata) {
+        console.log('[webcap] preview orientation:', {
+          width: metadataWidth,
+          height: metadataHeight,
+          orientation: isLandscape ? 'landscape' : 'portrait',
+          cropRule: isLandscape
+            ? `center ${isRecordingPreview ? '4:5' : '3:4'}, sides only`
+            : 'contain full frame',
+        });
+      }
+    };
+
+    if (previewViewportCleanup) previewViewportCleanup();
+    applySize();
+    video.addEventListener('loadedmetadata', applySize);
+    video.addEventListener('resize', applySize);
+    video.addEventListener('load', applySize);
+    window.addEventListener('resize', applySize);
+    window.addEventListener('orientationchange', applySize);
+    previewViewportCleanup = () => {
+      video.removeEventListener('loadedmetadata', applySize);
+      video.removeEventListener('resize', applySize);
+      video.removeEventListener('load', applySize);
+      window.removeEventListener('resize', applySize);
+      window.removeEventListener('orientationchange', applySize);
+    };
+  }
+
+  function renderSelfieOutlineGuide() {
+    return `
+      <svg class="selfie-outline-guide" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <ellipse class="selfie-outline-guide__head" cx="50" cy="40" rx="27.5" ry="26" />
+      </svg>
+    `;
+  }
+
+  function renderCameraPreview({ id = '', mirrored = isUsingFrontCamera(), recording = false, selfieGuide = false } = {}) {
+    return `
+      <div class="preview-wrap preview-wrap--camera${mirrored ? ' preview-wrap--mirrored' : ''}${recording ? ' preview-wrap--recording' : ''}"${id ? ` id="${id}"` : ''}>
+        ${recording ? '<div class="recording-progress" id="recordingProgressTrack" aria-hidden="true" hidden><div class="recording-progress__bar" id="recordingProgress"></div></div>' : ''}
+        <div class="camera-preview-content">
+          <video id="preview" autoplay muted playsinline></video>
+        </div>
+        ${selfieGuide ? renderSelfieOutlineGuide() : ''}
+        ${recording ? '<div class="recording-countdown" id="recordingCountdown" aria-live="assertive"></div>' : ''}
+      </div>
+    `;
+  }
+
   async function switchCamera() {
     // Toggle between front and back cameras
     cameraFacingMode = cameraFacingMode === 'user' ? 'environment' : 'user';
@@ -815,13 +1311,19 @@
     }
     const selfieWrap = document.getElementById('selfiePreviewWrap');
     if (selfieWrap) {
-      selfieWrap.classList.toggle('preview-wrap--mirrored', cameraFacingMode === 'user');
+      selfieWrap.classList.toggle('preview-wrap--mirrored', isUsingFrontCamera());
     }
+    if (preview) sizePreviewViewport(preview);
   }
 
   // ── Screens ──────────────────────────────────────────────────────────────
   function render(html) {
     stopCurrentAudio();
+    resetScreenAudioController();
+    if (previewViewportCleanup) {
+      previewViewportCleanup();
+      previewViewportCleanup = null;
+    }
     document.getElementById('app').innerHTML = html;
   }
 
@@ -852,46 +1354,57 @@
 
   // ── Registry Screen ────────────────────────────────────────────────────────
   function showRegistryForm() {
-    // Build custom dropdown options with flag images
-    const csOpts = COUNTRY_OPTIONS.map(name => {
-      const code = FLAG_CODES[name];
-      const flag = code
+    setHistoryScreen('registration', { push: false });
+    const flagHtml = country => {
+      const code = FLAG_CODES[country];
+      return code
         ? `<img src="https://flagcdn.com/24x18/${code}.png" style="vertical-align:middle;margin-right:6px;" alt="">`
         : '';
-      return `<li class="cs-opt" data-value="${name}">${flag}${name}</li>`;
+    };
+    const selectedCountry = countryOptionFromValue(farmerCountry);
+    const suggestedCountry = selectedCountry ? '' : suggestedCountryFromTimeZone();
+    const csOpts = COUNTRY_OPTIONS.map(name => {
+      return `<li class="cs-opt" data-value="${name}">${flagHtml(name)}${name}</li>`;
     }).join('');
+    const suggestedOption = suggestedCountry
+      ? `<li class="cs-opt cs-opt--suggested" data-value="${suggestedCountry}">Suggested: ${flagHtml(suggestedCountry)}${suggestedCountry}</li>`
+      : '';
 
     render(`
       <div class="screen screen--registry">
         <div class="card">
-          <h2>Welcome! Let's get started.</h2>
-          <p>Please enter your details:</p>
-          <div class="form-group">
-            <label for="nameInput">Name *</label>
-            <input type="text" id="nameInput" placeholder="Your name" required>
-          </div>
-          <div class="form-group">
-            <label>Country/Region</label>
-            <div class="cs-wrap" id="csWrap">
-              <div class="cs-trigger" id="csTrigger">
-                <span id="csDisplay" class="cs-placeholder">Select country…</span>
-                <span class="cs-arrow">▾</span>
+          <form class="registry-form" id="registryForm" novalidate>
+            <div class="form-group">
+              <label>Country/Region *</label>
+              <div class="cs-wrap" id="csWrap">
+                <div class="cs-trigger" id="csTrigger" role="button" tabindex="0" aria-expanded="false">
+                  <span id="csDisplay" class="cs-placeholder">📍 Choose country</span>
+                  <span class="cs-arrow">▾</span>
+                </div>
+                <ul class="cs-list" id="csList">
+                  <li class="cs-opt cs-opt--empty" data-value="">📍 Choose country</li>
+                  ${suggestedOption}
+                  ${csOpts}
+                </ul>
+                <input type="hidden" id="countrySelect">
               </div>
-              <ul class="cs-list" id="csList">
-                <li class="cs-opt cs-opt--empty" data-value="">Select country…</li>
-                ${csOpts}
-              </ul>
-              <input type="hidden" id="countrySelect">
+              <p class="field-error" id="countryError" aria-live="polite"></p>
             </div>
-          </div>
-          <div class="form-group">
-            <label for="phoneInput">Phone 📞</label>
-            <div class="phone-input-wrap">
-              <span id="phonePrefix" class="phone-prefix"></span>
-              <input type="tel" id="phoneInput" placeholder="Your phone number">
+            <div class="form-group">
+              <label for="nameInput">Name *</label>
+              <input type="text" id="nameInput" placeholder="Your name" required enterkeyhint="next" value="${escapeHtml(farmerName || '')}">
+              <p class="field-error" id="nameError" aria-live="polite"></p>
             </div>
-          </div>
-          <button class="btn btn--primary" id="registrySubmitBtn">Continue</button>
+            <div class="form-group">
+              <label for="phoneInput">Phone *</label>
+              <div class="phone-input-wrap">
+                <span id="phonePrefix" class="phone-prefix"></span>
+                <input type="tel" id="phoneInput" placeholder="📞 Phone number" inputmode="numeric" pattern="[0-9]*" maxlength="15" enterkeyhint="done">
+              </div>
+              <p class="field-error" id="phoneError" aria-live="polite"></p>
+            </div>
+            <button class="btn registry-submit-button" id="registrySubmitBtn" type="submit">Continue →</button>
+          </form>
         </div>
       </div>
     `);
@@ -901,25 +1414,57 @@
     const csList    = document.getElementById('csList');
     const csHidden  = document.getElementById('countrySelect');
     const csDisplay = document.getElementById('csDisplay');
+    const csTrigger = document.getElementById('csTrigger');
+    const nameInput = document.getElementById('nameInput');
+    const phoneInput = document.getElementById('phoneInput');
+    const phoneWrap = phoneInput.closest('.phone-input-wrap');
 
-    document.getElementById('csTrigger').addEventListener('click', () => {
+    const clearFieldError = (element, errorId) => {
+      element.classList.remove('is-invalid');
+      const error = document.getElementById(errorId);
+      if (error) error.textContent = '';
+    };
+    const showFieldError = (element, errorId, message) => {
+      element.classList.add('is-invalid');
+      const error = document.getElementById(errorId);
+      if (error) error.textContent = message;
+    };
+    const updateNamePlaceholder = country => {
+      nameInput.placeholder = COUNTRY_NAME_EXAMPLES[country]
+        ? `e.g. ${COUNTRY_NAME_EXAMPLES[country]}`
+        : 'Your name';
+    };
+    const updatePhonePrefix = country => {
+      const prefix = DIAL_CODES[country] || '';
+      const phonePrefix = document.getElementById('phonePrefix');
+      phonePrefix.innerHTML = prefix ? `${flagHtml(country)}${prefix}` : '';
+      phonePrefix.style.display = prefix ? 'inline-flex' : 'none';
+    };
+    const setCountry = country => {
+      csHidden.value = country;
+      csWrap.classList.remove('cs-open');
+      csTrigger.setAttribute('aria-expanded', 'false');
+      if (country) {
+        csDisplay.innerHTML = `${flagHtml(country)}${country}`;
+        csDisplay.classList.remove('cs-placeholder');
+        clearFieldError(csTrigger, 'countryError');
+      } else {
+        csDisplay.textContent = '📍 Choose country';
+        csDisplay.classList.add('cs-placeholder');
+      }
+      updateNamePlaceholder(country);
+      updatePhonePrefix(country);
+    };
+
+    csTrigger.addEventListener('click', () => {
       csWrap.classList.toggle('cs-open');
+      csTrigger.setAttribute('aria-expanded', String(csWrap.classList.contains('cs-open')));
     });
 
     csList.addEventListener('click', e => {
       const opt = e.target.closest('.cs-opt');
       if (!opt) return;
-      const val = opt.dataset.value;
-      csHidden.value = val;
-      csWrap.classList.remove('cs-open');
-      if (val) {
-        csDisplay.innerHTML = opt.innerHTML;
-        csDisplay.classList.remove('cs-placeholder');
-      } else {
-        csDisplay.textContent = 'Select country…';
-        csDisplay.classList.add('cs-placeholder');
-      }
-      csHidden.dispatchEvent(new Event('change'));
+      setCountry(opt.dataset.value);
     });
 
     // Close on outside click
@@ -927,36 +1472,80 @@
       if (csWrap && !csWrap.contains(e.target)) csWrap.classList.remove('cs-open');
     });
 
-    // Update dial-code prefix when country changes
-    document.getElementById('countrySelect').addEventListener('change', () => {
-      const country = document.getElementById('countrySelect').value;
-      const prefix  = DIAL_CODES[country] || '';
-      const el = document.getElementById('phonePrefix');
-      el.textContent    = prefix;
-      el.style.display  = prefix ? 'inline-flex' : 'none';
+    setCountry(selectedCountry);
+    const linkedDigits = String(farmerPhone || '').replace(/\D/g, '');
+    const linkedPrefix = (DIAL_CODES[selectedCountry] || '').replace(/\D/g, '');
+    phoneInput.value = linkedPrefix && linkedDigits.startsWith(linkedPrefix)
+      ? linkedDigits.slice(linkedPrefix.length, linkedPrefix.length + 15)
+      : linkedDigits.slice(0, 15);
+
+    nameInput.addEventListener('input', () => {
+      if (nameInput.value.trim().replace(/\s/g, '').length >= 2) {
+        clearFieldError(nameInput, 'nameError');
+      }
+    });
+    phoneInput.addEventListener('input', () => {
+      phoneInput.value = phoneInput.value.replace(/\D/g, '').slice(0, 15);
+      if (phoneInput.value.replace(/^0+/, '').length >= 6) {
+        clearFieldError(phoneWrap, 'phoneError');
+      }
+    });
+    phoneInput.addEventListener('paste', event => {
+      event.preventDefault();
+      const digits = (event.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+      phoneInput.setRangeText(digits, phoneInput.selectionStart, phoneInput.selectionEnd, 'end');
+      phoneInput.dispatchEvent(new Event('input', { bubbles: true }));
     });
 
-    document.getElementById('registrySubmitBtn').addEventListener('click', () => {
-      const name     = document.getElementById('nameInput').value.trim();
-      const country  = document.getElementById('countrySelect').value;
-      const prefix   = document.getElementById('phonePrefix').textContent.trim();
-      const phoneRaw = document.getElementById('phoneInput').value.trim();
-      // Prepend dial code; if no number entered, store null
-      const phone    = phoneRaw ? (prefix + phoneRaw) : null;
+    document.getElementById('registryForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const name = nameInput.value.trim();
+      const country = csHidden.value;
+      const phoneDigits = phoneInput.value.replace(/\D/g, '');
+      const phoneLocal = phoneDigits.replace(/^0+/, '');
+      let firstInvalid = null;
 
-      if (!name) {
-        alert('Name is required');
+      if (!country) {
+        showFieldError(csTrigger, 'countryError', 'Please choose your country');
+        firstInvalid = csTrigger;
+      }
+      if (name.replace(/\s/g, '').length < 2) {
+        showFieldError(nameInput, 'nameError', 'Please enter your name');
+        firstInvalid = firstInvalid || nameInput;
+      }
+      if (!phoneDigits) {
+        showFieldError(phoneWrap, 'phoneError', 'Please enter your phone number');
+        firstInvalid = firstInvalid || phoneInput;
+      } else if (phoneLocal.length < 6) {
+        showFieldError(phoneWrap, 'phoneError', 'Please enter your full phone number');
+        firstInvalid = firstInvalid || phoneInput;
+      }
+      if (firstInvalid) {
+        firstInvalid.focus();
+        firstInvalid.scrollIntoView({ block: 'center', behavior: 'smooth' });
         return;
       }
 
       farmerName    = name;
-      farmerCountry = country || null;
-      farmerPhone   = phone;
+      farmerCountry = country;
+      farmerPhone   = `${DIAL_CODES[country] || ''}${phoneLocal}`;
       proceedToConsent();
+    });
+
+    const scrollContinueIntoView = () => {
+      const submitButton = document.getElementById('registrySubmitBtn');
+      if (submitButton) submitButton.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    };
+    phoneInput.addEventListener('focus', () => {
+      window.setTimeout(scrollContinueIntoView, 250);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', scrollContinueIntoView, { once: true });
+      }
     });
   }
 
   function showRegistryConfirm() {
+    setHistoryScreen('registration', { push: false });
     render(`
       <div class="screen screen--registry">
         <div class="card">
@@ -974,7 +1563,7 @@
             <label for="phoneConfirm">Phone 📞</label>
             <input type="text" id="phoneConfirm" value="${farmerPhone || ''}">
           </div>
-          <button class="btn btn--primary" id="registryConfirmBtn">Confirm & Continue</button>
+          <button class="btn btn--primary" id="registryConfirmBtn">Confirm & Continue →</button>
         </div>
       </div>
     `);
@@ -991,7 +1580,8 @@
   }
 
   // ── Consent Screen ─────────────────────────────────────────────────────────
-  function showConsent({ attemptAutoplay = false } = {}) {
+  function showConsent({ attemptAutoplay = false, history = true } = {}) {
+    setHistoryScreen('consent', { push: history });
     consentGiven = null;
     consentTime = null;
     let consentAudioAutoplaySucceeded = false;
@@ -1004,23 +1594,32 @@
         }
       },
     });
+    const consentLines = CONSENT_TEXTS[farmerLang] || CONSENT_TEXTS[DEFAULT_LANG];
+    const consentTextClass = consentLines.join('').length > 520 ? ' consent-text--compact' : '';
+    const consentParagraphs = [
+      `${escapeHtml(consentLines[0])} ${escapeHtml(consentLines[1])}`,
+      `${escapeHtml(consentLines[2])} ${escapeHtml(consentLines[3])}`,
+      `${escapeHtml(consentLines[4])} <strong>${escapeHtml(consentLines[5])}</strong>`,
+    ];
 
     render(`
       <div class="screen screen--consent">
         ${renderMuteToggle()}
         <div class="consent-body">
-          <div class="consent-text">
-            <p>This video will be used by Buna Baraka to share your story with customers who buy your coffee.</p>
-            <p><strong>Do you agree?</strong></p>
+          <div class="consent-text${consentTextClass}">
+            ${renderAudioReplayButton('consentReplayBtn')}
+            ${consentParagraphs.map(paragraph => `<p>${paragraph}</p>`).join('')}
           </div>
           <div class="consent-actions">
             <button class="btn btn--consent btn--yes" id="consentYesBtn">✓ Agree</button>
             <button class="btn btn--consent btn--no" id="consentNoBtn">✕ Disagree</button>
           </div>
+          <a class="contact-line" href="mailto:ron@bunabaraka.org">Questions or removal requests: ron@bunabaraka.org</a>
         </div>
       </div>
     `);
-    setupMuteToggle();
+    setupMuteToggle(consentAudio);
+    document.getElementById('consentReplayBtn').addEventListener('click', () => consentAudio.replay());
 
     document.getElementById('consentYesBtn').addEventListener('click', async () => {
       if (!isMuted && !currentAudio && !consentAudioAutoplaySucceeded) {
@@ -1028,11 +1627,15 @@
       }
       consentGiven = true;
       consentTime = new Date().toISOString();
+      const agreedAt = consentTime;
       try {
         await syncFarmerConsent(true);
       } catch (err) {
         console.error('[webcap] consent update error:', err);
         showError('Could not save your consent. Please try again.');
+        return;
+      }
+      if (activeHistoryScreen !== 'consent' || consentGiven !== true || consentTime !== agreedAt) {
         return;
       }
       await startSelfieStep();
@@ -1105,50 +1708,123 @@
     stopAudioMonitor();
     resetSelfieCaptureState();
     cameraFacingMode = 'user';
+    if (await shouldShowCameraPermissionNote()) {
+      showCameraPermissionNote();
+      return;
+    }
+    startSelfieCamera();
+  }
+
+  async function shouldShowCameraPermissionNote() {
+    if (hasShownCameraPermissionNote) return false;
+    if (!navigator.permissions || typeof navigator.permissions.query !== 'function') return true;
+    try {
+      const permissions = await Promise.all([
+        navigator.permissions.query({ name: 'camera' }),
+        navigator.permissions.query({ name: 'microphone' }),
+      ]);
+      return permissions.some(permission => permission.state !== 'granted');
+    } catch {
+      return true;
+    }
+  }
+
+  function showCameraPermissionNote({ history = true } = {}) {
+    setHistoryScreen('prepermission', { push: history });
+    hasShownCameraPermissionNote = true;
+    const permissionCopy = {
+      en: 'Please tap "Allow" on the next screen.',
+      es: 'Por favor, toque "Permitir" en la siguiente pantalla.',
+      fr: 'Veuillez appuyer sur « Autoriser » sur l\'écran suivant.',
+      pt: 'Por favor, toque em "Permitir" na próxima tela.',
+      sw: 'Tafadhali bonyeza "Ruhusu" kwenye skrini inayofuata.',
+      vi: 'Xin quý vị bấm "Cho phép" ở màn hình tiếp theo.',
+      hi: 'कृपया अगली स्क्रीन पर "अनुमति दें" दबाएँ।',
+      ta: 'தயவுசெய்து அடுத்த திரையில் "அனுமதி" என்பதை அழுத்துங்கள்.',
+      si: 'කරුණාකර ඊළඟ තිරයේ "ඉඩ දෙන්න" ඔබන්න.',
+      am: 'እባክዎ በሚቀጥለው ገጽ ላይ "ፍቀድ" የሚለውን ይጫኑ።',
+      fil: 'Pakipindot po ang "Payagan" sa susunod na screen.',
+    };
+    const permissionAudio = createAudioController({
+      clips: [{ screen: 'permission', lang: farmerLang }],
+    });
+    render(`
+      <div class="screen screen--selfie screen--camera-permission">
+        ${renderMuteToggle()}
+        <div class="camera-permission-instruction">
+          ${renderAudioReplayButton('permissionReplayBtn')}
+          <div class="camera-permission-icons" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false"><path d="M4 7h3l1.5-2h7L17 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm8 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" /></svg>
+            <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-5 8a5 5 0 0 0 10 0M12 16v4m-4 0h8" /></svg>
+          </div>
+          <p class="camera-permission-copy">${escapeHtml(permissionCopy[farmerLang] || permissionCopy.en)}</p>
+        </div>
+        <button class="btn btn--record" id="cameraPermissionContinueBtn">Continue →</button>
+      </div>
+    `);
+    setupMuteToggle(permissionAudio);
+    document.getElementById('permissionReplayBtn').addEventListener('click', () => permissionAudio.replay());
+    document.getElementById('cameraPermissionContinueBtn').addEventListener('click', startSelfieCamera);
+    permissionAudio.play();
+  }
+
+  async function startSelfieCamera() {
+    const originatingScreen = activeHistoryScreen;
     showLoading();
     const cameraReady = await initCamera();
     if (!cameraReady) return;
+    if (activeHistoryScreen !== originatingScreen) {
+      stopMediaStream();
+      return;
+    }
     showSelfieCapture({ showGuide: true, attemptAutoplay: true });
   }
 
-  function showSelfieCapture({ showGuide = false, attemptAutoplay = false } = {}) {
-    const hasCapturedSelfie = !!(selfieBlob && selfieObjectUrl);
+  function showSelfieCapture({
+    showGuide = false,
+    attemptAutoplay = false,
+    forceLive = false,
+    history = true,
+  } = {}) {
+    const hasCapturedSelfie = !forceLive && !!(selfieBlob && selfieObjectUrl);
+    setHistoryScreen(hasCapturedSelfie ? 'selfie-review' : 'selfie-live', { push: history });
     const showFlipButton = !hasCapturedSelfie && hasMultipleVideoInputs;
-    const selfieAudio = createAudioController({
-      clips: [{ screen: 'selfie', lang: farmerLang }],
-    });
+    const selfieAudio = hasCapturedSelfie
+      ? null
+      : createAudioController({ clips: [{ screen: 'selfie', lang: farmerLang }] });
     const actionHtml = hasCapturedSelfie
       ? `
           <div class="selfie-actions">
-            <button class="btn btn--record" id="useSelfieBtn">✓ Use this photo</button>
-            <button class="btn btn--secondary" id="retakeSelfieBtn">Retake</button>
+            <button class="btn selfie-retake-button" id="retakeSelfieBtn">↺ Retake</button>
+            <button class="btn selfie-use-button" id="useSelfieBtn">✓ Use this photo</button>
           </div>
         `
       : `
           <div class="selfie-camera-controls">
-            ${showFlipButton ? '<button class="btn btn--small" id="selfieFlipBtn" type="button">Flip</button>' : ''}
-            <button class="btn btn--record" id="takeSelfieBtn" type="button">Take photo</button>
+            ${showFlipButton ? '<button class="selfie-flip-button" id="selfieFlipBtn" type="button" aria-label="Flip camera">↻</button>' : ''}
+            <button class="btn selfie-take-button" id="takeSelfieBtn" type="button">${renderCameraIcon()}<span>Take photo</span></button>
           </div>
         `;
 
     render(`
       <div class="screen screen--selfie">
-        ${renderMuteToggle()}
-        <div class="question-card">
-          <p class="question-label">Selfie check</p>
-          <p class="question-text">Center your face inside the oval, then take one clear photo.</p>
-        </div>
-        <div class="preview-wrap preview-wrap--frame-guide ${!hasCapturedSelfie && cameraFacingMode === 'user' ? 'preview-wrap--mirrored' : ''}" id="selfiePreviewWrap">
-          ${hasCapturedSelfie
-            ? `<img id="selfiePreviewImage" src="${selfieObjectUrl}" alt="Selfie preview">`
-            : '<video id="preview" autoplay muted playsinline></video><div class="frame-guide-overlay" aria-hidden="true"></div>'}
+        ${hasCapturedSelfie ? '' : renderMuteToggle()}
+        ${hasCapturedSelfie ? '' : '<h1 class="selfie-live-title">🤳 Take a selfie</h1>'}
+        <div class="selfie-preview-slot">
+        ${hasCapturedSelfie
+          ? `<div class="preview-wrap" id="selfiePreviewWrap">
+              <img id="selfiePreviewImage" src="${selfieObjectUrl}" alt="Selfie preview">
+            </div>`
+          : renderCameraPreview({ id: 'selfiePreviewWrap', selfieGuide: true })}
         </div>
         ${actionHtml}
       </div>
     `);
-    setupMuteToggle();
+    if (!hasCapturedSelfie) setupMuteToggle(selfieAudio);
 
     if (hasCapturedSelfie) {
+      const selfieImage = document.getElementById('selfiePreviewImage');
+      if (selfieImage) sizePreviewViewport(selfieImage);
       document.getElementById('useSelfieBtn').addEventListener('click', () => {
         console.log('[webcap] selfie: "Use Photo" tapped', { selfieFeedbackTone, selfieBlob: !!selfieBlob });
         showSoundCheck();
@@ -1161,21 +1837,20 @@
       const preview = document.getElementById('preview');
       if (preview) {
         preview.srcObject = mediaStream;
+        sizePreviewViewport(preview);
       }
-      const wrap = document.getElementById('selfiePreviewWrap');
-      if (wrap) wrap.classList.add('selfie-with-face-guide');
       const flipButton = document.getElementById('selfieFlipBtn');
       if (flipButton) {
         flipButton.addEventListener('click', switchCamera);
       }
-      document.getElementById('takeSelfieBtn').addEventListener('click', captureSelfie);
+      document.getElementById('takeSelfieBtn').addEventListener('click', startSelfieCountdown);
     }
 
     if (showGuide) {
       showPhotoGuidanceOverlay();
     }
 
-    if (attemptAutoplay && !hasCapturedSelfie) {
+    if (attemptAutoplay && selfieAudio) {
       selfieAudio.play();
     }
   }
@@ -1248,15 +1923,23 @@
     const canvas = document.createElement('canvas');
     const width = preview.videoWidth || 720;
     const height = preview.videoHeight || 1280;
-    canvas.width = width;
+    const isLandscape = width > height;
+    const cropWidth = isLandscape ? Math.floor(height * (3 / 4)) : width;
+    const cropX = isLandscape ? Math.floor((width - cropWidth) / 2) : 0;
+    canvas.width = cropWidth;
     canvas.height = height;
 
     const context = canvas.getContext('2d', { willReadFrequently: true });
-    context.drawImage(preview, 0, 0, width, height);
+    context.drawImage(preview, cropX, 0, cropWidth, height, 0, 0, cropWidth, height);
 
-    const centralLum = measureCentralLuminance(context, width, height);
+    const centralLum = measureCentralLuminance(context, cropWidth, height);
     const isTooDark = centralLum < 52;
-    const subjectMissing = !hasSubjectInCenter(context, width, height);
+    const subjectMissing = !hasSubjectInCenter(context, cropWidth, height);
+
+    console.log('[webcap] selfie crop rule:', {
+      orientation: isLandscape ? 'landscape' : 'portrait',
+      cropRule: isLandscape ? 'center 3:4, sides only' : 'full frame',
+    });
 
     const blob = await canvasToJpegBlob(canvas);
     console.log('[webcap] selfie: blob created', { size: blob ? blob.size : null, type: blob ? blob.type : null });
@@ -1270,9 +1953,9 @@
     selfieObjectUrl = URL.createObjectURL(blob);
 
     if (DEBUG_SELFIE_CHECK) {
-      const roiX = Math.floor(width * 0.25);
+      const roiX = Math.floor(cropWidth * 0.25);
       const roiY = Math.floor(height * 0.10);
-      const roiW = Math.floor(width * 0.50);
+      const roiW = Math.floor(cropWidth * 0.50);
       const roiH = Math.floor(height * 0.65);
       const { data } = context.getImageData(roiX, roiY, roiW, roiH);
       const luminances = [];
@@ -1300,7 +1983,7 @@
       selfieFeedbackMessage = 'Photo looks dark - try again in better light';
     } else if (subjectMissing) {
       selfieFeedbackTone = 'warn';
-      selfieFeedbackMessage = "We couldn't see you clearly - center your face in the oval and retake";
+      selfieFeedbackMessage = "We couldn't see you clearly - center your head and shoulders in the outline and retake";
     } else {
       selfieFeedbackTone = 'good';
       selfieFeedbackMessage = 'Looks good ✓';
@@ -1309,8 +1992,30 @@
     showSelfieCapture();
   }
 
+  async function startSelfieCountdown() {
+    const previewWrap = document.getElementById('selfiePreviewWrap');
+    const takeButton = document.getElementById('takeSelfieBtn');
+    const flipButton = document.getElementById('selfieFlipBtn');
+    if (!previewWrap || !takeButton || takeButton.disabled) return;
+
+    takeButton.disabled = true;
+    if (flipButton) flipButton.disabled = true;
+    const countdown = document.createElement('div');
+    countdown.className = 'selfie-countdown';
+    previewWrap.appendChild(countdown);
+
+    for (const number of [3, 2, 1]) {
+      countdown.textContent = String(number);
+      await new Promise(resolve => window.setTimeout(resolve, 400));
+    }
+
+    if (countdown.parentNode) countdown.remove();
+    await captureSelfie();
+  }
+
   // ── Question Screen (with audio) ───────────────────────────────────────────
-  function showQuestion({ attemptAutoplay = true } = {}) {
+  function showQuestion({ attemptAutoplay = true, history = true } = {}) {
+    setHistoryScreen('question', { push: history });
     stopAudioMonitor();
     const questionAudioKey = currentQuestionAudioKey();
     const questionText = currentQuestionText();
@@ -1323,15 +2028,13 @@
       <div class="screen screen--question">
         ${renderMuteToggle()}
         <div class="question-listen-card">
+          ${renderAudioReplayButton('playBtn')}
           <p class="question-listen-text">${escapeHtml(questionText || '')}</p>
         </div>
-        <button class="btn btn--small" id="playBtn" type="button">Replay audio</button>
-        <button class="btn btn--record" id="readyToRecordBtn">Ready to record</button>
+        <button class="btn btn--record" id="readyToRecordBtn"><span class="record-start-dot" aria-hidden="true"></span>Start recording</button>
         ${updateInfoLink}
       </div>
     `);
-    setupMuteToggle();
-
     const revealReadyButton = () => {
       const readyButton = document.getElementById('readyToRecordBtn');
       if (readyButton) {
@@ -1357,6 +2060,7 @@
       completeOnStop: true,
       onComplete: revealReadyButton,
     });
+    setupMuteToggle(questionAudio);
 
     document.getElementById('readyToRecordBtn').addEventListener('click', () => {
       stopCurrentAudio();
@@ -1383,38 +2087,87 @@
     }
   }
 
-  async function showSoundCheck() {
+  async function showSoundCheck({ history = true } = {}) {
+    setHistoryScreen('soundcheck', { push: history });
+    const soundCheckPrompt = createAudioController({
+      clips: [{ screen: 'soundcheck', lang: farmerLang }],
+    });
+    let promptRun = 0;
+
     render(`
       <div class="screen screen--sound-check">
+        ${renderMuteToggle()}
         <div class="question-card">
+          ${renderAudioReplayButton('soundCheckReplayBtn')}
           <p class="question-label">Sound check</p>
-          <p class="question-text">Say a few words so we can check your microphone.</p>
+          <p class="question-text">Please say hello.</p>
         </div>
-        <div class="preview-wrap preview-wrap--frame-guide">
-          <video id="preview" autoplay muted playsinline></video>
-          <div class="frame-guide-overlay" aria-hidden="true"></div>
+        <div class="sound-check-preview-slot">
+          ${renderCameraPreview()}
         </div>
         <div class="sound-check-card">
-          <div class="sound-bars" aria-hidden="true">
-            ${Array.from({ length: SOUND_CHECK_BAR_COUNT }, () => '<span class="sound-bar"></span>').join('')}
+          <div class="sound-check-status-row">
+            <div class="sound-indicator" id="soundIndicator" aria-hidden="true">
+              <svg class="sound-microphone" viewBox="0 0 24 24" focusable="false"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-5 8a5 5 0 0 0 10 0M12 16v4m-4 0h8" /></svg>
+              <span class="sound-checkmark">✓</span>
+            </div>
+            <div class="sound-check-status-copy">
+              <p class="sound-status" id="soundStatus"></p>
+              <p class="sound-status-detail" id="soundStatusDetail"></p>
+            </div>
           </div>
-          <p class="sound-status" id="soundStatus"></p>
-          <p class="sound-status-detail" id="soundStatusDetail"></p>
         </div>
-        <button class="btn btn--record" id="soundCheckPrimaryBtn">Next</button>
-        <button class="btn btn--link" id="continueAnywayBtn" style="display:none">Continue anyway</button>
+        <div class="sound-check-actions">
+          <button class="btn btn--record" id="soundCheckPrimaryBtn">Next →</button>
+          <button class="btn btn--link" id="continueAnywayBtn" style="display:none">Continue anyway</button>
+        </div>
       </div>
     `);
+
+    const startListeningAfterPrompt = async () => {
+      const run = ++promptRun;
+      soundCheckListening = false;
+      clearSoundCheckTimer();
+      clearSoundCheckListeningTimer();
+      soundCheckHeard = false;
+      soundCheckTimedOut = false;
+      updateSoundCheckUi();
+
+      const result = await soundCheckPrompt.play();
+      if (run !== promptRun || !document.getElementById('soundCheckPrimaryBtn')) return;
+
+      const beginListening = () => {
+        if (run === promptRun && document.getElementById('soundCheckPrimaryBtn')) {
+          resetSoundCheckWindow();
+        }
+      };
+
+      // The speaker can feed back into the mic, so only begin sampling just
+      // after a completed prompt. Failed, muted, and blocked clips listen now.
+      if (result === 'ended') {
+        soundCheckListeningTimer = window.setTimeout(beginListening, 300);
+      } else {
+        beginListening();
+      }
+    };
+    const soundCheckAudio = {
+      play: startListeningAfterPrompt,
+      replay: startListeningAfterPrompt,
+    };
+    setupMuteToggle(soundCheckAudio);
+    document.getElementById('soundCheckReplayBtn').addEventListener('click', startListeningAfterPrompt);
 
     const preview = document.getElementById('preview');
     if (preview) {
       preview.srcObject = mediaStream;
+      sizePreviewViewport(preview);
     }
 
     await startAudioMonitor();
-    resetSoundCheckWindow();
+    startListeningAfterPrompt();
 
     const continueToQuestion = () => {
+      promptRun++;
       clearSoundCheckTimer();
       stopCurrentAudio();
       stopAudioMonitor();
@@ -1471,6 +2224,7 @@
   }
 
   async function showRecording() {
+    setHistoryScreen('countdown');
     const questionText = currentQuestionText();
     render(`
       <div class="screen screen--recording">
@@ -1479,21 +2233,18 @@
           <span class="rec-label">Recording</span>
         </div>
         <p class="recording-question-band">${escapeHtml(questionText || '')}</p>
-        <div class="preview-wrap preview-wrap--frame-guide" id="recordingPreviewWrap" style="position:relative;">
-          <div class="recording-progress" aria-hidden="true"><div class="recording-progress__bar" id="recordingProgress"></div></div>
-          <video id="preview" autoplay muted playsinline></video>
-          <div class="frame-guide-overlay" aria-hidden="true"></div>
-        </div>
-        <button class="btn btn--stop" id="stopBtn">■ Stop</button>
+        ${renderCameraPreview({ id: 'recordingPreviewWrap', recording: true })}
+        <button class="btn btn--stop" id="stopBtn" hidden>■ Stop</button>
       </div>
     `);
     const preview = document.getElementById('preview');
     preview.srcObject = mediaStream;
-    document.getElementById('stopBtn').addEventListener('click', stopRecording);
+    sizePreviewViewport(preview);
+    document.getElementById('stopBtn').addEventListener('click', () => stopRecording({ userInitiated: true }));
   }
 
   function showReview() {
-    const sizeMB    = (recordedBlob.size / 1024 / 1024).toFixed(1);
+    setHistoryScreen('recording-review');
     const questionText = currentQuestionText();
     clearReviewObjectUrl();
     reviewObjectUrl = URL.createObjectURL(recordedBlob);
@@ -1504,19 +2255,22 @@
           <p class="question-label">Review your response</p>
           <p class="question-text">${escapeHtml(questionText || '')}</p>
         </div>
-        <div class="preview-wrap">
-          <video id="playback" controls playsinline></video>
+        <div class="preview-wrap preview-wrap--recording${isUsingFrontCamera() ? ' preview-wrap--mirrored' : ''}">
+          <div class="camera-preview-content">
+            <video id="playback" controls playsinline></video>
+          </div>
         </div>
-        <p class="file-size">File size: ~${sizeMB} MB</p>
         <div class="review-actions">
-          <button class="btn btn--secondary" id="rerecordBtn">Re-record</button>
-          <button class="btn btn--upload" id="uploadBtn">Upload</button>
+          <button class="btn btn--secondary" id="rerecordBtn">↺ Re-record</button>
+          <button class="btn btn--upload" id="uploadBtn">✓ Upload</button>
         </div>
       </div>
     `);
 
     // Set src after render so the element exists
-    document.getElementById('playback').src = reviewObjectUrl;
+    const playback = document.getElementById('playback');
+    playback.src = reviewObjectUrl;
+    sizePreviewViewport(playback);
     document.getElementById('rerecordBtn').addEventListener('click', () => {
       clearReviewObjectUrl();
       reRecord();
@@ -1525,6 +2279,7 @@
   }
 
   function showUploading() {
+    setHistoryScreen('upload');
     render(`
       <div class="screen screen--uploading">
         <p class="upload-label">Uploading your response…</p>
@@ -1548,6 +2303,7 @@
   }
 
   function showSuccess() {
+    setHistoryScreen('success', { push: false });
     // Release camera tracks once we're done
     stopMediaStream();
     stopAudioMonitor();
@@ -1562,6 +2318,7 @@
       <div class="screen screen--success">
         ${renderMuteToggle()}
         <div class="success-card success-animate" id="successCard">
+          ${renderAudioReplayButton('successReplayBtn')}
           <div class="success-icon" aria-hidden="true">
             <svg viewBox="0 0 80 80" role="img" focusable="false">
               <circle cx="40" cy="40" r="36"></circle>
@@ -1570,13 +2327,14 @@
           </div>
           <p class="success-eyebrow">Submission complete</p>
           <h1>Thank you${displayName}!</h1>
-          <p class="success-copy">Your video has been received successfully.</p>
-          <p class="success-next">We will be in touch when your farmer card is ready.</p>
+          <p class="success-copy">Thank you! Your video has been sent.</p>
+          <a class="contact-line" href="mailto:ron@bunabaraka.org">Questions or removal requests: ron@bunabaraka.org</a>
           <p class="success-footer">Buna Baraka</p>
         </div>
       </div>
     `);
-    setupMuteToggle();
+    setupMuteToggle(successAudio);
+    document.getElementById('successReplayBtn').addEventListener('click', () => successAudio.replay());
 
     requestAnimationFrame(() => {
       const card = document.getElementById('successCard');
@@ -1618,13 +2376,7 @@
     showError(msg);
   }
 
-  async function startRecording() {
-    recordedChunks = [];
-    recordedBlob = null;
-    recordingStopHandled = false;
-    clearRecorderStopSafetyTimer();
-    elapsedSeconds = 0;
-
+  function createMediaRecorder() {
     try {
       mediaRecorder = new MediaRecorder(mediaStream, {
         mimeType,
@@ -1648,25 +2400,79 @@
         failRecording('Recording stopped unexpectedly. Please try again.');
       }
     };
+  }
 
-    await showRecording();
-    await startAudioMonitor();
+  function waitFor(milliseconds) {
+    return new Promise(resolve => window.setTimeout(resolve, milliseconds));
+  }
+
+  async function runRecordingCountdown() {
+    const countdown = document.getElementById('recordingCountdown');
+    for (const number of [3, 2, 1]) {
+      if (countdown) countdown.textContent = number;
+      await waitFor(1000);
+    }
+    if (countdown) countdown.remove();
+  }
+
+  function beginMediaRecording() {
+    setHistoryScreen('recording');
+    createMediaRecorder();
     mediaRecorder.start(1000); // collect a chunk every second
+    void startAudioMonitor();
+    const progressTrack = document.getElementById('recordingProgressTrack');
+    if (progressTrack) progressTrack.hidden = false;
+    const progress = document.getElementById('recordingProgress');
+    if (progress) {
+      progress.style.width = '0%';
+      progress.classList.remove('recording-progress__bar--good-length');
+    }
+    const stopButton = document.getElementById('stopBtn');
+    if (stopButton) stopButton.hidden = false;
 
     countdownTimer = setInterval(() => {
       elapsedSeconds++;
       const remaining = MAX_DURATION_SEC - elapsedSeconds;
-      const progress = document.getElementById('recordingProgress');
-      if (progress) progress.style.width = `${Math.max(0, (remaining / MAX_DURATION_SEC) * 100)}%`;
-      if (remaining <= 0) {
-        createRecordedBlob();
-        stopRecording();
+      const activeProgress = document.getElementById('recordingProgress');
+      if (activeProgress) {
+        const elapsedPercent = Math.min(100, (elapsedSeconds / MAX_DURATION_SEC) * 100);
+        activeProgress.style.width = `${elapsedPercent}%`;
+        activeProgress.classList.toggle('recording-progress__bar--good-length', elapsedSeconds >= 30);
       }
+      if (remaining <= 0) stopRecording();
     }, 1000);
   }
 
-  function stopRecording() {
+  async function startRecording() {
+    recordedChunks = [];
+    recordedBlob = null;
+    recordingStopHandled = false;
+    recordingStopRequested = false;
+    clearRecorderStopSafetyTimer();
+    elapsedSeconds = 0;
+
+    await showRecording();
+    await runRecordingCountdown();
+    beginMediaRecording();
+  }
+
+  function stopRecording({ userInitiated = false } = {}) {
+    if (recordingStopRequested) return;
+    recordingStopRequested = true;
     clearInterval(countdownTimer);
+    if (userInitiated) {
+      const stopButton = document.getElementById('stopBtn');
+      if (stopButton) {
+        stopButton.disabled = true;
+        stopButton.textContent = 'Saving…';
+      }
+      window.setTimeout(stopActiveRecorder, 1000);
+      return;
+    }
+    stopActiveRecorder();
+  }
+
+  function stopActiveRecorder() {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
       clearRecorderStopSafetyTimer();
@@ -1694,6 +2500,8 @@
       showUploadError('Missing selfie photo. Please retake your photo and try again.');
       return;
     }
+
+    setUploadInProgress(true);
 
     const ext       = fileExtension();
     const timestamp = Date.now();
@@ -1778,15 +2586,18 @@
       const bar = progressBar();
       if (bar) bar.style.width = '100%';
 
+      setUploadInProgress(false);
       setTimeout(showSuccess, 400);
 
     } catch (err) {
       clearInterval(ticker);
+      setUploadInProgress(false);
       console.error('[webcap] upload error:', err);
       showUploadError(err.message || 'Unknown error. Please try again.');
     }
   }
 
   // ── Boot ─────────────────────────────────────────────────────────────────
+  window.addEventListener('popstate', handleHistoryPopState);
   document.addEventListener('DOMContentLoaded', init);
 })();
