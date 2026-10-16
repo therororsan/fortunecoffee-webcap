@@ -840,8 +840,12 @@
       const isLandscape = aspect > 1;
       const viewportAspect = isLandscape ? 3 / 4 : aspect;
       const screen = wrap.closest('.screen');
-      const maxHeight = (screen && screen.classList.contains('screen--sound-check') ? 0.38 : 0.62)
-        * (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+      const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      const isSelfieScreen = screen && screen.classList.contains('screen--selfie')
+        && !screen.classList.contains('screen--camera-permission');
+      const maxHeight = isSelfieScreen && wrap.parentElement
+        ? wrap.parentElement.clientHeight
+        : (screen && screen.classList.contains('screen--sound-check') ? 0.38 : 0.62) * viewportHeight;
       const availableWidth = wrap.parentElement ? wrap.parentElement.clientWidth : window.innerWidth;
       const viewportWidth = Math.min(availableWidth, maxHeight * viewportAspect);
       wrap.classList.toggle('preview-wrap--landscape-crop', isLandscape);
@@ -874,33 +878,23 @@
     };
   }
 
-  function renderFramingMask(type = 'bust') {
-    const isHeadOnly = type === 'head';
-    const maskId = isHeadOnly ? 'selfieHeadAperture' : 'bustAperture';
-    const aperture = isHeadOnly
-      ? '<ellipse cx="50" cy="37" rx="27.5" ry="25" fill="black" />'
-      : '<path fill="black" d="M50 9C37 9 31 18 31 30c0 9 4 15 10 18v10c-10 3-19 7-24 12-4 4-5 11-5 19h76c0-8-1-15-5-19-5-5-14-9-24-12V48c6-3 10-9 10-18C69 18 63 9 50 9Z" />';
+  function renderSelfieOutlineGuide() {
     return `
-      <svg class="framing-guide" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-        <defs>
-          <mask id="${maskId}" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
-            <rect width="100" height="100" fill="white" />
-            ${aperture}
-          </mask>
-        </defs>
-        <rect class="framing-guide__mask" x="0" y="0" width="100" height="100" mask="url(#${maskId})" />
+      <svg class="selfie-outline-guide" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <ellipse class="selfie-outline-guide__head" cx="50" cy="37" rx="27.5" ry="25" />
+        <path class="selfie-outline-guide__shoulders" d="M9 104C12 78 27 62 38 59M62 59C73 62 88 78 91 104" />
       </svg>
     `;
   }
 
-  function renderCameraPreview({ id = '', mirrored = isUsingFrontCamera(), recording = false, guide = 'bust' } = {}) {
+  function renderCameraPreview({ id = '', mirrored = isUsingFrontCamera(), recording = false, selfieGuide = false } = {}) {
     return `
       <div class="preview-wrap preview-wrap--camera${mirrored ? ' preview-wrap--mirrored' : ''}${recording ? ' preview-wrap--recording' : ''}"${id ? ` id="${id}"` : ''}>
         ${recording ? '<div class="recording-progress" id="recordingProgressTrack" aria-hidden="true" hidden><div class="recording-progress__bar" id="recordingProgress"></div></div>' : ''}
         <div class="camera-preview-content">
           <video id="preview" autoplay muted playsinline></video>
-          ${renderFramingMask(guide)}
         </div>
+        ${selfieGuide ? renderSelfieOutlineGuide() : ''}
         ${recording ? '<div class="recording-countdown" id="recordingCountdown" aria-live="assertive"></div>' : ''}
       </div>
     `;
@@ -1293,29 +1287,27 @@
     const actionHtml = hasCapturedSelfie
       ? `
           <div class="selfie-actions">
-            <button class="btn btn--record" id="useSelfieBtn">✓ Use this photo</button>
-            <button class="btn btn--secondary" id="retakeSelfieBtn">Retake</button>
+            <button class="btn selfie-retake-button" id="retakeSelfieBtn">Retake</button>
+            <button class="btn selfie-use-button" id="useSelfieBtn">✓ Use this photo</button>
           </div>
         `
       : `
           <div class="selfie-camera-controls">
-            ${showFlipButton ? '<button class="btn btn--small" id="selfieFlipBtn" type="button">Flip</button>' : ''}
-            <button class="btn btn--record" id="takeSelfieBtn" type="button">Take photo</button>
+            ${showFlipButton ? '<button class="selfie-flip-button" id="selfieFlipBtn" type="button" aria-label="Flip camera">↻</button>' : ''}
+            <button class="btn selfie-take-button" id="takeSelfieBtn" type="button">Take photo</button>
           </div>
         `;
 
     render(`
       <div class="screen screen--selfie">
         ${renderMuteToggle()}
-        <div class="question-card">
-          <p class="question-label">Selfie check</p>
-          <p class="question-text">Center your head and shoulders inside the outline, then take one clear photo.</p>
-        </div>
+        <div class="selfie-preview-slot">
         ${hasCapturedSelfie
           ? `<div class="preview-wrap" id="selfiePreviewWrap">
               <img id="selfiePreviewImage" src="${selfieObjectUrl}" alt="Selfie preview">
             </div>`
-          : renderCameraPreview({ id: 'selfiePreviewWrap', guide: 'head' })}
+          : renderCameraPreview({ id: 'selfiePreviewWrap', selfieGuide: true })}
+        </div>
         ${actionHtml}
       </div>
     `);
@@ -1681,7 +1673,7 @@
           <span class="rec-label">Recording</span>
         </div>
         <p class="recording-question-band">${escapeHtml(questionText || '')}</p>
-        ${renderCameraPreview({ id: 'recordingPreviewWrap', recording: true, guide: 'bust' })}
+        ${renderCameraPreview({ id: 'recordingPreviewWrap', recording: true })}
         <button class="btn btn--stop" id="stopBtn" hidden>■ Stop</button>
       </div>
     `);
@@ -1853,12 +1845,6 @@
     for (const number of [3, 2, 1]) {
       if (countdown) countdown.textContent = number;
       await waitFor(1000);
-    }
-    const guide = document.querySelector('.screen--recording .framing-guide');
-    if (guide) {
-      guide.classList.add('framing-guide--removing');
-      await waitFor(300);
-      guide.remove();
     }
     if (countdown) countdown.remove();
   }
