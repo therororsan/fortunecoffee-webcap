@@ -807,8 +807,13 @@ html, body {
 
 .consent-text p {
   font-size: 18px;
-  line-height: 1.32;
-  margin-bottom: 6px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.consent-text strong {
+  font-weight: 600;
 }
 
 .consent-text p:last-child {
@@ -879,8 +884,8 @@ html, body {
   .consent-text p,
   .consent-text--compact p {
     font-size: 16px;
-    line-height: 1.3;
-    margin-bottom: 4px;
+    line-height: 1.4;
+    margin-bottom: 12px;
   }
 }
 

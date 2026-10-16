@@ -1596,6 +1596,11 @@
     });
     const consentLines = CONSENT_TEXTS[farmerLang] || CONSENT_TEXTS[DEFAULT_LANG];
     const consentTextClass = consentLines.join('').length > 520 ? ' consent-text--compact' : '';
+    const consentParagraphs = [
+      `${escapeHtml(consentLines[0])} ${escapeHtml(consentLines[1])}`,
+      `${escapeHtml(consentLines[2])} ${escapeHtml(consentLines[3])}`,
+      `${escapeHtml(consentLines[4])} <strong>${escapeHtml(consentLines[5])}</strong>`,
+    ];
 
     render(`
       <div class="screen screen--consent">
@@ -1603,7 +1608,7 @@
         <div class="consent-body">
           <div class="consent-text${consentTextClass}">
             ${renderAudioReplayButton('consentReplayBtn')}
-            ${consentLines.map(line => `<p>${escapeHtml(line)}</p>`).join('')}
+            ${consentParagraphs.map(paragraph => `<p>${paragraph}</p>`).join('')}
           </div>
           <div class="consent-actions">
             <button class="btn btn--consent btn--yes" id="consentYesBtn">✓ Agree</button>
