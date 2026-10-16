@@ -84,6 +84,24 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--stability",
+        type=float,
+        default=None,
+        help=(
+            "Optional ElevenLabs voice stability (0 to 1). "
+            "When omitted, uses the voice's current/default stability."
+        ),
+    )
+    parser.add_argument(
+        "--style",
+        type=float,
+        default=None,
+        help=(
+            "Optional ElevenLabs style exaggeration (0 to 1). "
+            "When omitted, uses the voice's current/default style."
+        ),
+    )
+    parser.add_argument(
         "--google-speaking-rate",
         type=float,
         default=None,
@@ -335,6 +353,8 @@ def synthesize_elevenlabs(
     task: AudioTask,
     voices: dict[str, str],
     speed: float | None,
+    stability: float | None,
+    style: float | None,
     seed: int | None,
 ) -> None:
     api_key = os.getenv("ELEVENLABS_API_KEY")
@@ -351,8 +371,15 @@ def synthesize_elevenlabs(
         "output_format": ELEVENLABS_OUTPUT_FORMAT,
         "text": task.text,
     }
+    voice_settings: dict[str, float] = {}
     if speed is not None:
-        request_options["voice_settings"] = VoiceSettings(speed=speed)
+        voice_settings["speed"] = speed
+    if stability is not None:
+        voice_settings["stability"] = stability
+    if style is not None:
+        voice_settings["style"] = style
+    if voice_settings:
+        request_options["voice_settings"] = VoiceSettings(**voice_settings)
     if seed is not None:
         request_options["seed"] = seed
     audio_stream = client.text_to_speech.convert(
@@ -437,6 +464,10 @@ def main() -> int:
         langs = parse_csv_list(args.langs, LANG_ORDER, "languages")
         if args.speed is not None and not 0.7 <= args.speed <= 1.2:
             raise ValueError("--speed must be between 0.7 and 1.2.")
+        if args.stability is not None and not 0 <= args.stability <= 1:
+            raise ValueError("--stability must be between 0 and 1.")
+        if args.style is not None and not 0 <= args.style <= 1:
+            raise ValueError("--style must be between 0 and 1.")
         if args.seed is not None and not 0 <= args.seed <= 4_294_967_295:
             raise ValueError("--seed must be between 0 and 4294967295.")
         load_environment()
@@ -477,6 +508,10 @@ def main() -> int:
     print(f"ElevenLabs: model={ELEVENLABS_MODEL_ID}, voices={voice_summary}, output={ELEVENLABS_OUTPUT_FORMAT}")
     if args.speed is not None:
         print(f"ElevenLabs voice speed: {args.speed}")
+    if args.stability is not None:
+        print(f"ElevenLabs voice stability: {args.stability}")
+    if args.style is not None:
+        print(f"ElevenLabs voice style: {args.style}")
     if args.google_speaking_rate is not None:
         print(f"Google Cloud TTS speaking rate: {args.google_speaking_rate}")
     if args.seed is not None:
@@ -524,7 +559,14 @@ def main() -> int:
         print(f"[{index}/{len(tasks)}] {action} {relative_output} ({task.engine})")
         try:
             if task.engine == "ElevenLabs":
-                synthesize_elevenlabs(task, voices, args.speed, args.seed)
+                synthesize_elevenlabs(
+                    task,
+                    voices,
+                    args.speed,
+                    args.stability,
+                    args.style,
+                    args.seed,
+                )
             else:
                 synthesize_google(task, args.google_speaking_rate)
             output_size = validate_generated_output(task)

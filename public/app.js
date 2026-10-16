@@ -93,7 +93,7 @@
 
   const CONSENT_TEXTS = {
     en: [
-      'Hi.',
+      'Hi!',
       'We would like to share your story with coffee drinkers.',
       'We will take your photo and video, and put them on the internet.',
       'A computer will also make a drawing of you for our cards.',
@@ -101,7 +101,7 @@
       'If you agree, press the green button.',
     ],
     es: [
-      'Hola.',
+      '¡Hola!',
       'Nos gustaría compartir su historia con las personas que toman café.',
       'Tomaremos su foto y un video, y los pondremos en internet.',
       'Una computadora también hará un dibujo de usted para nuestras tarjetas.',
@@ -109,7 +109,7 @@
       'Si está de acuerdo, presione el botón verde.',
     ],
     fr: [
-      'Bonjour.',
+      'Bonjour !',
       'Nous aimerions partager votre histoire avec les personnes qui boivent du café.',
       'Nous prendrons votre photo et enregistrerons une vidéo, puis nous les mettrons sur internet.',
       'Un ordinateur fera aussi un dessin de vous pour nos cartes.',
@@ -117,7 +117,7 @@
       "Si vous êtes d'accord, appuyez sur le bouton vert.",
     ],
     pt: [
-      'Olá.',
+      'Olá!',
       'Gostaríamos de compartilhar a sua história com as pessoas que tomam café.',
       'Vamos tirar sua foto e gravar um vídeo, e colocá-los na internet.',
       'Um computador também vai fazer um desenho seu para os nossos cartões.',
@@ -125,7 +125,7 @@
       'Se concordar, aperte o botão verde.',
     ],
     sw: [
-      'Habari.',
+      'Habari!',
       'Tungependa kushiriki hadithi yako na watu wanaokunywa kahawa.',
       'Tutakupiga picha na kurekodi video, na kuziweka mtandaoni.',
       'Kompyuta pia itatengeneza mchoro wako kwa ajili ya kadi zetu.',
@@ -133,7 +133,7 @@
       'Ukikubali, bonyeza kitufe cha kijani.',
     ],
     vi: [
-      'Xin chào.',
+      'Xin chào!',
       'Chúng tôi muốn chia sẻ câu chuyện của quý vị với những người uống cà phê.',
       'Chúng tôi sẽ chụp ảnh và quay video quý vị, rồi đăng lên mạng.',
       'Máy tính cũng sẽ vẽ một hình vẽ của quý vị cho các tấm thẻ của chúng tôi.',
@@ -141,7 +141,7 @@
       'Nếu quý vị đồng ý, hãy bấm nút màu xanh lá.',
     ],
     hi: [
-      'नमस्ते।',
+      'नमस्ते!',
       'हम आपकी कहानी कॉफ़ी पीने वालों के साथ बाँटना चाहते हैं।',
       'हम आपकी फ़ोटो और वीडियो लेंगे, और उन्हें इंटरनेट पर डालेंगे।',
       'कंप्यूटर हमारे कार्डों के लिए आपका एक चित्र भी बनाएगा।',
@@ -149,7 +149,7 @@
       'अगर आप सहमत हैं, तो हरा बटन दबाएँ।',
     ],
     ta: [
-      'வணக்கம்.',
+      'வணக்கம்!',
       'உங்கள் கதையை காபி குடிப்பவர்களுடன் பகிர விரும்புகிறோம்.',
       'உங்கள் புகைப்படத்தையும் வீடியோவையும் எடுத்து, இன்டர்நெட்டில் வைப்போம்.',
       'எங்கள் அட்டைகளுக்காக, கணினி உங்கள் ஓவியம் ஒன்றையும் உருவாக்கும்.',
@@ -157,7 +157,7 @@
       'நீங்கள் சம்மதித்தால், பச்சை பட்டனை அழுத்துங்கள்.',
     ],
     si: [
-      'ආයුබෝවන්.',
+      'ආයුබෝවන්!',
       'ඔබේ කතාව කෝපි බොන අය සමඟ බෙදාගන්න අපි කැමතියි.',
       'අපි ඔබේ ඡායාරූපයක් සහ වීඩියෝවක් අරගෙන, ඒවා අන්තර්ජාලයට දමනවා.',
       'අපගේ කාඩ්පත් සඳහා පරිගණකයක් ඔබේ චිත්‍රයක්ද සාදනවා.',
@@ -165,7 +165,7 @@
       'ඔබ එකඟ නම්, කොළ පාට බොත්තම ඔබන්න.',
     ],
     am: [
-      'ሰላም።',
+      'ሰላም!',
       'ታሪክዎን ቡና ከሚጠጡ ሰዎች ጋር ማካፈል እንፈልጋለን።',
       'ፎቶዎንና ቪዲዮዎን አንስተን በኢንተርኔት ላይ እናስቀምጣቸዋለን።',
       'ኮምፒውተር ደግሞ ለካርዶቻችን የእርስዎን ስዕል ይሰራል።',
@@ -173,7 +173,7 @@
       'ከተስማሙ፣ አረንጓዴውን ቁልፍ ይጫኑ።',
     ],
     fil: [
-      'Kumusta po.',
+      'Kumusta po!',
       'Gusto po naming ibahagi ang inyong kuwento sa mga taong umiinom ng kape.',
       'Kukunan po namin kayo ng larawan at video, at ilalagay ang mga ito sa internet.',
       'Gagawa rin po ang computer ng guhit ninyo para sa aming mga card.',
