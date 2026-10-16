@@ -77,6 +77,9 @@
   let currentAudioDelayTimer = null;
   let currentAudioDelayResolve = null;
   let isMuted         = false;
+  let screenAudioController = null;
+  let audioToggleState = 'idle';
+  let audioToggleTimer = null;
   let reviewObjectUrl = null;
   let selfieBlob      = null;
   let selfieObjectUrl = null;
@@ -526,16 +529,19 @@
   }
 
   function renderMuteToggleIcon(muted) {
+    const isPlaying = !muted && audioToggleState === 'playing';
     return `
-      <svg class="mute-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <svg class="mute-toggle-icon${isPlaying ? ' is-playing' : ''}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
         <path d="M4 10v4h3l4 3V7l-4 3H4Z"></path>
-        ${muted ? '<path d="m5 5 14 14"></path>' : '<path d="M15 9.5a4 4 0 0 1 0 5M18 7a7 7 0 0 1 0 10"></path>'}
+        ${muted
+          ? '<path d="m5 5 14 14"></path>'
+          : '<path class="mute-toggle-wave mute-toggle-wave--1" d="M15 9.5a4 4 0 0 1 0 5"></path><path class="mute-toggle-wave mute-toggle-wave--2" d="M18 7a7 7 0 0 1 0 10"></path><path class="mute-toggle-wave mute-toggle-wave--3" d="M20.5 4.5a10.5 10.5 0 0 1 0 15"></path>'}
       </svg>
     `;
   }
 
   function muteToggleShowsLabel() {
-    return isMuted || !currentAudio || currentAudio.paused;
+    return isMuted || audioToggleState === 'needs-tap';
   }
 
   function renderMuteToggleContent() {
@@ -584,6 +590,27 @@
     document.querySelectorAll('[data-mute-toggle]').forEach(syncMuteToggleButton);
   }
 
+  function clearAudioToggleTimer() {
+    if (audioToggleTimer) {
+      window.clearTimeout(audioToggleTimer);
+      audioToggleTimer = null;
+    }
+  }
+
+  function setAudioToggleState(nextState) {
+    audioToggleState = nextState;
+    if (nextState === 'playing' || nextState === 'needs-tap') {
+      clearAudioToggleTimer();
+    }
+    syncMuteToggleButtons();
+  }
+
+  function resetScreenAudioController() {
+    clearAudioToggleTimer();
+    screenAudioController = null;
+    audioToggleState = 'idle';
+  }
+
   function clearPendingAudioDelay() {
     if (currentAudioDelayTimer) {
       window.clearTimeout(currentAudioDelayTimer);
@@ -615,23 +642,40 @@
     if (typeof settle === 'function') {
       settle('stopped');
     }
+    if (!isMuted) audioToggleState = 'idle';
     syncMuteToggleButtons();
   }
 
   function setMuted(nextMuted) {
     isMuted = !!nextMuted;
     if (isMuted) {
+      audioToggleState = 'needs-tap';
       stopCurrentAudio();
     }
     syncMuteToggleButtons();
   }
 
-  function setupMuteToggle() {
+  function setupMuteToggle(controller) {
     const button = document.getElementById('muteToggleBtn');
     if (!button) return;
+    screenAudioController = controller || null;
+    audioToggleState = isMuted ? 'needs-tap' : 'idle';
+    clearAudioToggleTimer();
+    if (!isMuted && screenAudioController) {
+      audioToggleTimer = window.setTimeout(() => {
+        if (audioToggleState !== 'playing') setAudioToggleState('needs-tap');
+      }, 1000);
+    }
     syncMuteToggleButton(button);
     button.addEventListener('click', () => {
-      setMuted(!isMuted);
+      if (audioToggleState === 'playing') {
+        setMuted(true);
+        return;
+      }
+      if (!screenAudioController) return;
+      if (isMuted) setMuted(false);
+      setAudioToggleState('idle');
+      screenAudioController.replay();
     });
   }
 
@@ -661,8 +705,23 @@
 
       currentAudio = audio;
       currentAudioSettle = finish;
-      audio.onended = () => finish('ended');
-      audio.onerror = () => finish('error');
+      audio.addEventListener('play', () => {
+        if (currentAudio === audio) setAudioToggleState('playing');
+      });
+      audio.addEventListener('playing', () => {
+        if (currentAudio === audio) setAudioToggleState('playing');
+      });
+      audio.addEventListener('pause', () => {
+        if (currentAudio === audio) setAudioToggleState('idle');
+      });
+      audio.onended = () => {
+        if (currentAudio === audio) setAudioToggleState('idle');
+        finish('ended');
+      };
+      audio.onerror = () => {
+        if (currentAudio === audio) setAudioToggleState('needs-tap');
+        finish('error');
+      };
 
       const playPromise = audio.play();
       if (playPromise && typeof playPromise.then === 'function') {
@@ -673,7 +732,10 @@
             }
             syncMuteToggleButtons();
           })
-          .catch(() => finish('play-error'));
+          .catch(() => {
+            if (currentAudio === audio) setAudioToggleState('needs-tap');
+            finish('play-error');
+          });
       } else if (typeof options.onPlayStart === 'function') {
         options.onPlayStart();
         syncMuteToggleButtons();
@@ -964,6 +1026,7 @@
   // ── Screens ──────────────────────────────────────────────────────────────
   function render(html) {
     stopCurrentAudio();
+    resetScreenAudioController();
     if (previewViewportCleanup) {
       previewViewportCleanup();
       previewViewportCleanup = null;
@@ -1180,7 +1243,7 @@
         </div>
       </div>
     `);
-    setupMuteToggle();
+    setupMuteToggle(consentAudio);
     document.getElementById('consentReplayBtn').addEventListener('click', () => consentAudio.replay());
 
     document.getElementById('consentYesBtn').addEventListener('click', async () => {
@@ -1319,7 +1382,7 @@
         <button class="btn btn--record" id="cameraPermissionContinueBtn">Continue →</button>
       </div>
     `);
-    setupMuteToggle();
+    setupMuteToggle(permissionAudio);
     document.getElementById('permissionReplayBtn').addEventListener('click', () => permissionAudio.replay());
     document.getElementById('cameraPermissionContinueBtn').addEventListener('click', startSelfieCamera);
     permissionAudio.play();
@@ -1335,9 +1398,9 @@
   function showSelfieCapture({ showGuide = false, attemptAutoplay = false } = {}) {
     const hasCapturedSelfie = !!(selfieBlob && selfieObjectUrl);
     const showFlipButton = !hasCapturedSelfie && hasMultipleVideoInputs;
-    const selfieAudio = createAudioController({
-      clips: [{ screen: 'selfie', lang: farmerLang }],
-    });
+    const selfieAudio = hasCapturedSelfie
+      ? null
+      : createAudioController({ clips: [{ screen: 'selfie', lang: farmerLang }] });
     const actionHtml = hasCapturedSelfie
       ? `
           <div class="selfie-actions">
@@ -1354,7 +1417,7 @@
 
     render(`
       <div class="screen screen--selfie">
-        ${renderMuteToggle()}
+        ${hasCapturedSelfie ? '' : renderMuteToggle()}
         ${hasCapturedSelfie ? '' : '<h1 class="selfie-live-title">🤳 Take a selfie</h1>'}
         <div class="selfie-preview-slot">
         ${hasCapturedSelfie
@@ -1366,7 +1429,7 @@
         ${actionHtml}
       </div>
     `);
-    setupMuteToggle();
+    if (!hasCapturedSelfie) setupMuteToggle(selfieAudio);
 
     if (hasCapturedSelfie) {
       const selfieImage = document.getElementById('selfiePreviewImage');
@@ -1396,7 +1459,7 @@
       showPhotoGuidanceOverlay();
     }
 
-    if (attemptAutoplay && !hasCapturedSelfie) {
+    if (attemptAutoplay && selfieAudio) {
       selfieAudio.play();
     }
   }
@@ -1580,8 +1643,6 @@
         ${updateInfoLink}
       </div>
     `);
-    setupMuteToggle();
-
     const revealReadyButton = () => {
       const readyButton = document.getElementById('readyToRecordBtn');
       if (readyButton) {
@@ -1607,6 +1668,7 @@
       completeOnStop: true,
       onComplete: revealReadyButton,
     });
+    setupMuteToggle(questionAudio);
 
     document.getElementById('readyToRecordBtn').addEventListener('click', () => {
       stopCurrentAudio();
@@ -1756,7 +1818,7 @@
         </div>
         <div class="review-actions">
           <button class="btn btn--secondary" id="rerecordBtn">↺ Re-record</button>
-          <button class="btn btn--upload" id="uploadBtn">Upload →</button>
+          <button class="btn btn--upload" id="uploadBtn">✓ Upload</button>
         </div>
       </div>
     `);
@@ -1824,7 +1886,7 @@
         </div>
       </div>
     `);
-    setupMuteToggle();
+    setupMuteToggle(successAudio);
     document.getElementById('successReplayBtn').addEventListener('click', () => successAudio.replay());
 
     requestAnimationFrame(() => {

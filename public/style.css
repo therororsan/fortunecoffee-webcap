@@ -204,6 +204,34 @@ html, body {
   stroke-linejoin: round;
 }
 
+.mute-toggle-wave {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.mute-toggle-icon.is-playing .mute-toggle-wave {
+  animation: mute-toggle-wave 0.9s ease-in-out infinite;
+}
+
+.mute-toggle-icon.is-playing .mute-toggle-wave--2 {
+  animation-delay: 0.12s;
+}
+
+.mute-toggle-icon.is-playing .mute-toggle-wave--3 {
+  animation-delay: 0.24s;
+}
+
+@keyframes mute-toggle-wave {
+  0%, 100% { opacity: 0.4; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mute-toggle-icon.is-playing .mute-toggle-wave {
+    animation: none;
+  }
+}
+
 .mute-toggle-label {
   white-space: nowrap;
 }
