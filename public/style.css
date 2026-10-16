@@ -571,6 +571,29 @@ html, body {
   outline-offset: 0;
 }
 
+.form-group input::placeholder {
+  color: #928b76;
+  opacity: 1;
+}
+
+.field-error {
+  display: none;
+  margin-top: 6px;
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.field-error:not(:empty) { display: block; }
+
+.form-group input.is-invalid,
+.cs-trigger.is-invalid,
+.phone-input-wrap.is-invalid {
+  border-color: var(--danger);
+  outline: 2px solid var(--danger);
+  outline-offset: 0;
+}
+
 .registry-field-readonly {
   width: 100%;
   padding: 14px;
@@ -675,6 +698,13 @@ html, body {
   white-space: nowrap;
   font-family: var(--font);
   user-select: none;
+}
+
+.phone-prefix img {
+  width: 24px;
+  height: 18px;
+  object-fit: cover;
+  margin-right: 6px;
 }
 
 .phone-input-wrap input {
@@ -863,6 +893,46 @@ html, body {
   background: var(--bg);
 }
 
+.screen--sound-check {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px;
+  gap: 8px;
+  background: var(--bg);
+}
+
+.screen--sound-check .question-card {
+  flex: 0 0 auto;
+  padding: 10px 52px 10px 12px;
+  border-radius: 12px;
+}
+
+.screen--sound-check .question-label {
+  margin-bottom: 2px;
+}
+
+.screen--sound-check .question-text {
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.sound-check-preview-slot {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.screen--sound-check .preview-wrap {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 100%;
+}
+
 .screen--review {
   height: 100vh;
   height: 100dvh;
@@ -1015,18 +1085,31 @@ html, body {
 
 .sound-check-card {
   width: 100%;
+  flex: 0 0 auto;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 8px 12px;
-  text-align: center;
+  padding: 6px 10px;
+}
+
+.sound-check-status-row {
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  gap: 10px;
+}
+
+.sound-check-status-copy {
+  min-width: 0;
+  flex: 1;
+  text-align: left;
 }
 
 .sound-indicator {
   --sound-level: 0;
-  width: 112px;
-  height: 112px;
-  margin: 4px auto 10px;
+  width: 60px;
+  height: 60px;
+  margin: 0;
   display: grid;
   place-items: center;
   position: relative;
@@ -1036,8 +1119,8 @@ html, body {
 .sound-indicator::before {
   content: '';
   position: absolute;
-  inset: 7px;
-  border: 3px solid var(--text-muted);
+  inset: 2px;
+  border: 2px solid var(--text-muted);
   border-radius: 50%;
   opacity: calc(0.25 + (var(--sound-level) * 0.65));
   transform: scale(calc(1 + (var(--sound-level) * 0.28)));
@@ -1052,8 +1135,8 @@ html, body {
 }
 
 .sound-microphone {
-  width: 72px;
-  height: 72px;
+  width: 48px;
+  height: 48px;
   fill: none;
   stroke: var(--text-muted);
   stroke-width: 1.55;
@@ -1064,7 +1147,7 @@ html, body {
 .sound-checkmark {
   display: none;
   color: var(--success);
-  font-size: 62px;
+  font-size: 42px;
   font-weight: 700;
   line-height: 1;
 }
@@ -1086,7 +1169,7 @@ html, body {
 }
 
 .sound-status {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -1101,14 +1184,25 @@ html, body {
 .sound-status-detail {
   margin-top: 4px;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
-/* Constrain camera preview on sound-check screen so the primary action stays visible
-   on a 667px viewport without scrolling. Other screens use the 62vh cap. */
-.screen--sound-check .preview-wrap {
-  max-height: 38vh;
+.sound-check-actions {
+  width: 100%;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.sound-check-actions .btn--record {
+  min-height: 52px;
+}
+
+.sound-check-actions .btn--link {
+  min-height: 0;
+  margin-top: 4px;
+  font-size: 13px;
 }
 
 .selfie-outline-guide {

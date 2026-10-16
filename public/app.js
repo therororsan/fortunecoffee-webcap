@@ -15,7 +15,8 @@
   const COUNTRY_OPTIONS = [
     'Brazil', 'Colombia', 'Ethiopia', 'Guatemala', 'Honduras',
     'India', 'Indonesia', 'Kenya', 'Mexico', 'Peru', 'Philippines',
-    'Rwanda', 'Tanzania', 'Uganda', 'Vietnam', 'Yemen', 'Other',
+    'Rwanda', 'Tanzania', 'Uganda', 'Vietnam', 'Yemen', 'Sri Lanka',
+    'China', 'Hong Kong', 'Other',
   ];
   const DIAL_CODES = {
     'Brazil': '+55',    'Colombia': '+57',  'Ethiopia': '+251',
@@ -23,6 +24,7 @@
     'Indonesia': '+62', 'Kenya': '+254',    'Mexico': '+52',
     'Peru': '+51',      'Philippines': '+63','Rwanda': '+250',   'Tanzania': '+255',
     'Uganda': '+256',   'Vietnam': '+84',   'Yemen': '+967',
+    'Sri Lanka': '+94', 'China': '+86',     'Hong Kong': '+852',
     'Other': '',
   };
   const ISO3_COUNTRY_NAMES = {
@@ -41,12 +43,52 @@
     return ISO3_COUNTRY_NAMES[code.toLowerCase()] || code;
   }
 
+  function countryOptionFromValue(value) {
+    if (!value) return '';
+    const raw = String(value).trim();
+    const fromCode = ISO3_COUNTRY_NAMES[raw.toLowerCase()];
+    if (fromCode && COUNTRY_OPTIONS.includes(fromCode)) return fromCode;
+    return COUNTRY_OPTIONS.find(country => country.toLowerCase() === raw.toLowerCase()) || '';
+  }
+
+  function suggestedCountryFromTimeZone() {
+    const suggestions = {
+      'Africa/Addis_Ababa': 'Ethiopia', 'Africa/Nairobi': 'Kenya',
+      'Africa/Dar_es_Salaam': 'Tanzania', 'Africa/Kampala': 'Uganda',
+      'Asia/Colombo': 'Sri Lanka', 'Asia/Kolkata': 'India',
+      'Asia/Ho_Chi_Minh': 'Vietnam', 'Asia/Manila': 'Philippines',
+      'America/Bogota': 'Colombia', 'America/Guatemala': 'Guatemala',
+      'America/Tegucigalpa': 'Honduras', 'Asia/Hong_Kong': 'Hong Kong',
+      'Asia/Shanghai': 'China',
+    };
+    try {
+      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (suggestions[timeZone]) return suggestions[timeZone];
+      return /^America\/(Araguaina|Bahia|Belem|Boa_Vista|Campo_Grande|Cuiaba|Eirunepe|Fortaleza|Maceio|Manaus|Noronha|Porto_Velho|Recife|Rio_Branco|Santarem|Sao_Paulo)$/.test(timeZone)
+        ? 'Brazil'
+        : '';
+    } catch {
+      return '';
+    }
+  }
+
   const FLAG_CODES = {
     'Brazil': 'br',    'Colombia': 'co',  'Ethiopia': 'et', 'Guatemala': 'gt',
     'Honduras': 'hn',  'India': 'in',     'Indonesia': 'id','Kenya': 'ke',
     'Mexico': 'mx',    'Peru': 'pe',      'Philippines': 'ph','Rwanda': 'rw',
     'Tanzania': 'tz',
     'Uganda': 'ug',    'Vietnam': 'vn',   'Yemen': 'ye',
+    'Sri Lanka': 'lk', 'China': 'cn',     'Hong Kong': 'hk',
+  };
+
+  const COUNTRY_NAME_EXAMPLES = {
+    'Ethiopia': 'Abebe Kebede', 'Kenya': 'Wanjiru Kamau',
+    'Tanzania': 'Neema Mushi', 'Uganda': 'Grace Nakato',
+    'Sri Lanka': 'Nimal Perera', 'India': 'Priya Sharma',
+    'Vietnam': 'Nguyễn Văn An', 'Philippines': 'Maria Santos',
+    'Colombia': 'Jorge Rodríguez', 'Guatemala': 'Ana López',
+    'Honduras': 'Carlos Mejía', 'Brazil': 'João Silva',
+    'China': 'Wang Fang', 'Hong Kong': 'Chan Tai Man',
   };
 
   // ── State ────────────────────────────────────────────────────────────────
@@ -226,7 +268,7 @@
       status.textContent = 'We can hear you';
       status.className = 'sound-status sound-status--good';
       statusDetail.textContent = 'Your microphone is picking up your voice.';
-      primary.textContent = 'Next';
+      primary.textContent = 'Next →';
       continueAnyway.style.display = 'none';
     } else if (soundCheckTimedOut) {
       indicator.classList.remove('sound-indicator--detected');
@@ -976,9 +1018,13 @@
       const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
       const isSelfieScreen = screen && screen.classList.contains('screen--selfie')
         && !screen.classList.contains('screen--camera-permission');
-      const maxHeight = isSelfieScreen && wrap.parentElement
+      const isSoundCheckScreen = screen && screen.classList.contains('screen--sound-check');
+      const fillsAvailableSlot = (isSelfieScreen || isSoundCheckScreen)
+        && wrap.parentElement
+        && wrap.parentElement.clientHeight > 0;
+      const maxHeight = fillsAvailableSlot
         ? wrap.parentElement.clientHeight
-        : (screen && screen.classList.contains('screen--sound-check') ? 0.38 : 0.62) * viewportHeight;
+        : 0.62 * viewportHeight;
       const availableWidth = wrap.parentElement ? wrap.parentElement.clientWidth : window.innerWidth;
       const viewportWidth = Math.min(availableWidth, maxHeight * viewportAspect);
       wrap.classList.toggle('preview-wrap--landscape-crop', isLandscape);
@@ -1094,43 +1140,53 @@
 
   // ── Registry Screen ────────────────────────────────────────────────────────
   function showRegistryForm() {
-    // Build custom dropdown options with flag images
-    const csOpts = COUNTRY_OPTIONS.map(name => {
-      const code = FLAG_CODES[name];
-      const flag = code
+    const flagHtml = country => {
+      const code = FLAG_CODES[country];
+      return code
         ? `<img src="https://flagcdn.com/24x18/${code}.png" style="vertical-align:middle;margin-right:6px;" alt="">`
         : '';
-      return `<li class="cs-opt" data-value="${name}">${flag}${name}</li>`;
+    };
+    const selectedCountry = countryOptionFromValue(farmerCountry);
+    const suggestedCountry = selectedCountry ? '' : suggestedCountryFromTimeZone();
+    const csOpts = COUNTRY_OPTIONS.map(name => {
+      return `<li class="cs-opt" data-value="${name}">${flagHtml(name)}${name}</li>`;
     }).join('');
+    const suggestedOption = suggestedCountry
+      ? `<li class="cs-opt cs-opt--suggested" data-value="${suggestedCountry}">Suggested: ${flagHtml(suggestedCountry)}${suggestedCountry}</li>`
+      : '';
 
     render(`
       <div class="screen screen--registry">
         <div class="card">
           <form class="registry-form" id="registryForm" novalidate>
             <div class="form-group">
-              <label for="nameInput">Name *</label>
-              <input type="text" id="nameInput" placeholder="Your name" required enterkeyhint="next">
-            </div>
-            <div class="form-group">
-              <label>Country/Region</label>
+              <label>Country/Region *</label>
               <div class="cs-wrap" id="csWrap">
-                <div class="cs-trigger" id="csTrigger">
-                  <span id="csDisplay" class="cs-placeholder">Select country…</span>
+                <div class="cs-trigger" id="csTrigger" role="button" tabindex="0" aria-expanded="false">
+                  <span id="csDisplay" class="cs-placeholder">📍 Choose country</span>
                   <span class="cs-arrow">▾</span>
                 </div>
                 <ul class="cs-list" id="csList">
-                  <li class="cs-opt cs-opt--empty" data-value="">Select country…</li>
+                  <li class="cs-opt cs-opt--empty" data-value="">📍 Choose country</li>
+                  ${suggestedOption}
                   ${csOpts}
                 </ul>
                 <input type="hidden" id="countrySelect">
               </div>
+              <p class="field-error" id="countryError" aria-live="polite"></p>
             </div>
             <div class="form-group">
-              <label for="phoneInput">Phone 📞</label>
+              <label for="nameInput">Name *</label>
+              <input type="text" id="nameInput" placeholder="Your name" required enterkeyhint="next" value="${escapeHtml(farmerName || '')}">
+              <p class="field-error" id="nameError" aria-live="polite"></p>
+            </div>
+            <div class="form-group">
+              <label for="phoneInput">Phone *</label>
               <div class="phone-input-wrap">
                 <span id="phonePrefix" class="phone-prefix"></span>
-                <input type="tel" id="phoneInput" placeholder="Your phone number" inputmode="tel" enterkeyhint="done">
+                <input type="tel" id="phoneInput" placeholder="📞 Phone number" inputmode="numeric" pattern="[0-9]*" maxlength="15" enterkeyhint="done">
               </div>
+              <p class="field-error" id="phoneError" aria-live="polite"></p>
             </div>
             <button class="btn registry-submit-button" id="registrySubmitBtn" type="submit">Continue →</button>
           </form>
@@ -1143,25 +1199,57 @@
     const csList    = document.getElementById('csList');
     const csHidden  = document.getElementById('countrySelect');
     const csDisplay = document.getElementById('csDisplay');
+    const csTrigger = document.getElementById('csTrigger');
+    const nameInput = document.getElementById('nameInput');
+    const phoneInput = document.getElementById('phoneInput');
+    const phoneWrap = phoneInput.closest('.phone-input-wrap');
 
-    document.getElementById('csTrigger').addEventListener('click', () => {
+    const clearFieldError = (element, errorId) => {
+      element.classList.remove('is-invalid');
+      const error = document.getElementById(errorId);
+      if (error) error.textContent = '';
+    };
+    const showFieldError = (element, errorId, message) => {
+      element.classList.add('is-invalid');
+      const error = document.getElementById(errorId);
+      if (error) error.textContent = message;
+    };
+    const updateNamePlaceholder = country => {
+      nameInput.placeholder = COUNTRY_NAME_EXAMPLES[country]
+        ? `e.g. ${COUNTRY_NAME_EXAMPLES[country]}`
+        : 'Your name';
+    };
+    const updatePhonePrefix = country => {
+      const prefix = DIAL_CODES[country] || '';
+      const phonePrefix = document.getElementById('phonePrefix');
+      phonePrefix.innerHTML = prefix ? `${flagHtml(country)}${prefix}` : '';
+      phonePrefix.style.display = prefix ? 'inline-flex' : 'none';
+    };
+    const setCountry = country => {
+      csHidden.value = country;
+      csWrap.classList.remove('cs-open');
+      csTrigger.setAttribute('aria-expanded', 'false');
+      if (country) {
+        csDisplay.innerHTML = `${flagHtml(country)}${country}`;
+        csDisplay.classList.remove('cs-placeholder');
+        clearFieldError(csTrigger, 'countryError');
+      } else {
+        csDisplay.textContent = '📍 Choose country';
+        csDisplay.classList.add('cs-placeholder');
+      }
+      updateNamePlaceholder(country);
+      updatePhonePrefix(country);
+    };
+
+    csTrigger.addEventListener('click', () => {
       csWrap.classList.toggle('cs-open');
+      csTrigger.setAttribute('aria-expanded', String(csWrap.classList.contains('cs-open')));
     });
 
     csList.addEventListener('click', e => {
       const opt = e.target.closest('.cs-opt');
       if (!opt) return;
-      const val = opt.dataset.value;
-      csHidden.value = val;
-      csWrap.classList.remove('cs-open');
-      if (val) {
-        csDisplay.innerHTML = opt.innerHTML;
-        csDisplay.classList.remove('cs-placeholder');
-      } else {
-        csDisplay.textContent = 'Select country…';
-        csDisplay.classList.add('cs-placeholder');
-      }
-      csHidden.dispatchEvent(new Event('change'));
+      setCountry(opt.dataset.value);
     });
 
     // Close on outside click
@@ -1169,36 +1257,66 @@
       if (csWrap && !csWrap.contains(e.target)) csWrap.classList.remove('cs-open');
     });
 
-    // Update dial-code prefix when country changes
-    document.getElementById('countrySelect').addEventListener('change', () => {
-      const country = document.getElementById('countrySelect').value;
-      const prefix  = DIAL_CODES[country] || '';
-      const el = document.getElementById('phonePrefix');
-      el.textContent    = prefix;
-      el.style.display  = prefix ? 'inline-flex' : 'none';
+    setCountry(selectedCountry);
+    const linkedDigits = String(farmerPhone || '').replace(/\D/g, '');
+    const linkedPrefix = (DIAL_CODES[selectedCountry] || '').replace(/\D/g, '');
+    phoneInput.value = linkedPrefix && linkedDigits.startsWith(linkedPrefix)
+      ? linkedDigits.slice(linkedPrefix.length, linkedPrefix.length + 15)
+      : linkedDigits.slice(0, 15);
+
+    nameInput.addEventListener('input', () => {
+      if (nameInput.value.trim().replace(/\s/g, '').length >= 2) {
+        clearFieldError(nameInput, 'nameError');
+      }
+    });
+    phoneInput.addEventListener('input', () => {
+      phoneInput.value = phoneInput.value.replace(/\D/g, '').slice(0, 15);
+      if (phoneInput.value.replace(/^0+/, '').length >= 6) {
+        clearFieldError(phoneWrap, 'phoneError');
+      }
+    });
+    phoneInput.addEventListener('paste', event => {
+      event.preventDefault();
+      const digits = (event.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+      phoneInput.setRangeText(digits, phoneInput.selectionStart, phoneInput.selectionEnd, 'end');
+      phoneInput.dispatchEvent(new Event('input', { bubbles: true }));
     });
 
     document.getElementById('registryForm').addEventListener('submit', event => {
       event.preventDefault();
-      const name     = document.getElementById('nameInput').value.trim();
-      const country  = document.getElementById('countrySelect').value;
-      const prefix   = document.getElementById('phonePrefix').textContent.trim();
-      const phoneRaw = document.getElementById('phoneInput').value.trim();
-      // Prepend dial code; if no number entered, store null
-      const phone    = phoneRaw ? (prefix + phoneRaw) : null;
+      const name = nameInput.value.trim();
+      const country = csHidden.value;
+      const phoneDigits = phoneInput.value.replace(/\D/g, '');
+      const phoneLocal = phoneDigits.replace(/^0+/, '');
+      let firstInvalid = null;
 
-      if (!name) {
-        alert('Name is required');
+      if (!country) {
+        showFieldError(csTrigger, 'countryError', 'Please choose your country');
+        firstInvalid = csTrigger;
+      }
+      if (name.replace(/\s/g, '').length < 2) {
+        showFieldError(nameInput, 'nameError', 'Please enter your name');
+        firstInvalid = firstInvalid || nameInput;
+      }
+      if (!phoneDigits) {
+        showFieldError(phoneWrap, 'phoneError', 'Please enter your phone number');
+        firstInvalid = firstInvalid || phoneInput;
+      } else if (phoneLocal.length < 6) {
+        showFieldError(phoneWrap, 'phoneError', 'Please enter your full phone number');
+        firstInvalid = firstInvalid || phoneInput;
+      }
+      if (firstInvalid) {
+        firstInvalid.focus();
+        firstInvalid.scrollIntoView({ block: 'center', behavior: 'smooth' });
         return;
       }
 
       farmerName    = name;
-      farmerCountry = country || null;
-      farmerPhone   = phone;
+      farmerCountry = country;
+      farmerPhone   = `${DIAL_CODES[country] || ''}${phoneLocal}`;
       proceedToConsent();
     });
 
-    const phoneInput = document.getElementById('phoneInput');
     const scrollContinueIntoView = () => {
       const submitButton = document.getElementById('registrySubmitBtn');
       if (submitButton) submitButton.scrollIntoView({ block: 'end', behavior: 'smooth' });
@@ -1742,17 +1860,25 @@
           <p class="question-label">Sound check</p>
           <p class="question-text">Please say hello.</p>
         </div>
-        ${renderCameraPreview()}
-        <div class="sound-check-card">
-          <div class="sound-indicator" id="soundIndicator" aria-hidden="true">
-            <svg class="sound-microphone" viewBox="0 0 24 24" focusable="false"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-5 8a5 5 0 0 0 10 0M12 16v4m-4 0h8" /></svg>
-            <span class="sound-checkmark">✓</span>
-          </div>
-          <p class="sound-status" id="soundStatus"></p>
-          <p class="sound-status-detail" id="soundStatusDetail"></p>
+        <div class="sound-check-preview-slot">
+          ${renderCameraPreview()}
         </div>
-        <button class="btn btn--record" id="soundCheckPrimaryBtn">Next →</button>
-        <button class="btn btn--link" id="continueAnywayBtn" style="display:none">Continue anyway</button>
+        <div class="sound-check-card">
+          <div class="sound-check-status-row">
+            <div class="sound-indicator" id="soundIndicator" aria-hidden="true">
+              <svg class="sound-microphone" viewBox="0 0 24 24" focusable="false"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-5 8a5 5 0 0 0 10 0M12 16v4m-4 0h8" /></svg>
+              <span class="sound-checkmark">✓</span>
+            </div>
+            <div class="sound-check-status-copy">
+              <p class="sound-status" id="soundStatus"></p>
+              <p class="sound-status-detail" id="soundStatusDetail"></p>
+            </div>
+          </div>
+        </div>
+        <div class="sound-check-actions">
+          <button class="btn btn--record" id="soundCheckPrimaryBtn">Next →</button>
+          <button class="btn btn--link" id="continueAnywayBtn" style="display:none">Continue anyway</button>
+        </div>
       </div>
     `);
 
