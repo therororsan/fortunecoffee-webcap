@@ -727,6 +727,9 @@
       if (playPromise && typeof playPromise.then === 'function') {
         playPromise
           .then(() => {
+            // Some mobile browsers resolve playback before they dispatch a
+            // paintable `playing` event, so mirror the real play promise too.
+            if (currentAudio === audio) setAudioToggleState('playing');
             if (typeof options.onPlayStart === 'function') {
               options.onPlayStart();
             }
@@ -736,8 +739,11 @@
             if (currentAudio === audio) setAudioToggleState('needs-tap');
             finish('play-error');
           });
-      } else if (typeof options.onPlayStart === 'function') {
-        options.onPlayStart();
+      } else {
+        if (currentAudio === audio) setAudioToggleState('playing');
+        if (typeof options.onPlayStart === 'function') {
+          options.onPlayStart();
+        }
         syncMuteToggleButtons();
       }
     });
