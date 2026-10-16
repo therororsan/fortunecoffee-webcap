@@ -534,6 +534,14 @@
     `;
   }
 
+  function muteToggleShowsLabel() {
+    return isMuted || !currentAudio || currentAudio.paused;
+  }
+
+  function renderMuteToggleContent() {
+    return `${renderMuteToggleIcon(isMuted)}${muteToggleShowsLabel() ? '<span class="mute-toggle-label">Tap for sound</span>' : ''}`;
+  }
+
   function renderMuteToggle() {
     return `
       <div style="width:100%; display:flex; justify-content:flex-end;">
@@ -543,7 +551,7 @@
           data-mute-toggle
           type="button"
           style="width:auto; min-width:56px; padding:10px 14px;"
-        >${renderMuteToggleIcon(isMuted)}</button>
+        >${renderMuteToggleContent()}</button>
       </div>
     `;
   }
@@ -551,11 +559,7 @@
   function renderAudioReplayButton(id, className = '') {
     return `
       <button class="audio-replay-icon${className ? ` ${className}` : ''}" id="${id}" type="button" aria-label="Replay audio">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M4 10v4h3l4 3V7l-4 3H4Z"></path>
-          <path d="M15 9.5a4 4 0 0 1 0 5"></path>
-          <path d="M18 7a7 7 0 0 1 0 10"></path>
-        </svg>
+        <span aria-hidden="true">↺</span>
       </button>
     `;
   }
@@ -569,18 +573,9 @@
     `;
   }
 
-  function renderCameraFlipIcon() {
-    return `
-      <svg class="button-icon button-icon--flip" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M5 8h3l1.5-2h5L16 8h3a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-3l-1.5 2h-5L8 17H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"></path>
-        <path d="M9 11a3.5 3.5 0 0 1 5.7-1.3M15 13a3.5 3.5 0 0 1-5.7 1.3M14.7 8.2v2.1h-2.1M9.3 15.8v-2.1h2.1"></path>
-      </svg>
-    `;
-  }
-
   function syncMuteToggleButton(button) {
     if (!button) return;
-    button.innerHTML = renderMuteToggleIcon(isMuted);
+    button.innerHTML = renderMuteToggleContent();
     button.setAttribute('aria-label', isMuted ? 'Unmute audio' : 'Mute audio');
     button.setAttribute('title', isMuted ? 'Unmute audio' : 'Mute audio');
   }
@@ -620,6 +615,7 @@
     if (typeof settle === 'function') {
       settle('stopped');
     }
+    syncMuteToggleButtons();
   }
 
   function setMuted(nextMuted) {
@@ -659,6 +655,7 @@
         }
         audio.onended = null;
         audio.onerror = null;
+        syncMuteToggleButtons();
         resolve(status);
       };
 
@@ -674,10 +671,12 @@
             if (typeof options.onPlayStart === 'function') {
               options.onPlayStart();
             }
+            syncMuteToggleButtons();
           })
           .catch(() => finish('play-error'));
       } else if (typeof options.onPlayStart === 'function') {
         options.onPlayStart();
+        syncMuteToggleButtons();
       }
     });
   }
@@ -1348,7 +1347,7 @@
         `
       : `
           <div class="selfie-camera-controls">
-            ${showFlipButton ? `<button class="selfie-flip-button" id="selfieFlipBtn" type="button" aria-label="Flip camera">${renderCameraFlipIcon()}</button>` : ''}
+            ${showFlipButton ? '<button class="selfie-flip-button" id="selfieFlipBtn" type="button" aria-label="Flip camera">↻</button>' : ''}
             <button class="btn selfie-take-button" id="takeSelfieBtn" type="button">${renderCameraIcon()}<span>Take photo</span></button>
           </div>
         `;
@@ -1357,7 +1356,6 @@
       <div class="screen screen--selfie">
         ${renderMuteToggle()}
         ${hasCapturedSelfie ? '' : '<h1 class="selfie-live-title">🤳 Take a selfie</h1>'}
-        ${hasCapturedSelfie ? '' : renderAudioReplayButton('selfieReplayBtn', 'audio-replay-icon--selfie')}
         <div class="selfie-preview-slot">
         ${hasCapturedSelfie
           ? `<div class="preview-wrap" id="selfiePreviewWrap">
@@ -1392,7 +1390,6 @@
         flipButton.addEventListener('click', switchCamera);
       }
       document.getElementById('takeSelfieBtn').addEventListener('click', startSelfieCountdown);
-      document.getElementById('selfieReplayBtn').addEventListener('click', () => selfieAudio.replay());
     }
 
     if (showGuide) {
