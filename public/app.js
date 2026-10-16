@@ -146,6 +146,31 @@
   let uploadInProgress = false;
   let previewViewportCleanup = null;
   let hasShownCameraPermissionNote = false;
+  let activeHistoryScreen = 'registration';
+  let appHistoryReady = false;
+
+  const HISTORY_BLOCKED_SCREENS = new Set([
+    'countdown', 'recording', 'recording-review', 'upload',
+  ]);
+
+  function setHistoryScreen(screen, { push = true } = {}) {
+    activeHistoryScreen = screen;
+    if (appHistoryReady && push) {
+      history.pushState({ screen }, '', window.location.href);
+    }
+  }
+
+  function restoreHistoryScreen(screen) {
+    activeHistoryScreen = screen;
+    if (appHistoryReady) {
+      history.replaceState({ screen }, '', window.location.href);
+    }
+  }
+
+  function clearConsentForRegistration() {
+    consentGiven = null;
+    consentTime = null;
+  }
 
   function escapeHtml(value) {
     return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -354,6 +379,10 @@
   // ── Startup ──────────────────────────────────────────────────────────────
   async function init() {
     console.log('[webcap] build marker: no-created-at-query-2026-05-28');
+
+    history.replaceState({ screen: 'registration' }, '', window.location.href);
+    activeHistoryScreen = 'registration';
+    appHistoryReady = true;
 
     const params = new URLSearchParams(window.location.search);
     // Support both ?id= and ?farmer_id= URL param names
@@ -991,6 +1020,95 @@
     mediaStream = null;
   }
 
+  function stopCameraResourcesForHistory() {
+    stopAudioMonitor();
+    if (audioSourceNode) {
+      try {
+        audioSourceNode.disconnect();
+      } catch {}
+    }
+    audioSourceNode = null;
+    analyserNode = null;
+    analyserData = null;
+    audioStreamForMonitor = null;
+    stopMediaStream();
+  }
+
+  function returnToRegistrationFromHistory() {
+    stopCurrentAudio();
+    stopCameraResourcesForHistory();
+    clearConsentForRegistration();
+    restoreHistoryScreen('registration');
+    showRegistryForm();
+  }
+
+  function returnToConsentFromHistory() {
+    stopCurrentAudio();
+    stopCameraResourcesForHistory();
+    resetSelfieCaptureState();
+    restoreHistoryScreen('consent');
+    showConsent({ attemptAutoplay: false, history: false });
+  }
+
+  async function returnToSelfieLiveFromHistory() {
+    stopAudioMonitor();
+    if (!mediaStream && !await initCamera()) return;
+    restoreHistoryScreen('selfie-live');
+    showSelfieCapture({ showGuide: true, attemptAutoplay: false, forceLive: true, history: false });
+  }
+
+  function returnToSelfieReviewFromHistory() {
+    stopCurrentAudio();
+    stopAudioMonitor();
+    if (!selfieBlob || !selfieObjectUrl) {
+      void returnToSelfieLiveFromHistory();
+      return;
+    }
+    restoreHistoryScreen('selfie-review');
+    showSelfieCapture({ history: false });
+  }
+
+  async function returnToSoundCheckFromHistory() {
+    stopCurrentAudio();
+    stopAudioMonitor();
+    if (!mediaStream && !await initCamera()) return;
+    restoreHistoryScreen('soundcheck');
+    await showSoundCheck({ history: false });
+  }
+
+  function handleHistoryPopState() {
+    const fromScreen = activeHistoryScreen;
+
+    if (fromScreen === 'registration' || fromScreen === 'success') {
+      return;
+    }
+    if (HISTORY_BLOCKED_SCREENS.has(fromScreen)) {
+      history.pushState({ screen: fromScreen }, '', window.location.href);
+      return;
+    }
+
+    switch (fromScreen) {
+      case 'prepermission':
+      case 'consent':
+        returnToRegistrationFromHistory();
+        break;
+      case 'selfie-live':
+        returnToConsentFromHistory();
+        break;
+      case 'selfie-review':
+        void returnToSelfieLiveFromHistory();
+        break;
+      case 'soundcheck':
+        returnToSelfieReviewFromHistory();
+        break;
+      case 'question':
+        void returnToSoundCheckFromHistory();
+        break;
+      default:
+        break;
+    }
+  }
+
   function isUsingFrontCamera() {
     return (deliveredCameraSettings && deliveredCameraSettings.facingMode || cameraFacingMode) === 'user';
   }
@@ -1140,6 +1258,7 @@
 
   // ── Registry Screen ────────────────────────────────────────────────────────
   function showRegistryForm() {
+    setHistoryScreen('registration', { push: false });
     const flagHtml = country => {
       const code = FLAG_CODES[country];
       return code
@@ -1330,6 +1449,7 @@
   }
 
   function showRegistryConfirm() {
+    setHistoryScreen('registration', { push: false });
     render(`
       <div class="screen screen--registry">
         <div class="card">
@@ -1364,7 +1484,8 @@
   }
 
   // ── Consent Screen ─────────────────────────────────────────────────────────
-  function showConsent({ attemptAutoplay = false } = {}) {
+  function showConsent({ attemptAutoplay = false, history = true } = {}) {
+    setHistoryScreen('consent', { push: history });
     consentGiven = null;
     consentTime = null;
     let consentAudioAutoplaySucceeded = false;
@@ -1403,11 +1524,15 @@
       }
       consentGiven = true;
       consentTime = new Date().toISOString();
+      const agreedAt = consentTime;
       try {
         await syncFarmerConsent(true);
       } catch (err) {
         console.error('[webcap] consent update error:', err);
         showError('Could not save your consent. Please try again.');
+        return;
+      }
+      if (activeHistoryScreen !== 'consent' || consentGiven !== true || consentTime !== agreedAt) {
         return;
       }
       await startSelfieStep();
@@ -1501,7 +1626,8 @@
     }
   }
 
-  function showCameraPermissionNote() {
+  function showCameraPermissionNote({ history = true } = {}) {
+    setHistoryScreen('prepermission', { push: history });
     hasShownCameraPermissionNote = true;
     const permissionCopy = {
       en: 'Please tap "Allow" on the next screen.',
@@ -1540,14 +1666,25 @@
   }
 
   async function startSelfieCamera() {
+    const originatingScreen = activeHistoryScreen;
     showLoading();
     const cameraReady = await initCamera();
     if (!cameraReady) return;
+    if (activeHistoryScreen !== originatingScreen) {
+      stopMediaStream();
+      return;
+    }
     showSelfieCapture({ showGuide: true, attemptAutoplay: true });
   }
 
-  function showSelfieCapture({ showGuide = false, attemptAutoplay = false } = {}) {
-    const hasCapturedSelfie = !!(selfieBlob && selfieObjectUrl);
+  function showSelfieCapture({
+    showGuide = false,
+    attemptAutoplay = false,
+    forceLive = false,
+    history = true,
+  } = {}) {
+    const hasCapturedSelfie = !forceLive && !!(selfieBlob && selfieObjectUrl);
+    setHistoryScreen(hasCapturedSelfie ? 'selfie-review' : 'selfie-live', { push: history });
     const showFlipButton = !hasCapturedSelfie && hasMultipleVideoInputs;
     const selfieAudio = hasCapturedSelfie
       ? null
@@ -1774,7 +1911,8 @@
   }
 
   // ── Question Screen (with audio) ───────────────────────────────────────────
-  function showQuestion({ attemptAutoplay = true } = {}) {
+  function showQuestion({ attemptAutoplay = true, history = true } = {}) {
+    setHistoryScreen('question', { push: history });
     stopAudioMonitor();
     const questionAudioKey = currentQuestionAudioKey();
     const questionText = currentQuestionText();
@@ -1846,7 +1984,8 @@
     }
   }
 
-  async function showSoundCheck() {
+  async function showSoundCheck({ history = true } = {}) {
+    setHistoryScreen('soundcheck', { push: history });
     const soundCheckPrompt = createAudioController({
       clips: [{ screen: 'soundcheck', lang: farmerLang }],
     });
@@ -1982,6 +2121,7 @@
   }
 
   async function showRecording() {
+    setHistoryScreen('countdown');
     const questionText = currentQuestionText();
     render(`
       <div class="screen screen--recording">
@@ -2001,6 +2141,7 @@
   }
 
   function showReview() {
+    setHistoryScreen('recording-review');
     const questionText = currentQuestionText();
     clearReviewObjectUrl();
     reviewObjectUrl = URL.createObjectURL(recordedBlob);
@@ -2035,6 +2176,7 @@
   }
 
   function showUploading() {
+    setHistoryScreen('upload');
     render(`
       <div class="screen screen--uploading">
         <p class="upload-label">Uploading your response…</p>
@@ -2058,6 +2200,7 @@
   }
 
   function showSuccess() {
+    setHistoryScreen('success', { push: false });
     // Release camera tracks once we're done
     stopMediaStream();
     stopAudioMonitor();
@@ -2169,6 +2312,7 @@
   }
 
   function beginMediaRecording() {
+    setHistoryScreen('recording');
     createMediaRecorder();
     mediaRecorder.start(1000); // collect a chunk every second
     void startAudioMonitor();
@@ -2341,5 +2485,6 @@
   }
 
   // ── Boot ─────────────────────────────────────────────────────────────────
+  window.addEventListener('popstate', handleHistoryPopState);
   document.addEventListener('DOMContentLoaded', init);
 })();
