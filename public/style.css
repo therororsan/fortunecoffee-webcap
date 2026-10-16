@@ -147,6 +147,10 @@ html, body {
 .btn--record {
   background: var(--accent);
   color: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .btn--stop {
@@ -173,9 +177,44 @@ html, body {
 }
 
 .btn--secondary {
-  background: var(--btn-secondary);
+  background: var(--surface);
+  border: 1px solid var(--border);
   color: var(--text);
   flex: 1;
+}
+
+.button-icon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.button-icon--flip {
+  width: 28px;
+  height: 28px;
+}
+
+.mute-toggle-icon {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.record-start-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #c0392b;
 }
 
 .hint {
@@ -303,6 +342,7 @@ html, body {
 }
 
 .success-card {
+  position: relative;
   width: 100%;
   max-width: 420px;
   background: var(--surface);
@@ -613,7 +653,7 @@ html, body {
 .registry-submit-button {
   min-height: 52px;
   margin-top: 12px;
-  background: var(--success);
+  background: var(--accent);
   color: var(--surface);
 }
 
@@ -658,10 +698,12 @@ html, body {
 }
 
 .consent-text {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 24px;
+  padding-right: 64px;
   text-align: left;
   max-width: 340px;
 }
@@ -685,8 +727,9 @@ html, body {
 }
 
 .btn--consent {
-  flex: 1;
-  padding: 16px;
+  height: 56px;
+  min-height: 52px;
+  padding: 12px 16px;
   font-size: 16px;
   border-radius: 10px;
 }
@@ -697,8 +740,9 @@ html, body {
 }
 
 .btn--consent.btn--no {
-  background: var(--danger);
-  color: var(--surface);
+  background: var(--surface);
+  border: 2px solid var(--danger);
+  color: var(--danger);
 }
 
 /* ── Consent decline screen ───────────────────────────────────────────── */
@@ -732,8 +776,9 @@ html, body {
 }
 
 .question-listen-card {
+  position: relative;
   width: 100%;
-  padding: 40px 28px;
+  padding: 40px 64px 40px 28px;
   border-radius: 24px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -763,6 +808,7 @@ html, body {
 }
 
 .screen--selfie:not(.screen--camera-permission) {
+  position: relative;
   height: 100vh;
   height: 100dvh;
   min-height: 0;
@@ -855,9 +901,8 @@ html, body {
   border-radius: 12px;
   background: var(--surface);
   color: var(--text);
-  font-family: var(--font);
-  font-size: 30px;
-  line-height: 1;
+  display: grid;
+  place-items: center;
 }
 
 .selfie-take-button,
@@ -874,6 +919,13 @@ html, body {
 .selfie-use-button {
   background: var(--accent);
   color: var(--surface);
+}
+
+.selfie-take-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .selfie-retake-button {
@@ -997,6 +1049,16 @@ html, body {
   text-align: center;
 }
 
+.camera-permission-instruction {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
 .camera-permission-icons {
   display: flex;
   align-items: center;
@@ -1023,15 +1085,35 @@ html, body {
 }
 
 .audio-replay-icon {
-  width: 48px;
-  min-height: 48px;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: grid;
+  width: 36px;
+  min-height: 36px;
+  height: 36px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
   color: var(--text);
-  font: inherit;
-  font-size: 28px;
-  line-height: 1;
+}
+
+.audio-replay-icon svg {
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.audio-replay-icon--selfie {
+  top: 16px;
+  right: 80px;
 }
 
 .recording-warning-banner {

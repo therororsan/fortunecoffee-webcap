@@ -525,6 +525,15 @@
     return `/audio/${folder}/${baseName}_${lang}.mp3`;
   }
 
+  function renderMuteToggleIcon(muted) {
+    return `
+      <svg class="mute-toggle-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M4 10v4h3l4 3V7l-4 3H4Z"></path>
+        ${muted ? '<path d="m5 5 14 14"></path>' : '<path d="M15 9.5a4 4 0 0 1 0 5M18 7a7 7 0 0 1 0 10"></path>'}
+      </svg>
+    `;
+  }
+
   function renderMuteToggle() {
     return `
       <div style="width:100%; display:flex; justify-content:flex-end;">
@@ -534,14 +543,44 @@
           data-mute-toggle
           type="button"
           style="width:auto; min-width:56px; padding:10px 14px;"
-        >${isMuted ? '🔇' : '🔊'}</button>
+        >${renderMuteToggleIcon(isMuted)}</button>
       </div>
+    `;
+  }
+
+  function renderAudioReplayButton(id, className = '') {
+    return `
+      <button class="audio-replay-icon${className ? ` ${className}` : ''}" id="${id}" type="button" aria-label="Replay audio">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 10v4h3l4 3V7l-4 3H4Z"></path>
+          <path d="M15 9.5a4 4 0 0 1 0 5"></path>
+          <path d="M18 7a7 7 0 0 1 0 10"></path>
+        </svg>
+      </button>
+    `;
+  }
+
+  function renderCameraIcon(className = '') {
+    return `
+      <svg class="button-icon${className ? ` ${className}` : ''}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M4 7h3l1.5-2h7L17 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"></path>
+        <circle cx="12" cy="13" r="3.5"></circle>
+      </svg>
+    `;
+  }
+
+  function renderCameraFlipIcon() {
+    return `
+      <svg class="button-icon button-icon--flip" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M5 8h3l1.5-2h5L16 8h3a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-3l-1.5 2h-5L8 17H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"></path>
+        <path d="M9 11a3.5 3.5 0 0 1 5.7-1.3M15 13a3.5 3.5 0 0 1-5.7 1.3M14.7 8.2v2.1h-2.1M9.3 15.8v-2.1h2.1"></path>
+      </svg>
     `;
   }
 
   function syncMuteToggleButton(button) {
     if (!button) return;
-    button.textContent = isMuted ? '🔇' : '🔊';
+    button.innerHTML = renderMuteToggleIcon(isMuted);
     button.setAttribute('aria-label', isMuted ? 'Unmute audio' : 'Mute audio');
     button.setAttribute('title', isMuted ? 'Unmute audio' : 'Mute audio');
   }
@@ -1095,7 +1134,7 @@
             <label for="phoneConfirm">Phone 📞</label>
             <input type="text" id="phoneConfirm" value="${farmerPhone || ''}">
           </div>
-          <button class="btn btn--primary" id="registryConfirmBtn">Confirm & Continue</button>
+          <button class="btn btn--primary" id="registryConfirmBtn">Confirm & Continue →</button>
         </div>
       </div>
     `);
@@ -1131,6 +1170,7 @@
         ${renderMuteToggle()}
         <div class="consent-body">
           <div class="consent-text">
+            ${renderAudioReplayButton('consentReplayBtn')}
             <p>This video will be used by Buna Baraka to share your story with customers who buy your coffee.</p>
             <p><strong>Do you agree?</strong></p>
           </div>
@@ -1142,6 +1182,7 @@
       </div>
     `);
     setupMuteToggle();
+    document.getElementById('consentReplayBtn').addEventListener('click', () => consentAudio.replay());
 
     document.getElementById('consentYesBtn').addEventListener('click', async () => {
       if (!isMuted && !currentAudio && !consentAudioAutoplaySucceeded) {
@@ -1268,13 +1309,15 @@
     render(`
       <div class="screen screen--selfie screen--camera-permission">
         ${renderMuteToggle()}
-        <div class="camera-permission-icons" aria-hidden="true">
-          <svg viewBox="0 0 24 24" focusable="false"><path d="M4 7h3l1.5-2h7L17 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm8 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" /></svg>
-          <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-5 8a5 5 0 0 0 10 0M12 16v4m-4 0h8" /></svg>
+        <div class="camera-permission-instruction">
+          ${renderAudioReplayButton('permissionReplayBtn')}
+          <div class="camera-permission-icons" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false"><path d="M4 7h3l1.5-2h7L17 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm8 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" /></svg>
+            <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-5 8a5 5 0 0 0 10 0M12 16v4m-4 0h8" /></svg>
+          </div>
+          <p class="camera-permission-copy">${escapeHtml(permissionCopy[farmerLang] || permissionCopy.en)}</p>
         </div>
-        <p class="camera-permission-copy">${escapeHtml(permissionCopy[farmerLang] || permissionCopy.en)}</p>
-        <button class="audio-replay-icon" id="permissionReplayBtn" type="button" aria-label="Replay audio">↻</button>
-        <button class="btn btn--record" id="cameraPermissionContinueBtn">Continue</button>
+        <button class="btn btn--record" id="cameraPermissionContinueBtn">Continue →</button>
       </div>
     `);
     setupMuteToggle();
@@ -1299,14 +1342,14 @@
     const actionHtml = hasCapturedSelfie
       ? `
           <div class="selfie-actions">
-            <button class="btn selfie-retake-button" id="retakeSelfieBtn">Retake</button>
+            <button class="btn selfie-retake-button" id="retakeSelfieBtn">↺ Retake</button>
             <button class="btn selfie-use-button" id="useSelfieBtn">✓ Use this photo</button>
           </div>
         `
       : `
           <div class="selfie-camera-controls">
-            ${showFlipButton ? '<button class="selfie-flip-button" id="selfieFlipBtn" type="button" aria-label="Flip camera">↻</button>' : ''}
-            <button class="btn selfie-take-button" id="takeSelfieBtn" type="button">Take photo</button>
+            ${showFlipButton ? `<button class="selfie-flip-button" id="selfieFlipBtn" type="button" aria-label="Flip camera">${renderCameraFlipIcon()}</button>` : ''}
+            <button class="btn selfie-take-button" id="takeSelfieBtn" type="button">${renderCameraIcon()}<span>Take photo</span></button>
           </div>
         `;
 
@@ -1314,6 +1357,7 @@
       <div class="screen screen--selfie">
         ${renderMuteToggle()}
         ${hasCapturedSelfie ? '' : '<h1 class="selfie-live-title">🤳 Take a selfie</h1>'}
+        ${hasCapturedSelfie ? '' : renderAudioReplayButton('selfieReplayBtn', 'audio-replay-icon--selfie')}
         <div class="selfie-preview-slot">
         ${hasCapturedSelfie
           ? `<div class="preview-wrap" id="selfiePreviewWrap">
@@ -1348,6 +1392,7 @@
         flipButton.addEventListener('click', switchCamera);
       }
       document.getElementById('takeSelfieBtn').addEventListener('click', startSelfieCountdown);
+      document.getElementById('selfieReplayBtn').addEventListener('click', () => selfieAudio.replay());
     }
 
     if (showGuide) {
@@ -1531,10 +1576,10 @@
       <div class="screen screen--question">
         ${renderMuteToggle()}
         <div class="question-listen-card">
+          ${renderAudioReplayButton('playBtn')}
           <p class="question-listen-text">${escapeHtml(questionText || '')}</p>
         </div>
-        <button class="btn btn--small" id="playBtn" type="button">Replay audio</button>
-        <button class="btn btn--record" id="readyToRecordBtn">Start recording</button>
+        <button class="btn btn--record" id="readyToRecordBtn"><span class="record-start-dot" aria-hidden="true"></span>Start recording</button>
         ${updateInfoLink}
       </div>
     `);
@@ -1607,7 +1652,7 @@
           <p class="sound-status" id="soundStatus"></p>
           <p class="sound-status-detail" id="soundStatusDetail"></p>
         </div>
-        <button class="btn btn--record" id="soundCheckPrimaryBtn">Next</button>
+        <button class="btn btn--record" id="soundCheckPrimaryBtn">Next →</button>
         <button class="btn btn--link" id="continueAnywayBtn" style="display:none">Continue anyway</button>
       </div>
     `);
@@ -1713,8 +1758,8 @@
           </div>
         </div>
         <div class="review-actions">
-          <button class="btn btn--secondary" id="rerecordBtn">Re-record</button>
-          <button class="btn btn--upload" id="uploadBtn">Upload</button>
+          <button class="btn btn--secondary" id="rerecordBtn">↺ Re-record</button>
+          <button class="btn btn--upload" id="uploadBtn">Upload →</button>
         </div>
       </div>
     `);
@@ -1768,6 +1813,7 @@
       <div class="screen screen--success">
         ${renderMuteToggle()}
         <div class="success-card success-animate" id="successCard">
+          ${renderAudioReplayButton('successReplayBtn')}
           <div class="success-icon" aria-hidden="true">
             <svg viewBox="0 0 80 80" role="img" focusable="false">
               <circle cx="40" cy="40" r="36"></circle>
@@ -1782,6 +1828,7 @@
       </div>
     `);
     setupMuteToggle();
+    document.getElementById('successReplayBtn').addEventListener('click', () => successAudio.replay());
 
     requestAnimationFrame(() => {
       const card = document.getElementById('successCard');
