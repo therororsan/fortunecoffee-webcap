@@ -314,12 +314,28 @@ html, body {
   background: rgba(49, 51, 35, 0.58);
 }
 
+.recording-progress::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: 33.333%;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px rgba(49, 51, 35, 0.3);
+}
+
 .recording-progress__bar {
   height: 100%;
   width: 100%;
   background: var(--accent);
   transition: width 1s linear;
   animation: recording-progress-breathe 1.6s ease-in-out infinite;
+}
+
+.recording-progress__bar--good-length {
+  background: var(--success);
 }
 
 @keyframes recording-progress-breathe {

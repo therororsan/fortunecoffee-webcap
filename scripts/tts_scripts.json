@@ -56,17 +56,17 @@
     "fil": "Handa na po ba kayong mag-selfie? Ngumiti po kayo at siguraduhing kita namin kayo!"
   },
   "question_intro": {
-    "en": "You ready? So here's my question to you —",
-    "sw": "Uko tayari? Hii hapa swali langu kwako —",
-    "am": "ዝግጁ ነዎት? ጥያቄዬ ይህ ነው —",
-    "si": "සූදානම්ද? ඉතින් මගේ ප්‍රශ්නය මෙන්න —",
-    "ta": "தயாரா? இதோ என் கேள்வி உங்களுக்கு —",
-    "vi": "Sẵn sàng chưa? Đây là câu hỏi của tôi dành cho bạn —",
-    "hi": "तैयार हैं? तो यह रहा मेरा सवाल आपसे —",
-    "es": "¿Listo? Aquí va mi pregunta para ti —",
-    "fr": "Vous êtes prêt? Voici ma question pour vous —",
-    "pt": "Pronto? Então aqui está minha pergunta para você —",
-    "fil": "Handa na po ba kayo? Ito po ang tanong ko sa inyo."
+    "en": "Are you ready? <break time=\"0.6s\" /> In your own words, share as much as you can, and take your time. <break time=\"0.6s\" /> Here is my question to you.",
+    "sw": "Uko tayari? <break time=\"0.6s\" /> Kwa maneno yako mwenyewe, eleza kadiri uwezavyo, na usiwe na haraka. <break time=\"0.6s\" /> Hili ndilo swali langu kwako.",
+    "am": "ዝግጁ ነዎት? <break time=\"0.6s\" /> በራስዎ ቃላት፣ የቻሉትን ያህል ያካፍሉ፣ ሳይቸኩሉ ይናገሩ። <break time=\"0.6s\" /> ጥያቄዬ ይህ ነው።",
+    "si": "ඔබ සූදානම්ද? <break time=\"0.6s\" /> ඔබේම වචනවලින්, හැකි තරම් විස්තර කියන්න, ඉක්මන් නොවී කතා කරන්න. <break time=\"0.6s\" /> මෙන්න මගේ ප්‍රශ්නය.",
+    "ta": "நீங்கள் தயாரா? <break time=\"0.6s\" /> உங்கள் சொந்த வார்த்தைகளில், முடிந்தவரை சொல்லுங்கள், அவசரப்படாமல் பேசுங்கள். <break time=\"0.6s\" /> இதோ என் கேள்வி.",
+    "vi": "Quý vị đã sẵn sàng chưa? <break time=\"0.6s\" /> Bằng chính lời của quý vị, xin hãy chia sẻ càng nhiều càng tốt và cứ từ tốn trả lời. <break time=\"0.6s\" /> Đây là câu hỏi của tôi.",
+    "hi": "क्या आप तैयार हैं? <break time=\"0.6s\" /> अपने शब्दों में, जितना हो सके उतना बताइए, और आराम से बोलिए। <break time=\"0.6s\" /> मेरा सवाल यह है।",
+    "es": "¿Todo listo? <break time=\"0.6s\" /> Con sus propias palabras, comparta todo lo que pueda y hable sin prisa. <break time=\"0.6s\" /> Esta es mi pregunta para usted.",
+    "fr": "Tout est prêt ? <break time=\"0.6s\" /> Avec vos propres mots, dites-nous tout ce que vous pouvez, et parlez sans vous presser. <break time=\"0.6s\" /> Voici ma question.",
+    "pt": "Tudo pronto? <break time=\"0.6s\" /> Com suas próprias palavras, conte o máximo que puder e não tenha pressa. <break time=\"0.6s\" /> Esta é a minha pergunta.",
+    "fil": "Handa na po ba kayo? <break time=\"0.6s\" /> Sa sarili ninyong mga salita, magbahagi po kayo hangga't kaya ninyo, at huwag po kayong magmadali. <break time=\"0.6s\" /> Ito po ang tanong ko sa inyo."
   },
   "success": {
     "en": "Great job! Thanks for your submission — we are all set!",

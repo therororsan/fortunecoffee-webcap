@@ -2318,14 +2318,23 @@
     void startAudioMonitor();
     const progressTrack = document.getElementById('recordingProgressTrack');
     if (progressTrack) progressTrack.hidden = false;
+    const progress = document.getElementById('recordingProgress');
+    if (progress) {
+      progress.style.width = '0%';
+      progress.classList.remove('recording-progress__bar--good-length');
+    }
     const stopButton = document.getElementById('stopBtn');
     if (stopButton) stopButton.hidden = false;
 
     countdownTimer = setInterval(() => {
       elapsedSeconds++;
       const remaining = MAX_DURATION_SEC - elapsedSeconds;
-      const progress = document.getElementById('recordingProgress');
-      if (progress) progress.style.width = `${Math.max(0, (remaining / MAX_DURATION_SEC) * 100)}%`;
+      const activeProgress = document.getElementById('recordingProgress');
+      if (activeProgress) {
+        const elapsedPercent = Math.min(100, (elapsedSeconds / MAX_DURATION_SEC) * 100);
+        activeProgress.style.width = `${elapsedPercent}%`;
+        activeProgress.classList.toggle('recording-progress__bar--good-length', elapsedSeconds >= 30);
+      }
       if (remaining <= 0) stopRecording();
     }, 1000);
   }
