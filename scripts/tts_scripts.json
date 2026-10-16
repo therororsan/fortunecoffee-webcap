@@ -16,6 +16,19 @@
     "pt": "Olá. <break time=\"0.6s\" /> Gostaríamos de gravar um vídeo curto do senhor ou da senhora. <break time=\"0.6s\" /> Qualquer pessoa que tiver o link poderá assistir pela internet. <break time=\"0.6s\" /> Também vamos usar um computador para criar um desenho seu para os nossos cartões. <break time=\"0.6s\" /> Se concordar, por favor, aperte o botão verde.",
     "fil": "Kumusta po. <break time=\"0.6s\" /> Nais po naming kumuha ng maikling video ninyo. <break time=\"0.6s\" /> Sinumang may link ay makakapanood nito online. <break time=\"0.6s\" /> Gagamit din po kami ng computer para gumawa ng guhit ninyo para sa aming mga card. <break time=\"0.6s\" /> Kung pumapayag po kayo, pakipindot ang berdeng button."
   },
+  "permission": {
+    "en": "Please tap Allow on the next screen.",
+    "es": "Por favor, toque Permitir en la siguiente pantalla.",
+    "fr": "Veuillez appuyer sur Autoriser sur l'écran suivant.",
+    "pt": "Por favor, toque em Permitir na próxima tela.",
+    "sw": "Tafadhali bonyeza Ruhusu kwenye skrini inayofuata.",
+    "vi": "Xin quý vị bấm Cho phép ở màn hình tiếp theo.",
+    "hi": "कृपया अगली स्क्रीन पर अनुमति दें दबाएँ।",
+    "ta": "தயவுசெய்து அடுத்த திரையில் அனுமதி என்பதை அழுத்துங்கள்.",
+    "si": "කරුණාකර ඊළඟ තිරයේ ඉඩ දෙන්න ඔබන්න.",
+    "am": "እባክዎ በሚቀጥለው ገጽ ላይ ፍቀድ የሚለውን ይጫኑ።",
+    "fil": "Pakipindot po ang Payagan sa susunod na screen."
+  },
   "selfie": {
     "en": "Ready to take a selfie? Smile and make sure we see you!",
     "sw": "Uko tayari kupiga selfie? Tabasamu na uhakikishe tunakuona!",

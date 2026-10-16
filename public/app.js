@@ -874,28 +874,34 @@
     };
   }
 
-  function renderHeadAndShouldersGuide() {
+  function renderFramingMask(type = 'bust') {
+    const isHeadOnly = type === 'head';
+    const maskId = isHeadOnly ? 'selfieHeadAperture' : 'bustAperture';
+    const aperture = isHeadOnly
+      ? '<ellipse cx="50" cy="37" rx="27.5" ry="25" fill="black" />'
+      : '<path fill="black" d="M50 9C37 9 31 18 31 30c0 9 4 15 10 18v10c-10 3-19 7-24 12-4 4-5 11-5 19h76c0-8-1-15-5-19-5-5-14-9-24-12V48c6-3 10-9 10-18C69 18 63 9 50 9Z" />';
     return `
       <svg class="framing-guide" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
         <defs>
-          <mask id="bustAperture">
+          <mask id="${maskId}" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
             <rect width="100" height="100" fill="white" />
-            <path fill="black" d="M50 9C37 9 31 18 31 30c0 9 4 15 10 18v10c-10 3-19 7-24 12-4 4-5 11-5 19h76c0-8-1-15-5-19-5-5-14-9-24-12V48c6-3 10-9 10-18C69 18 63 9 50 9Z" />
+            ${aperture}
           </mask>
         </defs>
-        <rect class="framing-guide__mask" width="100" height="100" mask="url(#bustAperture)" />
+        <rect class="framing-guide__mask" x="0" y="0" width="100" height="100" mask="url(#${maskId})" />
       </svg>
     `;
   }
 
-  function renderCameraPreview({ id = '', mirrored = isUsingFrontCamera(), recording = false } = {}) {
+  function renderCameraPreview({ id = '', mirrored = isUsingFrontCamera(), recording = false, guide = 'bust' } = {}) {
     return `
       <div class="preview-wrap preview-wrap--camera${mirrored ? ' preview-wrap--mirrored' : ''}${recording ? ' preview-wrap--recording' : ''}"${id ? ` id="${id}"` : ''}>
-        ${recording ? '<div class="recording-progress" aria-hidden="true"><div class="recording-progress__bar" id="recordingProgress"></div></div>' : ''}
+        ${recording ? '<div class="recording-progress" id="recordingProgressTrack" aria-hidden="true" hidden><div class="recording-progress__bar" id="recordingProgress"></div></div>' : ''}
         <div class="camera-preview-content">
           <video id="preview" autoplay muted playsinline></video>
-          ${renderHeadAndShouldersGuide()}
+          ${renderFramingMask(guide)}
         </div>
+        ${recording ? '<div class="recording-countdown" id="recordingCountdown" aria-live="assertive"></div>' : ''}
       </div>
     `;
   }
@@ -1237,17 +1243,38 @@
 
   function showCameraPermissionNote() {
     hasShownCameraPermissionNote = true;
+    const permissionCopy = {
+      en: 'Please tap "Allow" on the next screen.',
+      es: 'Por favor, toque "Permitir" en la siguiente pantalla.',
+      fr: 'Veuillez appuyer sur « Autoriser » sur l\'écran suivant.',
+      pt: 'Por favor, toque em "Permitir" na próxima tela.',
+      sw: 'Tafadhali bonyeza "Ruhusu" kwenye skrini inayofuata.',
+      vi: 'Xin quý vị bấm "Cho phép" ở màn hình tiếp theo.',
+      hi: 'कृपया अगली स्क्रीन पर "अनुमति दें" दबाएँ।',
+      ta: 'தயவுசெய்து அடுத்த திரையில் "அனுமதி" என்பதை அழுத்துங்கள்.',
+      si: 'කරුණාකර ඊළඟ තිරයේ "ඉඩ දෙන්න" ඔබන්න.',
+      am: 'እባክዎ በሚቀጥለው ገጽ ላይ "ፍቀድ" የሚለውን ይጫኑ።',
+      fil: 'Pakipindot po ang "Payagan" sa susunod na screen.',
+    };
+    const permissionAudio = createAudioController({
+      clips: [{ screen: 'permission', lang: farmerLang }],
+    });
     render(`
       <div class="screen screen--selfie screen--camera-permission">
+        ${renderMuteToggle()}
         <div class="camera-permission-icons" aria-hidden="true">
           <svg viewBox="0 0 24 24" focusable="false"><path d="M4 7h3l1.5-2h7L17 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Zm8 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z" /></svg>
           <svg viewBox="0 0 24 24" focusable="false"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Zm-5 8a5 5 0 0 0 10 0M12 16v4m-4 0h8" /></svg>
         </div>
-        <p class="camera-permission-copy">Your phone will ask to use the camera and microphone. Please tap Allow.</p>
+        <p class="camera-permission-copy">${escapeHtml(permissionCopy[farmerLang] || permissionCopy.en)}</p>
+        <button class="audio-replay-icon" id="permissionReplayBtn" type="button" aria-label="Replay audio">↻</button>
         <button class="btn btn--record" id="cameraPermissionContinueBtn">Continue</button>
       </div>
     `);
+    setupMuteToggle();
+    document.getElementById('permissionReplayBtn').addEventListener('click', () => permissionAudio.replay());
     document.getElementById('cameraPermissionContinueBtn').addEventListener('click', startSelfieCamera);
+    permissionAudio.play();
   }
 
   async function startSelfieCamera() {
@@ -1288,7 +1315,7 @@
           ? `<div class="preview-wrap" id="selfiePreviewWrap">
               <img id="selfiePreviewImage" src="${selfieObjectUrl}" alt="Selfie preview">
             </div>`
-          : renderCameraPreview({ id: 'selfiePreviewWrap' })}
+          : renderCameraPreview({ id: 'selfiePreviewWrap', guide: 'head' })}
         ${actionHtml}
       </div>
     `);
@@ -1654,8 +1681,8 @@
           <span class="rec-label">Recording</span>
         </div>
         <p class="recording-question-band">${escapeHtml(questionText || '')}</p>
-        ${renderCameraPreview({ id: 'recordingPreviewWrap', recording: true })}
-        <button class="btn btn--stop" id="stopBtn">■ Stop</button>
+        ${renderCameraPreview({ id: 'recordingPreviewWrap', recording: true, guide: 'bust' })}
+        <button class="btn btn--stop" id="stopBtn" hidden>■ Stop</button>
       </div>
     `);
     const preview = document.getElementById('preview');
@@ -1791,14 +1818,7 @@
     showError(msg);
   }
 
-  async function startRecording() {
-    recordedChunks = [];
-    recordedBlob = null;
-    recordingStopHandled = false;
-    recordingStopRequested = false;
-    clearRecorderStopSafetyTimer();
-    elapsedSeconds = 0;
-
+  function createMediaRecorder() {
     try {
       mediaRecorder = new MediaRecorder(mediaStream, {
         mimeType,
@@ -1822,25 +1842,56 @@
         failRecording('Recording stopped unexpectedly. Please try again.');
       }
     };
+  }
 
-    await showRecording();
-    await startAudioMonitor();
+  function waitFor(milliseconds) {
+    return new Promise(resolve => window.setTimeout(resolve, milliseconds));
+  }
+
+  async function runRecordingCountdown() {
+    const countdown = document.getElementById('recordingCountdown');
+    for (const number of [3, 2, 1]) {
+      if (countdown) countdown.textContent = number;
+      await waitFor(1000);
+    }
+    const guide = document.querySelector('.screen--recording .framing-guide');
+    if (guide) {
+      guide.classList.add('framing-guide--removing');
+      await waitFor(300);
+      guide.remove();
+    }
+    if (countdown) countdown.remove();
+  }
+
+  function beginMediaRecording() {
+    createMediaRecorder();
     mediaRecorder.start(1000); // collect a chunk every second
-    window.setTimeout(() => {
-      const guide = document.querySelector('.screen--recording .framing-guide');
-      if (guide) guide.classList.add('framing-guide--faded');
-    }, 4000);
+    void startAudioMonitor();
+    const progressTrack = document.getElementById('recordingProgressTrack');
+    if (progressTrack) progressTrack.hidden = false;
+    const stopButton = document.getElementById('stopBtn');
+    if (stopButton) stopButton.hidden = false;
 
     countdownTimer = setInterval(() => {
       elapsedSeconds++;
       const remaining = MAX_DURATION_SEC - elapsedSeconds;
       const progress = document.getElementById('recordingProgress');
       if (progress) progress.style.width = `${Math.max(0, (remaining / MAX_DURATION_SEC) * 100)}%`;
-      if (remaining <= 0) {
-        createRecordedBlob();
-        stopRecording();
-      }
+      if (remaining <= 0) stopRecording();
     }, 1000);
+  }
+
+  async function startRecording() {
+    recordedChunks = [];
+    recordedBlob = null;
+    recordingStopHandled = false;
+    recordingStopRequested = false;
+    clearRecorderStopSafetyTimer();
+    elapsedSeconds = 0;
+
+    await showRecording();
+    await runRecordingCountdown();
+    beginMediaRecording();
   }
 
   function stopRecording({ userInitiated = false } = {}) {

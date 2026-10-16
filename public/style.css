@@ -856,7 +856,7 @@ html, body {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  transition: opacity 0.5s ease;
+  transition: opacity 300ms ease;
 }
 
 .framing-guide__mask {
@@ -864,8 +864,8 @@ html, body {
   opacity: 0.45;
 }
 
-.framing-guide--faded {
-  opacity: 0.2;
+.framing-guide--removing {
+  opacity: 0;
 }
 
 .selfie-countdown {
@@ -876,6 +876,20 @@ html, body {
   place-items: center;
   color: #fff;
   font-size: clamp(72px, 28vw, 128px);
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+  pointer-events: none;
+}
+
+.recording-countdown {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: clamp(88px, 34vw, 144px);
   font-weight: 700;
   line-height: 1;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
@@ -910,6 +924,18 @@ html, body {
   font-family: var(--font-heading);
   font-size: 22px;
   line-height: 1.35;
+}
+
+.audio-replay-icon {
+  width: 48px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 28px;
+  line-height: 1;
 }
 
 .recording-warning-banner {
