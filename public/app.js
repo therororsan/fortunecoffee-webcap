@@ -95,6 +95,8 @@
   let soundCheckHeard = false;
   let soundCheckTimedOut = false;
   let soundCheckTimer = null;
+  let soundCheckListening = false;
+  let soundCheckListeningTimer = null;
   let faceDetector    = null;
   let isFaceDetectionSupported = false;
   let hasMultipleVideoInputs = false;
@@ -161,7 +163,17 @@
   function renderAudioMonitorFrame() {
     currentMicLevel = sampleMicLevel();
 
-    if (document.getElementById('soundStatus') && currentMicLevel >= SOUND_LEVEL_THRESHOLD) {
+    const indicator = document.getElementById('soundIndicator');
+    if (indicator) {
+      const level = Math.min(1, currentMicLevel / 0.08);
+      indicator.style.setProperty('--sound-level', level.toFixed(3));
+    }
+
+    if (
+      soundCheckListening
+      && document.getElementById('soundStatus')
+      && currentMicLevel >= SOUND_LEVEL_THRESHOLD
+    ) {
       soundCheckHeard = true;
       clearSoundCheckTimer();
     }
@@ -183,12 +195,21 @@
       window.cancelAnimationFrame(audioMonitorFrame);
       audioMonitorFrame = null;
     }
+    soundCheckListening = false;
+    clearSoundCheckListeningTimer();
   }
 
   function clearSoundCheckTimer() {
     if (soundCheckTimer) {
       window.clearTimeout(soundCheckTimer);
       soundCheckTimer = null;
+    }
+  }
+
+  function clearSoundCheckListeningTimer() {
+    if (soundCheckListeningTimer) {
+      window.clearTimeout(soundCheckListeningTimer);
+      soundCheckListeningTimer = null;
     }
   }
 
@@ -226,6 +247,8 @@
 
   function resetSoundCheckWindow() {
     clearSoundCheckTimer();
+    clearSoundCheckListeningTimer();
+    soundCheckListening = true;
     soundCheckHeard = false;
     soundCheckTimedOut = false;
     updateSoundCheckUi();
@@ -541,7 +564,7 @@
   }
 
   function muteToggleShowsLabel() {
-    return isMuted || audioToggleState === 'needs-tap';
+    return audioToggleState !== 'playing';
   }
 
   function renderMuteToggleContent() {
@@ -550,7 +573,7 @@
 
   function renderMuteToggle() {
     return `
-      <div style="width:100%; display:flex; justify-content:flex-end;">
+      <div class="mute-toggle-wrap" style="width:100%; display:flex; justify-content:flex-end;">
         <button
           class="btn btn--small"
           id="muteToggleBtn"
@@ -582,8 +605,9 @@
   function syncMuteToggleButton(button) {
     if (!button) return;
     button.innerHTML = renderMuteToggleContent();
-    button.setAttribute('aria-label', isMuted ? 'Unmute audio' : 'Mute audio');
-    button.setAttribute('title', isMuted ? 'Unmute audio' : 'Mute audio');
+    const action = audioToggleState === 'playing' ? 'Mute audio' : 'Play audio';
+    button.setAttribute('aria-label', action);
+    button.setAttribute('title', action);
   }
 
   function syncMuteToggleButtons() {
@@ -806,17 +830,18 @@
         if (completeOnStop && typeof onComplete === 'function') {
           onComplete();
         }
-        return;
+        return 'muted';
       }
 
       let playStartHandled = false;
+      let finalResult = 'ended';
 
       for (const clip of sequence) {
         if (isMuted) {
           if (completeOnStop && typeof onComplete === 'function') {
             onComplete();
           }
-          return;
+          return 'muted';
         }
 
         if (clip.pauseMs) {
@@ -825,7 +850,7 @@
             if (completeOnStop && typeof onComplete === 'function') {
               onComplete();
             }
-            return;
+            return 'stopped';
           }
           continue;
         }
@@ -846,13 +871,15 @@
           if (completeOnStop && typeof onComplete === 'function') {
             onComplete();
           }
-          return;
+          return result;
         }
+        finalResult = result;
       }
 
       if (!isMuted && typeof onComplete === 'function') {
         onComplete();
       }
+      return finalResult;
     };
 
     return {
@@ -1702,11 +1729,18 @@
   }
 
   async function showSoundCheck() {
+    const soundCheckPrompt = createAudioController({
+      clips: [{ screen: 'soundcheck', lang: farmerLang }],
+    });
+    let promptRun = 0;
+
     render(`
       <div class="screen screen--sound-check">
+        ${renderMuteToggle()}
         <div class="question-card">
+          ${renderAudioReplayButton('soundCheckReplayBtn')}
           <p class="question-label">Sound check</p>
-          <p class="question-text">Say a few words so we can check your microphone.</p>
+          <p class="question-text">Please say hello.</p>
         </div>
         ${renderCameraPreview()}
         <div class="sound-check-card">
@@ -1722,6 +1756,39 @@
       </div>
     `);
 
+    const startListeningAfterPrompt = async () => {
+      const run = ++promptRun;
+      soundCheckListening = false;
+      clearSoundCheckTimer();
+      clearSoundCheckListeningTimer();
+      soundCheckHeard = false;
+      soundCheckTimedOut = false;
+      updateSoundCheckUi();
+
+      const result = await soundCheckPrompt.play();
+      if (run !== promptRun || !document.getElementById('soundCheckPrimaryBtn')) return;
+
+      const beginListening = () => {
+        if (run === promptRun && document.getElementById('soundCheckPrimaryBtn')) {
+          resetSoundCheckWindow();
+        }
+      };
+
+      // The speaker can feed back into the mic, so only begin sampling just
+      // after a completed prompt. Failed, muted, and blocked clips listen now.
+      if (result === 'ended') {
+        soundCheckListeningTimer = window.setTimeout(beginListening, 300);
+      } else {
+        beginListening();
+      }
+    };
+    const soundCheckAudio = {
+      play: startListeningAfterPrompt,
+      replay: startListeningAfterPrompt,
+    };
+    setupMuteToggle(soundCheckAudio);
+    document.getElementById('soundCheckReplayBtn').addEventListener('click', startListeningAfterPrompt);
+
     const preview = document.getElementById('preview');
     if (preview) {
       preview.srcObject = mediaStream;
@@ -1729,9 +1796,10 @@
     }
 
     await startAudioMonitor();
-    resetSoundCheckWindow();
+    startListeningAfterPrompt();
 
     const continueToQuestion = () => {
+      promptRun++;
       clearSoundCheckTimer();
       stopCurrentAudio();
       stopAudioMonitor();

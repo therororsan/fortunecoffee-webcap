@@ -29,6 +29,19 @@
     "am": "እባክዎ በሚቀጥለው ገጽ ላይ ፍቀድ የሚለውን ይጫኑ።",
     "fil": "Pakipindot po ang Payagan sa susunod na screen."
   },
+  "soundcheck": {
+    "en": "Please say hello.",
+    "es": "Por favor, diga hola.",
+    "fr": "Veuillez dire bonjour.",
+    "pt": "Por favor, diga olá.",
+    "sw": "Tafadhali sema habari.",
+    "vi": "Xin quý vị nói xin chào.",
+    "hi": "कृपया नमस्ते बोलिए।",
+    "ta": "தயவுசெய்து வணக்கம் என்று சொல்லுங்கள்.",
+    "si": "කරුණාකර ආයුබෝවන් කියන්න.",
+    "am": "እባክዎ ሰላም ይበሉ።",
+    "fil": "Pakisabi po ang kumusta."
+  },
   "selfie": {
     "en": "Ready to take a selfie? Smile and make sure we see you!",
     "sw": "Uko tayari kupiga selfie? Tabasamu na uhakikishe tunakuona!",

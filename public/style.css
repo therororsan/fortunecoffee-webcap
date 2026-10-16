@@ -894,7 +894,7 @@ html, body {
   max-height: 100%;
 }
 
-.screen--selfie:not(.screen--camera-permission) > div:first-child {
+.screen--selfie:not(.screen--camera-permission) > .mute-toggle-wrap {
   position: absolute;
   top: 16px;
   right: 16px;
@@ -1023,19 +1023,40 @@ html, body {
 }
 
 .sound-indicator {
-  width: 34px;
-  height: 34px;
-  margin: 0 auto 6px;
+  --sound-level: 0;
+  width: 112px;
+  height: 112px;
+  margin: 4px auto 10px;
   display: grid;
   place-items: center;
+  position: relative;
+  isolation: isolate;
+}
+
+.sound-indicator::before {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border: 3px solid var(--text-muted);
+  border-radius: 50%;
+  opacity: calc(0.25 + (var(--sound-level) * 0.65));
+  transform: scale(calc(1 + (var(--sound-level) * 0.28)));
+  transition: border-color 160ms ease, opacity 90ms linear, transform 90ms linear;
+  z-index: 0;
+}
+
+.sound-microphone,
+.sound-checkmark {
+  position: relative;
+  z-index: 1;
 }
 
 .sound-microphone {
-  width: 30px;
-  height: 30px;
+  width: 72px;
+  height: 72px;
   fill: none;
   stroke: var(--text-muted);
-  stroke-width: 2;
+  stroke-width: 1.55;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -1043,13 +1064,26 @@ html, body {
 .sound-checkmark {
   display: none;
   color: var(--success);
-  font-size: 34px;
+  font-size: 62px;
   font-weight: 700;
   line-height: 1;
 }
 
 .sound-indicator--detected .sound-microphone { display: none; }
 .sound-indicator--detected .sound-checkmark { display: block; }
+.sound-indicator--detected::before {
+  border-color: var(--success);
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sound-indicator::before {
+    transform: none;
+    opacity: 0.55;
+    transition: border-color 160ms ease;
+  }
+}
 
 .sound-status {
   font-size: 18px;
