@@ -424,7 +424,7 @@ html, body {
 /* ── Registry screen ──────────────────────────────────────────────────── */
 .screen--registry {
   justify-content: flex-start;
-  padding-top: 40px;
+  padding-top: 24px;
 }
 
 .card {
@@ -450,6 +450,14 @@ html, body {
 
 .form-group {
   margin-bottom: 20px;
+}
+
+.registry-form .form-group {
+  margin-bottom: 14px;
+}
+
+.registry-form .form-group:last-of-type {
+  margin-bottom: 0;
 }
 
 .form-group label {
@@ -600,6 +608,13 @@ html, body {
   background: var(--accent);
   color: var(--surface);
   margin-top: 12px;
+}
+
+.registry-submit-button {
+  min-height: 52px;
+  margin-top: 12px;
+  background: var(--success);
+  color: var(--surface);
 }
 
 /* ── Consent screen ───────────────────────────────────────────────────── */
@@ -763,6 +778,17 @@ html, body {
   right: 16px;
   z-index: 5;
   width: auto;
+}
+
+.selfie-live-title {
+  width: 100%;
+  max-height: 32px;
+  flex: 0 0 auto;
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .selfie-preview-slot {
@@ -930,8 +956,7 @@ html, body {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
 }
 
-.selfie-outline-guide__head,
-.selfie-outline-guide__shoulders {
+.selfie-outline-guide__head {
   fill: none;
   stroke: var(--surface);
   stroke-width: 2.5;

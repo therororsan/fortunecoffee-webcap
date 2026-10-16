@@ -881,8 +881,7 @@
   function renderSelfieOutlineGuide() {
     return `
       <svg class="selfie-outline-guide" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-        <ellipse class="selfie-outline-guide__head" cx="50" cy="37" rx="27.5" ry="25" />
-        <path class="selfie-outline-guide__shoulders" d="M9 104C12 78 27 62 38 59M62 59C73 62 88 78 91 104" />
+        <ellipse class="selfie-outline-guide__head" cx="50" cy="40" rx="27.5" ry="26" />
       </svg>
     `;
   }
@@ -973,34 +972,34 @@
     render(`
       <div class="screen screen--registry">
         <div class="card">
-          <h2>Welcome! Let's get started.</h2>
-          <p>Please enter your details:</p>
-          <div class="form-group">
-            <label for="nameInput">Name *</label>
-            <input type="text" id="nameInput" placeholder="Your name" required>
-          </div>
-          <div class="form-group">
-            <label>Country/Region</label>
-            <div class="cs-wrap" id="csWrap">
-              <div class="cs-trigger" id="csTrigger">
-                <span id="csDisplay" class="cs-placeholder">Select country…</span>
-                <span class="cs-arrow">▾</span>
+          <form class="registry-form" id="registryForm" novalidate>
+            <div class="form-group">
+              <label for="nameInput">Name *</label>
+              <input type="text" id="nameInput" placeholder="Your name" required enterkeyhint="next">
+            </div>
+            <div class="form-group">
+              <label>Country/Region</label>
+              <div class="cs-wrap" id="csWrap">
+                <div class="cs-trigger" id="csTrigger">
+                  <span id="csDisplay" class="cs-placeholder">Select country…</span>
+                  <span class="cs-arrow">▾</span>
+                </div>
+                <ul class="cs-list" id="csList">
+                  <li class="cs-opt cs-opt--empty" data-value="">Select country…</li>
+                  ${csOpts}
+                </ul>
+                <input type="hidden" id="countrySelect">
               </div>
-              <ul class="cs-list" id="csList">
-                <li class="cs-opt cs-opt--empty" data-value="">Select country…</li>
-                ${csOpts}
-              </ul>
-              <input type="hidden" id="countrySelect">
             </div>
-          </div>
-          <div class="form-group">
-            <label for="phoneInput">Phone 📞</label>
-            <div class="phone-input-wrap">
-              <span id="phonePrefix" class="phone-prefix"></span>
-              <input type="tel" id="phoneInput" placeholder="Your phone number">
+            <div class="form-group">
+              <label for="phoneInput">Phone 📞</label>
+              <div class="phone-input-wrap">
+                <span id="phonePrefix" class="phone-prefix"></span>
+                <input type="tel" id="phoneInput" placeholder="Your phone number" inputmode="tel" enterkeyhint="done">
+              </div>
             </div>
-          </div>
-          <button class="btn btn--primary" id="registrySubmitBtn">Continue</button>
+            <button class="btn registry-submit-button" id="registrySubmitBtn" type="submit">Continue →</button>
+          </form>
         </div>
       </div>
     `);
@@ -1045,7 +1044,8 @@
       el.style.display  = prefix ? 'inline-flex' : 'none';
     });
 
-    document.getElementById('registrySubmitBtn').addEventListener('click', () => {
+    document.getElementById('registryForm').addEventListener('submit', event => {
+      event.preventDefault();
       const name     = document.getElementById('nameInput').value.trim();
       const country  = document.getElementById('countrySelect').value;
       const prefix   = document.getElementById('phonePrefix').textContent.trim();
@@ -1062,6 +1062,18 @@
       farmerCountry = country || null;
       farmerPhone   = phone;
       proceedToConsent();
+    });
+
+    const phoneInput = document.getElementById('phoneInput');
+    const scrollContinueIntoView = () => {
+      const submitButton = document.getElementById('registrySubmitBtn');
+      if (submitButton) submitButton.scrollIntoView({ block: 'end', behavior: 'smooth' });
+    };
+    phoneInput.addEventListener('focus', () => {
+      window.setTimeout(scrollContinueIntoView, 250);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', scrollContinueIntoView, { once: true });
+      }
     });
   }
 
@@ -1301,6 +1313,7 @@
     render(`
       <div class="screen screen--selfie">
         ${renderMuteToggle()}
+        ${hasCapturedSelfie ? '' : '<h1 class="selfie-live-title">🤳 Take a selfie</h1>'}
         <div class="selfie-preview-slot">
         ${hasCapturedSelfie
           ? `<div class="preview-wrap" id="selfiePreviewWrap">
