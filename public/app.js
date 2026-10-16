@@ -91,6 +91,97 @@
     'China': 'Wang Fang', 'Hong Kong': 'Chan Tai Man',
   };
 
+  const CONSENT_TEXTS = {
+    en: [
+      'Hi.',
+      'We would like to take your photo and record a short video of you speaking.',
+      'The video will be online. People who drink the coffee you help grow can watch and share the video.',
+      'We will use a computer to make a drawing of you for our cards.',
+      'You can say no. Later, if you want the video removed, tell us or the person who invited you.',
+      'If you agree, please press the green button.',
+    ],
+    es: [
+      'Hola.',
+      'Nos gustaría tomarle una foto y grabar un video corto de usted hablando.',
+      'El video estará en internet. Las personas que toman el café que usted ayuda a cultivar podrán verlo y compartirlo.',
+      'Usaremos una computadora para hacer un dibujo de usted para nuestras tarjetas.',
+      'Usted puede decir que no. Más adelante, si quiere que quitemos el video, díganoslo a nosotros o a la persona que le envió la invitación.',
+      'Si está de acuerdo, por favor presione el botón verde.',
+    ],
+    fr: [
+      'Bonjour.',
+      'Nous aimerions prendre votre photo et enregistrer une courte vidéo de vous en train de parler.',
+      'La vidéo sera sur internet. Les personnes qui boivent le café que vous aidez à cultiver pourront la regarder et la partager.',
+      'Nous utiliserons un ordinateur pour faire un dessin de vous pour nos cartes.',
+      "Vous pouvez dire non. Plus tard, si vous voulez que la vidéo soit retirée, dites-le-nous ou dites-le à la personne qui vous a envoyé l'invitation.",
+      "Si vous êtes d'accord, appuyez sur le bouton vert, s'il vous plaît.",
+    ],
+    pt: [
+      'Olá.',
+      'Gostaríamos de tirar sua foto e gravar um vídeo curto de você falando.',
+      'O vídeo vai estar na internet. As pessoas que tomam o café que você ajuda a cultivar poderão assistir e compartilhar o vídeo.',
+      'Vamos usar um computador para fazer um desenho seu para os nossos cartões.',
+      'Você pode dizer não. Mais tarde, se quiser que o vídeo seja removido, fale conosco ou com a pessoa que convidou você.',
+      'Se concordar, por favor, aperte o botão verde.',
+    ],
+    sw: [
+      'Habari.',
+      'Tungependa kukupiga picha na kurekodi video fupi ukiongea.',
+      'Video itakuwa mtandaoni. Watu wanaokunywa kahawa unayosaidia kulima wataweza kuitazama na kuishiriki.',
+      'Tutatumia kompyuta kutengeneza mchoro wako kwa ajili ya kadi zetu.',
+      'Unaweza kukataa. Baadaye, ukitaka video iondolewe, tuambie sisi au mwambie mtu aliyekualika.',
+      'Ukikubali, tafadhali bonyeza kitufe cha kijani.',
+    ],
+    vi: [
+      'Xin chào.',
+      'Chúng tôi muốn chụp ảnh quý vị và quay một đoạn video ngắn khi quý vị đang nói.',
+      'Video sẽ được đăng trên mạng. Những người uống cà phê do quý vị góp công trồng có thể xem và chia sẻ video này.',
+      'Chúng tôi sẽ dùng máy tính để tạo một hình vẽ của quý vị cho các tấm thẻ của chúng tôi.',
+      'Quý vị có thể từ chối. Sau này, nếu muốn gỡ video xuống, quý vị hãy báo cho chúng tôi hoặc người đã mời quý vị.',
+      'Nếu quý vị đồng ý, vui lòng bấm nút màu xanh lá.',
+    ],
+    hi: [
+      'नमस्ते।',
+      'हम आपकी एक फ़ोटो लेना और आपका बोलते हुए एक छोटा वीडियो रिकॉर्ड करना चाहते हैं।',
+      'यह वीडियो इंटरनेट पर होगा। जो लोग वह कॉफ़ी पीते हैं जिसे उगाने में आप मदद करते हैं, वे वीडियो देख सकते हैं और दूसरों को भेज सकते हैं।',
+      'हम कंप्यूटर से आपका एक चित्र बनाएँगे, जो हमारे कार्डों पर होगा।',
+      'आप मना कर सकते हैं। बाद में, अगर आप चाहें कि वीडियो हटा दिया जाए, तो हमें या उस व्यक्ति को बताइए जिसने आपको बुलाया था।',
+      'अगर आप सहमत हैं, तो कृपया हरा बटन दबाएँ।',
+    ],
+    ta: [
+      'வணக்கம்.',
+      'உங்கள் புகைப்படத்தை எடுக்கவும், நீங்கள் பேசும் ஒரு சிறிய வீடியோவைப் பதிவு செய்யவும் விரும்புகிறோம்.',
+      'இந்த வீடியோ இன்டர்நெட்டில் இருக்கும். நீங்கள் விளைவிக்க உதவும் காபியைக் குடிப்பவர்கள் அதைப் பார்க்கவும் பகிரவும் முடியும்.',
+      'எங்கள் அட்டைகளுக்காக, கணினியைப் பயன்படுத்தி உங்கள் ஓவியம் ஒன்றை உருவாக்குவோம்.',
+      'நீங்கள் மறுக்கலாம். பின்னர், வீடியோவை நீக்க வேண்டுமென்றால், எங்களிடமோ உங்களை அழைத்தவரிடமோ சொல்லுங்கள்.',
+      'நீங்கள் சம்மதித்தால், தயவுசெய்து பச்சை பட்டனை அழுத்துங்கள்.',
+    ],
+    si: [
+      'ආයුබෝවන්.',
+      'අපි ඔබගේ ඡායාරූපයක් ගෙන, ඔබ කතා කරන කෙටි වීඩියෝවක් පටිගත කිරීමට කැමතියි.',
+      'මෙම වීඩියෝව අන්තර්ජාලයේ තිබේවි. ඔබ වගා කිරීමට උදව් කරන කෝපි බොන අයට එය නරඹා බෙදාගත හැකියි.',
+      'අපගේ කාඩ්පත් සඳහා, පරිගණකයක් භාවිතයෙන් ඔබගේ චිත්‍රයක් සාදන්නෙමු.',
+      'ඔබට ප්‍රතික්ෂේප කළ හැකියි. පසුව, වීඩියෝව ඉවත් කිරීමට අවශ්‍ය නම්, අපට හෝ ඔබට ආරාධනා කළ පුද්ගලයාට කියන්න.',
+      'ඔබ එකඟ නම්, කරුණාකර කොළ පාට බොත්තම ඔබන්න.',
+    ],
+    am: [
+      'ሰላም።',
+      'የእርስዎን ፎቶ ማንሳት እና እርስዎ ሲናገሩ አጭር ቪዲዮ መቅረጽ እንፈልጋለን።',
+      'ቪዲዮው በኢንተርኔት ላይ ይሆናል። እርስዎ እንዲበቅል የሚያግዙትን ቡና የሚጠጡ ሰዎች ቪዲዮውን ማየትና ማጋራት ይችላሉ።',
+      'ለካርዶቻችን በኮምፒውተር የእርስዎን ስዕል እንሰራለን።',
+      'እምቢ ማለት ይችላሉ። ወደፊት ቪዲዮው እንዲወገድ ከፈለጉ፣ ለእኛ ወይም ለጋበዘዎት ሰው ይንገሩ።',
+      'ከተስማሙ፣ እባክዎ አረንጓዴውን ቁልፍ ይጫኑ።',
+    ],
+    fil: [
+      'Kumusta po.',
+      'Gusto po naming kunan kayo ng larawan at mag-record ng maikling video habang nagsasalita kayo.',
+      'Ilalagay po ang video sa internet. Mapapanood at maibabahagi ito ng mga taong umiinom ng kapeng tinutulungan ninyong palaguin.',
+      'Gagamit po kami ng computer para gumawa ng guhit ninyo para sa aming mga card.',
+      'Puwede po kayong tumanggi. Kung gusto ninyong ipatanggal ang video sa ibang araw, sabihin lang po sa amin o sa taong nag-imbita sa inyo.',
+      'Kung pumapayag po kayo, pakipindot ang berdeng button.',
+    ],
+  };
+
   // ── State ────────────────────────────────────────────────────────────────
   let farmerId        = null;
   let farmerName      = null;
@@ -968,9 +1059,9 @@
       mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: cameraFacingMode }, // 'user' = front, 'environment' = back
-          width:  { ideal: 720  },
-          height: { ideal: 1280 },
-          aspectRatio: { ideal: 9 / 16 },
+          width:  { ideal: 1280 },
+          height: { ideal: 960  },
+          aspectRatio: { ideal: 4 / 3 },
         },
         audio: true,
       });
@@ -1131,7 +1222,10 @@
       if (!aspect) return;
 
       const isLandscape = aspect > 1;
-      const viewportAspect = isLandscape ? 3 / 4 : aspect;
+      const isRecordingPreview = wrap.classList.contains('preview-wrap--recording');
+      const viewportAspect = isLandscape
+        ? (isRecordingPreview ? 4 / 5 : 3 / 4)
+        : aspect;
       const screen = wrap.closest('.screen');
       const viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
       const isSelfieScreen = screen && screen.classList.contains('screen--selfie')
@@ -1154,7 +1248,9 @@
           width: metadataWidth,
           height: metadataHeight,
           orientation: isLandscape ? 'landscape' : 'portrait',
-          cropRule: isLandscape ? 'center 3:4, sides only' : 'contain full frame',
+          cropRule: isLandscape
+            ? `center ${isRecordingPreview ? '4:5' : '3:4'}, sides only`
+            : 'contain full frame',
         });
       }
     };
@@ -1498,20 +1594,22 @@
         }
       },
     });
+    const consentLines = CONSENT_TEXTS[farmerLang] || CONSENT_TEXTS[DEFAULT_LANG];
+    const consentTextClass = consentLines.join('').length > 520 ? ' consent-text--compact' : '';
 
     render(`
       <div class="screen screen--consent">
         ${renderMuteToggle()}
         <div class="consent-body">
-          <div class="consent-text">
+          <div class="consent-text${consentTextClass}">
             ${renderAudioReplayButton('consentReplayBtn')}
-            <p>This video will be used by Buna Baraka to share your story with customers who buy your coffee.</p>
-            <p><strong>Do you agree?</strong></p>
+            ${consentLines.map(line => `<p>${escapeHtml(line)}</p>`).join('')}
           </div>
           <div class="consent-actions">
             <button class="btn btn--consent btn--yes" id="consentYesBtn">✓ Agree</button>
             <button class="btn btn--consent btn--no" id="consentNoBtn">✕ Disagree</button>
           </div>
+          <a class="contact-line" href="mailto:ron@bunabaraka.org">Questions or removal requests: ron@bunabaraka.org</a>
         </div>
       </div>
     `);
@@ -2152,7 +2250,7 @@
           <p class="question-label">Review your response</p>
           <p class="question-text">${escapeHtml(questionText || '')}</p>
         </div>
-        <div class="preview-wrap${isUsingFrontCamera() ? ' preview-wrap--mirrored' : ''}">
+        <div class="preview-wrap preview-wrap--recording${isUsingFrontCamera() ? ' preview-wrap--mirrored' : ''}">
           <div class="camera-preview-content">
             <video id="playback" controls playsinline></video>
           </div>
@@ -2225,6 +2323,7 @@
           <p class="success-eyebrow">Submission complete</p>
           <h1>Thank you${displayName}!</h1>
           <p class="success-copy">Thank you! Your video has been sent.</p>
+          <a class="contact-line" href="mailto:ron@bunabaraka.org">Questions or removal requests: ron@bunabaraka.org</a>
           <p class="success-footer">Buna Baraka</p>
         </div>
       </div>

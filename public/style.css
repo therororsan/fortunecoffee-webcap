@@ -750,13 +750,17 @@ html, body {
 /* ── Consent screen ───────────────────────────────────────────────────── */
 .screen--consent {
   position: relative;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
   justify-content: center;
-  padding-bottom: 48px;
+  padding: 12px 16px 10px;
 }
 
 .screen--consent > div:first-child {
   position: absolute;
-  top: 16px;
+  top: 12px;
   right: 16px;
   width: auto;
 }
@@ -765,8 +769,11 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
-  gap: 32px;
+  gap: 8px;
 }
 
 .audio-section {
@@ -789,19 +796,19 @@ html, body {
 
 .consent-text {
   position: relative;
+  width: 100%;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px;
-  padding-right: 64px;
+  padding: 12px 50px 12px 14px;
   text-align: left;
   max-width: 340px;
 }
 
 .consent-text p {
   font-size: 18px;
-  line-height: 1.6;
-  margin-bottom: 12px;
+  line-height: 1.32;
+  margin-bottom: 6px;
 }
 
 .consent-text p:last-child {
@@ -811,13 +818,13 @@ html, body {
 .consent-actions {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 8px;
   width: 100%;
   max-width: 340px;
 }
 
 .btn--consent {
-  height: 56px;
+  height: 52px;
   min-height: 52px;
   padding: 12px 16px;
   font-size: 16px;
@@ -834,6 +841,47 @@ html, body {
   background: var(--surface);
   border: 0;
   color: var(--danger);
+}
+
+.contact-line {
+  display: block;
+  max-width: 340px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.success-card .contact-line {
+  margin-top: 8px;
+}
+
+@media (max-height: 680px) {
+  .screen--consent {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .screen--consent > div:first-child {
+    top: 8px;
+  }
+
+  .consent-body {
+    gap: 6px;
+  }
+
+  .consent-text {
+    padding: 10px 46px 10px 12px;
+  }
+
+  .consent-text p,
+  .consent-text--compact p {
+    font-size: 16px;
+    line-height: 1.3;
+    margin-bottom: 4px;
+  }
 }
 
 /* ── Consent decline screen ───────────────────────────────────────────── */
