@@ -873,7 +873,8 @@
     stopCurrentAudio();
 
     return new Promise(resolve => {
-      const audio = new Audio(path);
+      const audio = options.preloadedAudio || new Audio(path);
+      audio.currentTime = 0;
       let settled = false;
 
       const finish = status => {
@@ -2041,6 +2042,14 @@
         readyButton.style.display = 'block';
       }
     };
+    const questionAudioPath = resolveAudioPath('question', questionLanguage, {
+      folder: 'questions',
+      baseName: questionAudioKey,
+    });
+    const preloadedQuestionAudio = new Audio(questionAudioPath);
+    preloadedQuestionAudio.preload = 'auto';
+    preloadedQuestionAudio.load();
+
     const questionAudio = createAudioController({
       clips: [
         {
@@ -2049,12 +2058,13 @@
           optional: true,
           skipEnglishFallback: true,
         },
-        { pauseMs: 500 },
+        { pauseMs: 300 },
         {
           screen: 'question',
           lang: questionLanguage,
           folder: 'questions',
           baseName: questionAudioKey,
+          preloadedAudio: preloadedQuestionAudio,
         },
       ],
       completeOnStop: true,
