@@ -3,6 +3,14 @@
     "default": "21m00Tcm4TlvDq8ikWAM",
     "en": "XcXEQzuLXRU9RcfWzEJt"
   },
+  "profiles": {
+    "question_v3": {
+      "elevenlabs": {"model_id": "eleven_multilingual_v2", "speed": 0.85, "stability": 0.70, "style": 0.0},
+      "google": {"speaking_rate": 0.85},
+      "normalization": {"integrated_lufs": -16, "true_peak_dbtp": -1.5, "loudness_range": 11, "bitrate": "192k"},
+      "output_directory": "public/audio/_takes"
+    }
+  },
   "soundcheck_success": {
     "en": "We can hear you.",
     "es": "Podemos oírle.",
@@ -224,6 +232,19 @@
       "fr": "De quoi êtes-vous fier et qui n'a rien à voir avec le café ?",
       "pt": "Qual é uma coisa de que você se orgulha e que não tem nada a ver com café?",
       "fil": "Ano po ang isang bagay na ipinagmamalaki ninyo na walang kinalaman sa kape?"
+    },
+    "q11": {
+      "en": "What is a moment in your life <break time=\"0.3s\" /> that made you really happy? <break time=\"0.8s\" /> What happened?",
+      "si": "ඔබේ ජීවිතයේ <break time=\"0.3s\" /> ඔබව ගොඩක් සතුටු කරපු අවස්ථාවක් මොකක්ද? <break time=\"0.8s\" /> එදා මොකද වුණේ?",
+      "fil": "Ano po ang isang sandali sa inyong buhay <break time=\"0.3s\" /> na talagang nagpasaya sa inyo? <break time=\"0.8s\" /> Ano po ang nangyari?",
+      "es": "¿Cuál es un momento de su vida <break time=\"0.3s\" /> que le hizo muy feliz? <break time=\"0.8s\" /> ¿Qué pasó?",
+      "fr": "Parlez-nous d'un moment de votre vie <break time=\"0.3s\" /> qui vous a apporté une grande joie. <break time=\"0.8s\" /> Que s'est-il passé ?",
+      "pt": "Conte sobre um momento da sua vida <break time=\"0.3s\" /> que deixou você muito feliz. <break time=\"0.8s\" /> O que aconteceu?",
+      "sw": "Ni wakati gani maishani mwako <break time=\"0.3s\" /> uliokufanya ufurahi sana? <break time=\"0.8s\" /> Nini kilitokea?",
+      "vi": "Hãy kể về một lần trong đời <break time=\"0.3s\" /> thấy rất vui ạ. <break time=\"0.8s\" /> Lúc đó chuyện gì đã xảy ra ạ?",
+      "hi": "आपके जीवन का ऐसा कौन-सा पल है <break time=\"0.3s\" /> जिसने आपको सच में बहुत खुश किया? <break time=\"0.8s\" /> क्या हुआ था?",
+      "ta": "உங்கள் வாழ்க்கையில் <break time=\"0.3s\" /> உங்களுக்கு ரொம்ப சந்தோஷத்தைக் கொடுத்த ஒரு தருணம் எது? <break time=\"0.8s\" /> அப்போ என்ன நடந்தது?",
+      "am": "በሕይወትዎ ውስጥ <break time=\"0.3s\" /> በጣም ያስደሰተዎት አንድ አጋጣሚ የትኛው ነው? <break time=\"0.8s\" /> ምን ተፈጠረ?"
     }
   }
 }

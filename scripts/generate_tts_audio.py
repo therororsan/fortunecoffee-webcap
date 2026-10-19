@@ -7,7 +7,11 @@ import io
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
+import tempfile
+import uuid
 sys.stdout = io.TextIOWrapper(
     sys.stdout.buffer, encoding='utf-8', errors='replace'
 )
@@ -80,7 +84,7 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help=(
             "Optional ElevenLabs voice speed (0.7 to 1.2). "
-            "When omitted, uses the voice's current/default speed."
+            "When omitted, uses question_v3 for questions and the voice default for other screens."
         ),
     )
     parser.add_argument(
@@ -89,7 +93,7 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help=(
             "Optional ElevenLabs voice stability (0 to 1). "
-            "When omitted, uses the voice's current/default stability."
+            "When omitted, uses question_v3 for questions and the voice default for other screens."
         ),
     )
     parser.add_argument(
@@ -98,7 +102,7 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help=(
             "Optional ElevenLabs style exaggeration (0 to 1). "
-            "When omitted, uses the voice's current/default style."
+            "When omitted, uses question_v3 for questions and the voice default for other screens."
         ),
     )
     parser.add_argument(
@@ -107,7 +111,7 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help=(
             "Optional Google Cloud TTS speaking rate. "
-            "When omitted, uses the voice's current/default rate."
+            "When omitted, uses question_v3 for questions and the voice default for other screens."
         ),
     )
     parser.add_argument(
@@ -219,6 +223,94 @@ def load_scripts() -> dict[str, object]:
     return scripts
 
 
+def load_question_profile(scripts: dict[str, object]) -> dict[str, object]:
+    profiles = scripts.get("profiles")
+    profile = profiles.get("question_v3") if isinstance(profiles, dict) else None
+    if not isinstance(profile, dict):
+        raise ValueError("Missing question_v3 TTS profile.")
+    eleven = profile.get("elevenlabs")
+    google = profile.get("google")
+    normalization = profile.get("normalization")
+    output_dir = profile.get("output_directory")
+    if not isinstance(eleven, dict) or not isinstance(google, dict) or not isinstance(normalization, dict):
+        raise ValueError("Invalid question_v3 provider or normalization settings.")
+    if not isinstance(eleven.get("model_id"), str) or not eleven["model_id"]:
+        raise ValueError("question_v3 requires an ElevenLabs model_id.")
+    for settings, key, low, high in (
+        (eleven, "speed", 0.7, 1.2),
+        (eleven, "stability", 0, 1),
+        (eleven, "style", 0, 1),
+        (google, "speaking_rate", 0.25, 4),
+        (normalization, "integrated_lufs", -70, -5),
+        (normalization, "true_peak_dbtp", -9, 0),
+        (normalization, "loudness_range", 1, 50),
+    ):
+        value = settings.get(key)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not low <= value <= high:
+            raise ValueError(f"Invalid question_v3 setting: {key}.")
+    if not isinstance(normalization.get("bitrate"), str) or not normalization["bitrate"]:
+        raise ValueError("question_v3 requires an output bitrate.")
+    if not isinstance(output_dir, str) or not output_dir:
+        raise ValueError("question_v3 requires an output directory.")
+    takes = (OUTPUT_ROOT / "_takes").resolve()
+    resolved = (REPO_ROOT / output_dir).resolve()
+    if not resolved.is_relative_to(takes):
+        raise ValueError("question_v3 output directory must be inside public/audio/_takes.")
+    return profile
+
+
+def normalize_question_audio(source: Path, destination: Path, profile: dict[str, object]) -> None:
+    settings = profile["normalization"]
+    targets = (
+        f"I={settings['integrated_lufs']}:TP={settings['true_peak_dbtp']}:"
+        f"LRA={settings['loudness_range']}"
+    )
+    first = subprocess.run(
+        ["ffmpeg", "-hide_banner", "-i", str(source), "-af", f"loudnorm={targets}:print_format=json", "-f", "null", "-"],
+        capture_output=True, text=True, encoding="utf-8", errors="replace", check=True,
+    )
+    start, end = first.stderr.rfind("{"), first.stderr.rfind("}")
+    if start < 0 or end < start:
+        raise ValueError("Could not read first-pass loudnorm measurements.")
+    measured = json.loads(first.stderr[start:end + 1])
+    second_filter = (
+        f"loudnorm={targets}:measured_I={measured['input_i']}:"
+        f"measured_TP={measured['input_tp']}:measured_LRA={measured['input_lra']}:"
+        f"measured_thresh={measured['input_thresh']}:offset={measured['target_offset']}:linear=true"
+    )
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", str(source), "-af", second_filter,
+         "-codec:a", "libmp3lame", "-b:a", settings["bitrate"], str(destination)],
+        capture_output=True, text=True, encoding="utf-8", errors="replace", check=True,
+    )
+
+
+def generate_question_audio(task: AudioTask, voices: dict[str, str], profile: dict[str, object], args: argparse.Namespace) -> int:
+    eleven, google = profile["elevenlabs"], profile["google"]
+    with tempfile.TemporaryDirectory(prefix="webcap-question-") as temp_dir:
+        raw = Path(temp_dir) / "raw.mp3"
+        normalized = Path(temp_dir) / "normalized.mp3"
+        raw_task = replace(task, output_path=raw)
+        if task.engine == "ElevenLabs":
+            synthesize_elevenlabs(
+                raw_task, voices,
+                args.speed if args.speed is not None else eleven["speed"],
+                args.stability if args.stability is not None else eleven["stability"],
+                args.style if args.style is not None else eleven["style"],
+                args.seed, model_id=eleven["model_id"],
+            )
+        else:
+            synthesize_google(raw_task, args.google_speaking_rate if args.google_speaking_rate is not None else google["speaking_rate"])
+        validate_generated_output(raw_task)
+        normalize_question_audio(raw, normalized, profile)
+        if not normalized.exists() or normalized.stat().st_size < MIN_GENERATED_FILE_BYTES:
+            raise ValueError("Normalized question audio is missing or too small.")
+        task.output_path.parent.mkdir(parents=True, exist_ok=True)
+        with normalized.open("rb") as source, task.output_path.open("xb") as target:
+            shutil.copyfileobj(source, target)
+        return task.output_path.stat().st_size
+
+
 def engine_for_lang(lang: str) -> str:
     if lang in ELEVENLABS_LANGS:
         return "ElevenLabs"
@@ -234,6 +326,10 @@ def build_tasks(
     question_keys: set[str] | None = None,
 ) -> list[AudioTask]:
     tasks: list[AudioTask] = []
+    question_run = None
+    if "questions" in screens:
+        profile = load_question_profile(scripts)
+        question_run = REPO_ROOT / profile["output_directory"] / f"question_v3_{uuid.uuid4().hex}"
     for screen in screens:
         if screen == "questions":
             questions = scripts.get("questions")
@@ -256,7 +352,7 @@ def build_tasks(
                             lang=lang,
                             text=text,
                             engine=engine_for_lang(lang),
-                            output_path=OUTPUT_ROOT / "questions" / f"{question_id}_{lang}.mp3",
+                            output_path=question_run / f"{question_id}_{lang}.mp3",
                         )
                     )
             continue
@@ -356,6 +452,7 @@ def synthesize_elevenlabs(
     stability: float | None,
     style: float | None,
     seed: int | None,
+    model_id: str = ELEVENLABS_MODEL_ID,
 ) -> None:
     api_key = os.getenv("ELEVENLABS_API_KEY")
     if not api_key:
@@ -367,7 +464,7 @@ def synthesize_elevenlabs(
     client = ElevenLabs(api_key=api_key)
     request_options: dict[str, object] = {
         "voice_id": voice_id_for_lang(voices, task.lang),
-        "model_id": ELEVENLABS_MODEL_ID,
+        "model_id": model_id,
         "output_format": ELEVENLABS_OUTPUT_FORMAT,
         "text": task.text,
     }
@@ -484,6 +581,7 @@ def main() -> int:
                 raise ValueError(
                     "Unknown or empty question keys: " + ", ".join(sorted(unknown_keys))
                 )
+        question_profile = load_question_profile(scripts) if "questions" in screens else None
         tasks = build_tasks(scripts, screens, langs, question_keys)
         if args.output_file is not None:
             if len(tasks) != 1:
@@ -491,6 +589,8 @@ def main() -> int:
             output_file = args.output_file
             if not output_file.is_absolute():
                 output_file = REPO_ROOT / output_file
+            if tasks[0].screen == "questions" and output_file.resolve().is_relative_to((OUTPUT_ROOT / "questions").resolve()):
+                raise ValueError("Question audio cannot be generated directly into public/audio/questions.")
             tasks = [replace(tasks[0], output_path=output_file)]
     except Exception as exc:
         print(f"Setup failed: {exc}")
@@ -514,6 +614,9 @@ def main() -> int:
         print(f"ElevenLabs voice style: {args.style}")
     if args.google_speaking_rate is not None:
         print(f"Google Cloud TTS speaking rate: {args.google_speaking_rate}")
+    if question_profile:
+        eleven, google, norm = question_profile["elevenlabs"], question_profile["google"], question_profile["normalization"]
+        print(f"Question profile: question_v3; model={eleven['model_id']}; speed={args.speed if args.speed is not None else eleven['speed']}; stability={args.stability if args.stability is not None else eleven['stability']}; style={args.style if args.style is not None else eleven['style']}; Google rate={args.google_speaking_rate if args.google_speaking_rate is not None else google['speaking_rate']}; two-pass loudnorm={norm['integrated_lufs']} LUFS / {norm['true_peak_dbtp']} dBTP")
     if args.seed is not None:
         print(f"ElevenLabs seed: {args.seed}")
     print(
@@ -521,9 +624,9 @@ def main() -> int:
     )
 
     for index, task in enumerate(tasks, start=1):
-        relative_output = task.output_path.relative_to(REPO_ROOT)
+        relative_output = task.output_path.relative_to(REPO_ROOT) if task.output_path.is_relative_to(REPO_ROOT) else task.output_path
         existing_size = task.output_path.stat().st_size if task.output_path.exists() else None
-        action = planned_action(existing_size, args.force)
+        action = "skip" if task.screen == "questions" and existing_size is not None else planned_action(existing_size, args.force)
 
         if args.dry_run:
             action_suffix = (
@@ -558,7 +661,9 @@ def main() -> int:
             action = f"{action.capitalize()} existing file ({existing_size} bytes) for"
         print(f"[{index}/{len(tasks)}] {action} {relative_output} ({task.engine})")
         try:
-            if task.engine == "ElevenLabs":
+            if task.screen == "questions":
+                output_size = generate_question_audio(task, voices, question_profile, args)
+            elif task.engine == "ElevenLabs":
                 synthesize_elevenlabs(
                     task,
                     voices,
@@ -569,7 +674,8 @@ def main() -> int:
                 )
             else:
                 synthesize_google(task, args.google_speaking_rate)
-            output_size = validate_generated_output(task)
+            if task.screen != "questions":
+                output_size = validate_generated_output(task)
         except Exception as exc:
             failures.append(f"{relative_output}: {exc}")
             print(f"  FAILED: {exc}")
