@@ -14,7 +14,7 @@ sys.stdout = io.TextIOWrapper(
 sys.stderr = io.TextIOWrapper(
     sys.stderr.buffer, encoding='utf-8', errors='replace'
 )
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 
@@ -25,7 +25,7 @@ OUTPUT_ROOT = REPO_ROOT / "public" / "audio"
 SHARED_ENV_PATH = Path(__file__).parent.parent.parent / "_shared" / "config" / ".env"
 
 STATIC_SCREEN_ORDER = ("consent", "selfie", "question_intro", "success")
-SCREEN_ORDER = STATIC_SCREEN_ORDER + ("questions",)
+SCREEN_ORDER = STATIC_SCREEN_ORDER + ("questions", "soundcheck_success")
 LANG_ORDER = ("en", "sw", "am", "si", "ta", "vi", "hi", "es", "fr", "pt", "fil")
 ELEVENLABS_LANGS = frozenset(("en", "sw", "ta", "vi", "hi", "es", "fr", "pt", "fil"))
 GOOGLE_LANGS = frozenset(("am", "si"))
@@ -56,7 +56,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--screens",
-        default=",".join(SCREEN_ORDER),
+        default=",".join(STATIC_SCREEN_ORDER + ("questions",)),
         help="Comma-separated list of screens to generate.",
     )
     parser.add_argument(
@@ -84,6 +84,24 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--stability",
+        type=float,
+        default=None,
+        help=(
+            "Optional ElevenLabs voice stability (0 to 1). "
+            "When omitted, uses the voice's current/default stability."
+        ),
+    )
+    parser.add_argument(
+        "--style",
+        type=float,
+        default=None,
+        help=(
+            "Optional ElevenLabs style exaggeration (0 to 1). "
+            "When omitted, uses the voice's current/default style."
+        ),
+    )
+    parser.add_argument(
         "--google-speaking-rate",
         type=float,
         default=None,
@@ -91,6 +109,23 @@ def parse_args() -> argparse.Namespace:
             "Optional Google Cloud TTS speaking rate. "
             "When omitted, uses the voice's current/default rate."
         ),
+    )
+    parser.add_argument(
+        "--question-keys",
+        default=None,
+        help="Optional comma-separated question keys when generating the questions screen.",
+    )
+    parser.add_argument(
+        "--output-file",
+        type=Path,
+        default=None,
+        help="Write one requested clip to this separate path; requires exactly one task.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Optional ElevenLabs seed for a reproducible alternate take.",
     )
     return parser.parse_args()
 
@@ -196,6 +231,7 @@ def build_tasks(
     scripts: dict[str, object],
     screens: list[str],
     langs: list[str],
+    question_keys: set[str] | None = None,
 ) -> list[AudioTask]:
     tasks: list[AudioTask] = []
     for screen in screens:
@@ -204,6 +240,8 @@ def build_tasks(
             if not isinstance(questions, dict):
                 raise ValueError("Screen 'questions' is missing from tts_scripts.json.")
             for question_id, translations in questions.items():
+                if question_keys is not None and question_id not in question_keys:
+                    continue
                 if not isinstance(translations, dict):
                     raise ValueError(
                         f"Question '{question_id}' must map to a language object."
@@ -315,6 +353,9 @@ def synthesize_elevenlabs(
     task: AudioTask,
     voices: dict[str, str],
     speed: float | None,
+    stability: float | None,
+    style: float | None,
+    seed: int | None,
 ) -> None:
     api_key = os.getenv("ELEVENLABS_API_KEY")
     if not api_key:
@@ -330,8 +371,17 @@ def synthesize_elevenlabs(
         "output_format": ELEVENLABS_OUTPUT_FORMAT,
         "text": task.text,
     }
+    voice_settings: dict[str, float] = {}
     if speed is not None:
-        request_options["voice_settings"] = VoiceSettings(speed=speed)
+        voice_settings["speed"] = speed
+    if stability is not None:
+        voice_settings["stability"] = stability
+    if style is not None:
+        voice_settings["style"] = style
+    if voice_settings:
+        request_options["voice_settings"] = VoiceSettings(**voice_settings)
+    if seed is not None:
+        request_options["seed"] = seed
     audio_stream = client.text_to_speech.convert(
         **request_options,
     )
@@ -414,10 +464,34 @@ def main() -> int:
         langs = parse_csv_list(args.langs, LANG_ORDER, "languages")
         if args.speed is not None and not 0.7 <= args.speed <= 1.2:
             raise ValueError("--speed must be between 0.7 and 1.2.")
+        if args.stability is not None and not 0 <= args.stability <= 1:
+            raise ValueError("--stability must be between 0 and 1.")
+        if args.style is not None and not 0 <= args.style <= 1:
+            raise ValueError("--style must be between 0 and 1.")
+        if args.seed is not None and not 0 <= args.seed <= 4_294_967_295:
+            raise ValueError("--seed must be between 0 and 4294967295.")
         load_environment()
         scripts = load_scripts()
         voices = load_voices(scripts)
-        tasks = build_tasks(scripts, screens, langs)
+        question_keys = None
+        if args.question_keys is not None:
+            if "questions" not in screens:
+                raise ValueError("--question-keys requires --screens questions.")
+            question_keys = set(item.strip() for item in args.question_keys.split(",") if item.strip())
+            available_keys = set(scripts.get("questions", {}))
+            unknown_keys = question_keys - available_keys
+            if not question_keys or unknown_keys:
+                raise ValueError(
+                    "Unknown or empty question keys: " + ", ".join(sorted(unknown_keys))
+                )
+        tasks = build_tasks(scripts, screens, langs, question_keys)
+        if args.output_file is not None:
+            if len(tasks) != 1:
+                raise ValueError("--output-file requires exactly one requested task.")
+            output_file = args.output_file
+            if not output_file.is_absolute():
+                output_file = REPO_ROOT / output_file
+            tasks = [replace(tasks[0], output_path=output_file)]
     except Exception as exc:
         print(f"Setup failed: {exc}")
         return 1
@@ -434,8 +508,14 @@ def main() -> int:
     print(f"ElevenLabs: model={ELEVENLABS_MODEL_ID}, voices={voice_summary}, output={ELEVENLABS_OUTPUT_FORMAT}")
     if args.speed is not None:
         print(f"ElevenLabs voice speed: {args.speed}")
+    if args.stability is not None:
+        print(f"ElevenLabs voice stability: {args.stability}")
+    if args.style is not None:
+        print(f"ElevenLabs voice style: {args.style}")
     if args.google_speaking_rate is not None:
         print(f"Google Cloud TTS speaking rate: {args.google_speaking_rate}")
+    if args.seed is not None:
+        print(f"ElevenLabs seed: {args.seed}")
     print(
         "Google Cloud TTS: am=am-ET-Standard-A, si=si-LK default female, output=MP3"
     )
@@ -479,7 +559,14 @@ def main() -> int:
         print(f"[{index}/{len(tasks)}] {action} {relative_output} ({task.engine})")
         try:
             if task.engine == "ElevenLabs":
-                synthesize_elevenlabs(task, voices, args.speed)
+                synthesize_elevenlabs(
+                    task,
+                    voices,
+                    args.speed,
+                    args.stability,
+                    args.style,
+                    args.seed,
+                )
             else:
                 synthesize_google(task, args.google_speaking_rate)
             output_size = validate_generated_output(task)

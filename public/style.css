@@ -33,8 +33,8 @@
   --text-muted:   #5d5941;
   --btn-secondary:#e7ddc8;
   --radius:       12px;
-  --font:         'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-  --font-heading: 'IM Fell English', Georgia, 'Times New Roman', serif;
+  --font:         'Geist', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Sinhala', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-heading: 'IM Fell English', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Sinhala', 'Noto Sans Ethiopic', Georgia, serif;
 }
 
 html, body {
@@ -87,25 +87,42 @@ html, body {
 
 /* ── Camera preview / playback ────────────────────────────────────────── */
 .preview-wrap {
+  --camera-aspect-ratio: 3 / 4;
+  --preview-width: 100%;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  width: var(--preview-width);
+  max-width: 100%;
+  aspect-ratio: var(--camera-aspect-ratio);
   background: #000;
   border-radius: var(--radius);
   overflow: hidden;
   flex-shrink: 0;
   position: relative;
-  max-height: 68vh;
+  max-height: 62vh;
+  margin-inline: auto;
 }
 
 .preview-wrap video,
 .preview-wrap img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
-.preview-wrap--mirrored video {
+.preview-wrap--landscape-crop video,
+.preview-wrap--landscape-crop img {
+  object-fit: cover;
+  object-position: center;
+}
+
+.camera-preview-content {
+  position: absolute;
+  inset: 0;
+  transform-origin: center;
+}
+
+.preview-wrap--mirrored .camera-preview-content {
   transform: scaleX(-1);
 }
 
@@ -114,6 +131,7 @@ html, body {
   display: block;
   width: 100%;
   padding: 18px;
+  min-height: 52px;
   border: none;
   border-radius: var(--radius);
   font-size: 18px;
@@ -129,10 +147,15 @@ html, body {
 .btn--record {
   background: var(--accent);
   color: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .btn--stop {
-  background: var(--accent);
+  min-height: 56px;
+  background: #313323;
   color: var(--surface);
 }
 
@@ -154,9 +177,77 @@ html, body {
 }
 
 .btn--secondary {
-  background: var(--btn-secondary);
+  background: var(--surface);
+  border: 1px solid var(--border);
   color: var(--text);
   flex: 1;
+}
+
+.button-icon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mute-toggle-icon {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mute-toggle-wave {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.mute-toggle-icon.is-playing .mute-toggle-wave {
+  animation: mute-toggle-wave 0.9s ease-in-out infinite;
+}
+
+.mute-toggle-icon.is-playing .mute-toggle-wave--2 {
+  animation-delay: 0.12s;
+}
+
+.mute-toggle-icon.is-playing .mute-toggle-wave--3 {
+  animation-delay: 0.24s;
+}
+
+@keyframes mute-toggle-wave {
+  0%, 100% { opacity: 0.4; transform: scale(0.7); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mute-toggle-icon.is-playing .mute-toggle-wave {
+    animation: none;
+  }
+}
+
+.mute-toggle-label {
+  white-space: nowrap;
+}
+
+[data-mute-toggle] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.record-start-dot {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #c0392b;
 }
 
 .hint {
@@ -199,7 +290,7 @@ html, body {
 
 .recording-question-band {
   width: 100%;
-  padding: 10px 14px;
+  padding: 16px 18px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -218,9 +309,21 @@ html, body {
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 6px;
   z-index: 3;
-  background: rgba(255, 250, 240, 0.35);
+  background: rgba(49, 51, 35, 0.58);
+}
+
+.recording-progress::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: 33.333%;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px rgba(49, 51, 35, 0.3);
 }
 
 .recording-progress__bar {
@@ -228,19 +331,39 @@ html, body {
   width: 100%;
   background: var(--accent);
   transition: width 1s linear;
+  animation: recording-progress-breathe 1.6s ease-in-out infinite;
+}
+
+.recording-progress__bar--good-length {
+  background: var(--success);
+}
+
+@keyframes recording-progress-breathe {
+  50% { opacity: 0.72; }
 }
 
 /* ── Review actions ───────────────────────────────────────────────────── */
 .review-actions {
   display: flex;
+  flex: 0 0 56px;
+  height: 56px;
+  flex-direction: row;
   gap: 12px;
   width: 100%;
 }
 
-.file-size {
-  font-size: 13px;
-  color: var(--text-muted);
-  align-self: flex-start;
+.review-actions .btn {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  width: 0;
+  height: 56px;
+  min-height: 56px;
+  padding: 4px 6px;
+  font-size: 14px;
+  line-height: 1.1;
+  display: grid;
+  place-items: center;
 }
 
 /* ── Upload screen ────────────────────────────────────────────────────── */
@@ -284,6 +407,7 @@ html, body {
 }
 
 .success-card {
+  position: relative;
   width: 100%;
   max-width: 420px;
   background: var(--surface);
@@ -356,11 +480,6 @@ html, body {
   margin-top: 4px;
 }
 
-.success-next {
-  max-width: 28ch;
-  margin: 0 auto;
-}
-
 .success-footer {
   margin-top: 12px;
   font-size: 12px;
@@ -410,7 +529,7 @@ html, body {
 /* ── Registry screen ──────────────────────────────────────────────────── */
 .screen--registry {
   justify-content: flex-start;
-  padding-top: 40px;
+  padding-top: 24px;
 }
 
 .card {
@@ -438,6 +557,14 @@ html, body {
   margin-bottom: 20px;
 }
 
+.registry-form .form-group {
+  margin-bottom: 14px;
+}
+
+.registry-form .form-group:last-of-type {
+  margin-bottom: 0;
+}
+
 .form-group label {
   display: block;
   font-size: 14px;
@@ -462,6 +589,29 @@ html, body {
 .form-group input:focus,
 .form-group select:focus {
   outline: 2px solid var(--accent);
+  outline-offset: 0;
+}
+
+.form-group input::placeholder {
+  color: #928b76;
+  opacity: 1;
+}
+
+.field-error {
+  display: none;
+  margin-top: 6px;
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.field-error:not(:empty) { display: block; }
+
+.form-group input.is-invalid,
+.cs-trigger.is-invalid,
+.phone-input-wrap.is-invalid {
+  border-color: var(--danger);
+  outline: 2px solid var(--danger);
   outline-offset: 0;
 }
 
@@ -571,6 +721,13 @@ html, body {
   user-select: none;
 }
 
+.phone-prefix img {
+  width: 24px;
+  height: 18px;
+  object-fit: cover;
+  margin-right: 6px;
+}
+
 .phone-input-wrap input {
   flex: 1;
   min-width: 0;
@@ -588,16 +745,27 @@ html, body {
   margin-top: 12px;
 }
 
+.registry-submit-button {
+  min-height: 52px;
+  margin-top: 12px;
+  background: var(--accent);
+  color: var(--surface);
+}
+
 /* ── Consent screen ───────────────────────────────────────────────────── */
 .screen--consent {
   position: relative;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
   justify-content: center;
-  padding-bottom: 48px;
+  padding: 12px 16px 10px;
 }
 
 .screen--consent > div:first-child {
   position: absolute;
-  top: 16px;
+  top: 12px;
   right: 16px;
   width: auto;
 }
@@ -606,8 +774,11 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
-  gap: 32px;
+  gap: 8px;
 }
 
 .audio-section {
@@ -629,18 +800,25 @@ html, body {
 }
 
 .consent-text {
+  position: relative;
+  width: 100%;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px;
+  padding: 12px 50px 12px 14px;
   text-align: left;
   max-width: 340px;
 }
 
 .consent-text p {
   font-size: 18px;
-  line-height: 1.6;
+  line-height: 1.4;
   margin-bottom: 12px;
+  color: var(--text);
+}
+
+.consent-text strong {
+  font-weight: 600;
 }
 
 .consent-text p:last-child {
@@ -649,26 +827,71 @@ html, body {
 
 .consent-actions {
   display: flex;
-  gap: 16px;
+  flex-direction: column;
+  gap: 8px;
   width: 100%;
   max-width: 340px;
 }
 
 .btn--consent {
-  flex: 1;
-  padding: 16px;
+  height: 52px;
+  min-height: 52px;
+  padding: 12px 16px;
   font-size: 16px;
   border-radius: 10px;
 }
 
 .btn--consent.btn--yes {
   background: var(--success);
+  border: 3px solid #2f5e3b;
   color: var(--surface);
 }
 
 .btn--consent.btn--no {
-  background: var(--danger);
-  color: var(--surface);
+  background: var(--surface);
+  border: 0;
+  color: var(--danger);
+}
+
+.contact-line {
+  display: block;
+  max-width: 340px;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.success-card .contact-line {
+  margin-top: 8px;
+}
+
+@media (max-height: 680px) {
+  .screen--consent {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .screen--consent > div:first-child {
+    top: 8px;
+  }
+
+  .consent-body {
+    gap: 6px;
+  }
+
+  .consent-text {
+    padding: 10px 46px 10px 12px;
+  }
+
+  .consent-text p,
+  .consent-text--compact p {
+    font-size: 16px;
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
 }
 
 /* ── Consent decline screen ───────────────────────────────────────────── */
@@ -702,8 +925,9 @@ html, body {
 }
 
 .question-listen-card {
+  position: relative;
   width: 100%;
-  padding: 40px 28px;
+  padding: 40px 64px 40px 28px;
   border-radius: 24px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -732,6 +956,123 @@ html, body {
   justify-content: flex-start;
 }
 
+.screen--selfie:not(.screen--camera-permission) {
+  position: relative;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px;
+  gap: 12px;
+  background: var(--bg);
+}
+
+.screen--sound-check {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px;
+  gap: 8px;
+  background: var(--bg);
+}
+
+.screen--sound-check .question-card {
+  flex: 0 0 auto;
+  padding: 10px 52px 10px 12px;
+  border-radius: 12px;
+}
+
+.screen--sound-check .question-label {
+  margin-bottom: 2px;
+}
+
+.screen--sound-check .question-text {
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.sound-check-preview-slot {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.screen--sound-check .preview-wrap {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 100%;
+}
+
+.screen--review {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px;
+  gap: 12px;
+}
+
+.screen--review .question-card {
+  flex: 0 0 auto;
+  padding: 12px 16px;
+}
+
+.screen--review .question-label {
+  margin-bottom: 6px;
+}
+
+.screen--review .question-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.screen--review .preview-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+}
+
+.screen--selfie:not(.screen--camera-permission) > .mute-toggle-wrap {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 5;
+  width: auto;
+}
+
+.selfie-live-title {
+  width: 100%;
+  max-height: 32px;
+  flex: 0 0 auto;
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.selfie-preview-slot {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.screen--selfie:not(.screen--camera-permission) .preview-wrap {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: none;
+  border-radius: 12px;
+}
+
 .selfie-feedback {
   width: 100%;
   border-radius: var(--radius);
@@ -756,50 +1097,159 @@ html, body {
 .selfie-actions {
   width: 100%;
   display: flex;
-  flex-direction: column;
+  flex: 0 0 72px;
+  height: 72px;
+  flex-direction: row;
   gap: 12px;
 }
 
 .selfie-camera-controls {
   width: 100%;
   display: flex;
+  flex: 0 0 72px;
+  height: 72px;
+  flex-direction: row;
   gap: 12px;
 }
 
-.selfie-camera-controls .btn {
+.selfie-flip-button {
+  width: 68px;
+  min-width: 68px;
+  height: 68px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  font-family: var(--font);
+  font-size: 30px;
+  line-height: 1;
+}
+
+.selfie-take-button,
+.selfie-use-button,
+.selfie-retake-button {
+  width: auto;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.15;
+  min-height: 64px;
+  padding: 6px 8px;
+  border-radius: 12px;
   flex: 1;
+}
+
+.selfie-actions .btn { font-size: 14px; }
+
+.selfie-take-button,
+.selfie-use-button {
+  background: var(--accent);
+  color: var(--surface);
+}
+
+.selfie-take-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.selfie-retake-button {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
 }
 
 .sound-check-card {
   width: 100%;
+  flex: 0 0 auto;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 8px 12px;
-  text-align: center;
+  padding: 6px 10px;
 }
 
-.sound-bars {
+.sound-check-status-row {
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  min-height: 60px;
+  align-items: center;
   gap: 10px;
-  height: 28px;
-  margin-bottom: 6px;
 }
 
-.sound-bar {
-  width: 12px;
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(180deg, var(--success), var(--accent));
-  transform-origin: center bottom;
-  transform: scaleY(0.08);
-  transition: transform 0.12s ease-out;
+.sound-check-status-copy {
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+
+.sound-indicator {
+  --sound-level: 0;
+  width: 60px;
+  height: 60px;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  position: relative;
+  isolation: isolate;
+}
+
+.sound-indicator::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border: 2px solid var(--text-muted);
+  border-radius: 50%;
+  opacity: calc(0.25 + (var(--sound-level) * 0.65));
+  transform: scale(calc(1 + (var(--sound-level) * 0.28)));
+  transition: border-color 160ms ease, opacity 90ms linear, transform 90ms linear;
+  z-index: 0;
+}
+
+.sound-microphone,
+.sound-checkmark {
+  position: relative;
+  z-index: 1;
+}
+
+.sound-microphone {
+  width: 48px;
+  height: 48px;
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.55;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sound-checkmark {
+  display: none;
+  color: var(--success);
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sound-indicator--detected .sound-microphone { display: none; }
+.sound-indicator--detected .sound-checkmark { display: block; }
+.sound-indicator--detected::before {
+  border-color: var(--success);
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sound-indicator::before {
+    transform: none;
+    opacity: 0.55;
+    transition: border-color 160ms ease;
+  }
 }
 
 .sound-status {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -814,57 +1264,133 @@ html, body {
 .sound-status-detail {
   margin-top: 4px;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
-.preview-wrap--frame-guide {
-  border: 4px solid transparent;
+.sound-check-actions {
+  width: 100%;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  text-align: center;
 }
 
-/* Constrain camera preview on sound-check screen so the primary action stays visible
-   on a 667px viewport without scrolling. Other screens keep the 68vh default. */
-.screen--sound-check .preview-wrap {
-  max-height: 38vh;
+.sound-check-actions .btn--record {
+  min-height: 52px;
 }
 
-.selfie-with-face-guide {
-  position: relative;
+.sound-check-actions .btn--link {
+  min-height: 0;
+  margin-top: 4px;
+  font-size: 13px;
 }
 
-.selfie-with-face-guide .frame-guide-overlay {
+.selfie-outline-guide {
   position: absolute;
-  top: 8%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 58%;
-  height: 68%;
-  border: 5px solid rgba(255,255,255,0.9);
-  border-radius: 50% / 40%;
-  box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
   z-index: 2;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
 }
 
-.selfie-with-face-guide .frame-guide-overlay::after {
-  content: '';
-  position: absolute;
-  bottom: -8%;
-  left: 22%;
-  width: 56%;
-  height: 18%;
-  border: 3px solid rgba(255,255,255,0.55);
-  border-radius: 50%;
-  border-top: none;
+.selfie-outline-guide__head {
+  fill: none;
+  stroke: var(--surface);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.frame-guide-overlay {
+.selfie-countdown {
   position: absolute;
-  inset: 12% 12%;
-  border: 3px solid rgba(255, 255, 255, 0.82);
-  border-radius: 20px;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: clamp(72px, 28vw, 128px);
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
   pointer-events: none;
-  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.12);
+}
+
+.recording-countdown {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: clamp(88px, 34vw, 144px);
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+  pointer-events: none;
+}
+
+.screen--camera-permission {
+  justify-content: center;
+  text-align: center;
+}
+
+.camera-permission-instruction {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.camera-permission-icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  color: var(--accent);
+}
+
+.camera-permission-icons svg {
+  width: 52px;
+  height: 52px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.camera-permission-copy {
+  max-width: 28ch;
+  font-family: var(--font);
+  font-size: 22px;
+  line-height: 1.35;
+}
+
+.audio-replay-icon {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: grid;
+  width: 36px;
+  min-height: 36px;
+  height: 36px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.audio-replay-icon span {
+  font-size: 24px;
+  line-height: 1;
 }
 
 .recording-warning-banner {
