@@ -127,6 +127,32 @@ to do with coffee?
 
 ---
 
+## Non-rotation Questions
+
+Question audio uses the `question_v3` TTS profile in scripts/tts_scripts.json:
+ElevenLabs speed 0.85, stability 0.70, style 0.0; Google rate 0.85;
+two-pass −16 LUFS / −1.5 dBTP, without atempo. New clips go to a
+separate _takes run for review. Consent take C uses separate settings.
+
+### Happy moment — q_20261019_happy_moment (audio: q11; file slot: q1)
+Pre-demo deep question for Inoka/Letty. “Happiest day” and “never forget”
+are avoided for grief risk. Sinhala and Filipino are pending native review
+by Inoka and Letty; Swahili, Vietnamese, Tamil, and Amharic are AI-reviewed only.
+
+- **en:** What is a moment in your life that made you really happy? What happened?
+- **si:** ඔබේ ජීවිතයේ ඔබව ගොඩක් සතුටු කරපු අවස්ථාවක් මොකක්ද? එදා මොකද වුණේ?
+- **fil:** Ano po ang isang sandali sa inyong buhay na talagang nagpasaya sa inyo? Ano po ang nangyari?
+- **es:** ¿Cuál es un momento de su vida que le hizo muy feliz? ¿Qué pasó?
+- **fr:** Parlez-nous d'un moment de votre vie qui vous a apporté une grande joie. Que s'est-il passé ?
+- **pt:** Conte sobre um momento da sua vida que deixou você muito feliz. O que aconteceu?
+- **sw:** Ni wakati gani maishani mwako uliokufanya ufurahi sana? Nini kilitokea?
+- **vi:** Hãy kể về một lần trong đời thấy rất vui ạ. Lúc đó chuyện gì đã xảy ra ạ?
+- **hi:** आपके जीवन का ऐसा कौन-सा पल है जिसने आपको सच में बहुत खुश किया? क्या हुआ था?
+- **ta:** உங்கள் வாழ்க்கையில் உங்களுக்கு ரொம்ப சந்தோஷத்தைக் கொடுத்த ஒரு தருணம் எது? அப்போ என்ன நடந்தது?
+- **am:** በሕይወትዎ ውስጥ በጣም ያስደሰተዎት አንድ አጋጣሚ የትኛው ነው? ምን ተፈጠረ?
+
+---
+
 ## Curveball Alternates (rotate in every few months)
 
 - If coffee were an animal, what would it be?

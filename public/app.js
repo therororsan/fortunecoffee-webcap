@@ -1573,6 +1573,7 @@
           farmerLang = existingSubmission.language;
           updateDocumentLanguage();
         }
+        await applyQuestionOverride(params.get('q'));
         isReturningFarmer = true;
 
         if (consentGiven === true) {
@@ -1589,6 +1590,8 @@
 
       console.log('[webcap] No existing submission found — treating as new farmer');
     }
+
+    await applyQuestionOverride(params.get('q'));
 
     // New farmer: standard flow — registry → consent → selfie → sound check → question → record → upload
     if (farmerName && farmerCountry) {
@@ -1683,6 +1686,30 @@
     } catch (err) {
       showError(t('questions_load_error'));
       return false;
+    }
+  }
+
+  async function applyQuestionOverride(questionId) {
+    if (questionId === null) return;
+    const question = questions.find(item => item.question_id === questionId);
+    const text = question && question.text && question.text[farmerLang];
+    if (!question || !question.audio_key || !question.file_slot_key ||
+        typeof text !== 'string' || !text.trim() ||
+        questions.filter(item => item.audio_key === question.audio_key).length !== 1) {
+      console.warn('[webcap] Invalid question override; using rotation');
+      return;
+    }
+
+    try {
+      const path = resolveAudioPath('question', farmerLang, {
+        folder: 'questions', baseName: question.audio_key,
+      });
+      const response = await fetch(path, { method: 'HEAD' });
+      const contentType = response.headers.get('content-type') || '';
+      if (!response.ok || !contentType.toLowerCase().startsWith('audio/')) throw new Error('Audio unavailable');
+      currentQuestion = question;
+    } catch (err) {
+      console.warn('[webcap] Question override audio unavailable; using rotation');
     }
   }
 
