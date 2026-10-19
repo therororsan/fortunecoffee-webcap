@@ -25,7 +25,7 @@ OUTPUT_ROOT = REPO_ROOT / "public" / "audio"
 SHARED_ENV_PATH = Path(__file__).parent.parent.parent / "_shared" / "config" / ".env"
 
 STATIC_SCREEN_ORDER = ("consent", "selfie", "question_intro", "success")
-SCREEN_ORDER = STATIC_SCREEN_ORDER + ("questions",)
+SCREEN_ORDER = STATIC_SCREEN_ORDER + ("questions", "soundcheck_success")
 LANG_ORDER = ("en", "sw", "am", "si", "ta", "vi", "hi", "es", "fr", "pt", "fil")
 ELEVENLABS_LANGS = frozenset(("en", "sw", "ta", "vi", "hi", "es", "fr", "pt", "fil"))
 GOOGLE_LANGS = frozenset(("am", "si"))
@@ -56,7 +56,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--screens",
-        default=",".join(SCREEN_ORDER),
+        default=",".join(STATIC_SCREEN_ORDER + ("questions",)),
         help="Comma-separated list of screens to generate.",
     )
     parser.add_argument(

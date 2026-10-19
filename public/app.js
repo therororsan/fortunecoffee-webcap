@@ -182,12 +182,1029 @@
     ],
   };
 
+  const UI_TEXTS = {
+    "document_title": {
+      "en": "Share your story",
+      "es": "Comparta su historia",
+      "fr": "Partagez votre histoire",
+      "pt": "Compartilhe sua história",
+      "sw": "Shiriki hadithi yako",
+      "vi": "Chia sẻ câu chuyện của quý vị",
+      "hi": "अपनी कहानी साझा करें",
+      "ta": "உங்கள் கதையைப் பகிருங்கள்",
+      "si": "ඔබේ කතාව බෙදාගන්න",
+      "am": "ታሪክዎን ያካፍሉ",
+      "fil": "Ibahagi ang inyong kuwento"
+    },
+    "loading": {
+      "en": "Loading…",
+      "es": "Cargando…",
+      "fr": "Chargement…",
+      "pt": "Carregando…",
+      "sw": "Inapakia…",
+      "vi": "Đang tải…",
+      "hi": "लोड हो रहा है…",
+      "ta": "ஏற்றப்படுகிறது…",
+      "si": "පූරණය වෙමින් පවතී…",
+      "am": "በመጫን ላይ…",
+      "fil": "Naglo-load…"
+    },
+    "replay_audio_aria": {
+      "en": "Replay audio",
+      "es": "Repetir audio",
+      "fr": "Réécouter l’audio",
+      "pt": "Ouvir de novo",
+      "sw": "Rudia sauti",
+      "vi": "Nghe lại âm thanh",
+      "hi": "आवाज़ फिर सुनें",
+      "ta": "ஒலியை மீண்டும் கேளுங்கள்",
+      "si": "හඬ නැවත අහන්න",
+      "am": "ድምፁን ደግመው ያዳምጡ",
+      "fil": "Patugtugin muli ang audio"
+    },
+    "play_audio_aria": {
+      "en": "Play audio",
+      "es": "Reproducir audio",
+      "fr": "Lire l’audio",
+      "pt": "Tocar áudio",
+      "sw": "Cheza sauti",
+      "vi": "Phát âm thanh",
+      "hi": "आवाज़ चलाएँ",
+      "ta": "ஒலியை இயக்குங்கள்",
+      "si": "හඬ වාදනය කරන්න",
+      "am": "ድምፅ ያጫውቱ",
+      "fil": "Patugtugin ang audio"
+    },
+    "mute_audio_aria": {
+      "en": "Mute audio",
+      "es": "Silenciar audio",
+      "fr": "Couper le son",
+      "pt": "Silenciar áudio",
+      "sw": "Nyamazisha sauti",
+      "vi": "Tắt âm thanh",
+      "hi": "आवाज़ बंद करें",
+      "ta": "ஒலியை அணைக்கவும்",
+      "si": "හඬ නිහඬ කරන්න",
+      "am": "ድምፅ ያጥፉ",
+      "fil": "Patayin ang tunog"
+    },
+    "tap_for_sound": {
+      "en": "Tap for sound",
+      "es": "Toque para oír",
+      "fr": "Touchez pour le son",
+      "pt": "Toque para ouvir",
+      "sw": "Bonyeza kusikia",
+      "vi": "Bấm để nghe",
+      "hi": "आवाज़ के लिए दबाएँ",
+      "ta": "ஒலிக்காகத் தட்டவும்",
+      "si": "හඬ සඳහා තට්ටු කරන්න",
+      "am": "ለድምፅ ይጫኑ",
+      "fil": "Pindutin para sa tunog"
+    },
+    "config_error": {
+      "en": "App is not configured. Please contact your coordinator.",
+      "es": "La aplicación no está configurada. Contacte a su coordinador.",
+      "fr": "L’application n’est pas configurée. Contactez votre coordinateur.",
+      "pt": "O aplicativo não está configurado. Fale com seu coordenador.",
+      "sw": "Programu haijawekwa. Wasiliana na mratibu wako.",
+      "vi": "Ứng dụng chưa được cài đặt. Vui lòng liên hệ người phụ trách.",
+      "hi": "ऐप तैयार नहीं है। अपने समन्वयक से बात करें।",
+      "ta": "செயலி அமைக்கப்படவில்லை. உங்கள் ஒருங்கிணைப்பாளரைத் தொடர்புகொள்ளுங்கள்.",
+      "si": "යෙදුම සකසා නැත. ඔබේ සම්බන්ධකයා අමතන්න.",
+      "am": "መተግበሪያው አልተዘጋጀም። አስተባባሪዎን ያነጋግሩ።",
+      "fil": "Hindi pa handa ang app. Makipag-ugnayan sa inyong coordinator."
+    },
+    "questions_load_error": {
+      "en": "Could not load questions. Please try again later.",
+      "es": "No se pudieron cargar las preguntas. Inténtelo más tarde.",
+      "fr": "Impossible de charger les questions. Réessayez plus tard.",
+      "pt": "Não foi possível carregar as perguntas. Tente mais tarde.",
+      "sw": "Haikuweza kupakia maswali. Jaribu baadaye.",
+      "vi": "Không tải được câu hỏi. Vui lòng thử lại sau.",
+      "hi": "सवाल लोड नहीं हुए। बाद में फिर कोशिश करें।",
+      "ta": "கேள்விகளை ஏற்ற முடியவில்லை. பின்னர் முயற்சிக்கவும்.",
+      "si": "ප්‍රශ්න පූරණය කළ නොහැක. පසුව නැවත උත්සාහ කරන්න.",
+      "am": "ጥያቄዎችን መጫን አልተቻለም። በኋላ ይሞክሩ።",
+      "fil": "Hindi ma-load ang mga tanong. Subukan muli mamaya."
+    },
+    "camera_denied": {
+      "en": "Camera access was denied. Please allow camera access and reload the page.",
+      "es": "Se negó el acceso a la cámara. Permita la cámara y vuelva a cargar la página.",
+      "fr": "L’accès à la caméra a été refusé. Autorisez la caméra et rechargez la page.",
+      "pt": "O acesso à câmera foi negado. Permita a câmera e recarregue a página.",
+      "sw": "Ruhusa ya kamera imekataliwa. Ruhusu kamera, kisha pakia ukurasa tena.",
+      "vi": "Quyền dùng máy ảnh bị từ chối. Hãy cho phép máy ảnh rồi tải lại trang.",
+      "hi": "कैमरे की अनुमति नहीं मिली। कैमरा अनुमति दें और पेज फिर खोलें।",
+      "ta": "கேமரா அனுமதி மறுக்கப்பட்டது. கேமராவை அனுமதித்து பக்கத்தை மீண்டும் திறக்கவும்.",
+      "si": "කැමරා අවසරය ප්‍රතික්ෂේප විය. කැමරාවට අවසර දී පිටුව නැවත පූරණය කරන්න.",
+      "am": "የካሜራ ፈቃድ ተከልክሏል። ካሜራውን ይፍቀዱና ገጹን ድጋሚ ይክፈቱ።",
+      "fil": "Tinanggihan ang camera. Payagan ang camera at i-reload ang page."
+    },
+    "camera_unavailable": {
+      "en": "Could not access your camera. Please check that it is not in use by another app.",
+      "es": "No se pudo acceder a la cámara. Compruebe que otra aplicación no la esté usando.",
+      "fr": "Impossible d’accéder à votre caméra. Vérifiez qu’une autre application ne l’utilise pas.",
+      "pt": "Não foi possível acessar a câmera. Veja se outro aplicativo não a está usando.",
+      "sw": "Haikuweza kufikia kamera yako. Angalia kama programu nyingine haitumii kamera.",
+      "vi": "Không thể dùng máy ảnh. Hãy xem ứng dụng khác có đang dùng máy ảnh không.",
+      "hi": "कैमरा नहीं खुला। देखें कि कोई दूसरा ऐप कैमरा तो नहीं इस्तेमाल कर रहा।",
+      "ta": "கேமராவைத் திறக்க முடியவில்லை. வேறு செயலி கேமராவைப் பயன்படுத்துகிறதா என்று பார்க்கவும்.",
+      "si": "කැමරාවට පිවිසිය නොහැක. වෙනත් යෙදුමක් එය භාවිතා කරනවාද බලන්න.",
+      "am": "ካሜራውን መጠቀም አልተቻለም። ሌላ መተግበሪያ እየተጠቀመበት መሆኑን ይመልከቱ።",
+      "fil": "Hindi mabuksan ang camera. Tingnan kung ginagamit ito ng ibang app."
+    },
+    "country_label": {
+      "en": "Country/Region *",
+      "es": "País o región *",
+      "fr": "Pays ou région *",
+      "pt": "País ou região *",
+      "sw": "Nchi/Eneo *",
+      "vi": "Quốc gia/Khu vực *",
+      "hi": "देश/क्षेत्र *",
+      "ta": "நாடு/பகுதி *",
+      "si": "රට/ප්‍රදේශය *",
+      "am": "ሀገር/ክልል *",
+      "fil": "Bansa/Rehiyon *"
+    },
+    "choose_country": {
+      "en": "Choose country",
+      "es": "Elija su país",
+      "fr": "Choisissez votre pays",
+      "pt": "Escolha seu país",
+      "sw": "Chagua nchi",
+      "vi": "Chọn quốc gia",
+      "hi": "देश चुनें",
+      "ta": "நாட்டைத் தேர்ந்தெடுக்கவும்",
+      "si": "රට තෝරන්න",
+      "am": "ሀገር ይምረጡ",
+      "fil": "Pumili ng bansa"
+    },
+    "suggested_country": {
+      "en": "Suggested: {country}",
+      "es": "Sugerido: {country}",
+      "fr": "Suggéré : {country}",
+      "pt": "Sugerido: {country}",
+      "sw": "Imependekezwa: {country}",
+      "vi": "Gợi ý: {country}",
+      "hi": "सुझाया गया: {country}",
+      "ta": "பரிந்துரை: {country}",
+      "si": "යෝජනා කළේ: {country}",
+      "am": "የተጠቆመ: {country}",
+      "fil": "Mungkahi: {country}"
+    },
+    "name_label": {
+      "en": "Name *",
+      "es": "Nombre *",
+      "fr": "Nom *",
+      "pt": "Nome *",
+      "sw": "Jina *",
+      "vi": "Tên *",
+      "hi": "नाम *",
+      "ta": "பெயர் *",
+      "si": "නම *",
+      "am": "ስም *",
+      "fil": "Pangalan *"
+    },
+    "name_placeholder": {
+      "en": "Your name",
+      "es": "Su nombre",
+      "fr": "Votre nom",
+      "pt": "Seu nome",
+      "sw": "Jina lako",
+      "vi": "Tên của quý vị",
+      "hi": "आपका नाम",
+      "ta": "உங்கள் பெயர்",
+      "si": "ඔබේ නම",
+      "am": "የእርስዎ ስም",
+      "fil": "Pangalan ninyo"
+    },
+    "name_example": {
+      "en": "e.g. {name}",
+      "es": "p. ej., {name}",
+      "fr": "par ex. {name}",
+      "pt": "ex.: {name}",
+      "sw": "kwa mfano {name}",
+      "vi": "ví dụ: {name}",
+      "hi": "जैसे: {name}",
+      "ta": "உதாரணம்: {name}",
+      "si": "උදා: {name}",
+      "am": "ለምሳሌ፡ {name}",
+      "fil": "hal.: {name}"
+    },
+    "phone_label": {
+      "en": "Phone *",
+      "es": "Teléfono *",
+      "fr": "Téléphone *",
+      "pt": "Telefone *",
+      "sw": "Simu *",
+      "vi": "Điện thoại *",
+      "hi": "फ़ोन *",
+      "ta": "தொலைபேசி *",
+      "si": "දුරකථනය *",
+      "am": "ስልክ *",
+      "fil": "Telepono *"
+    },
+    "phone_placeholder": {
+      "en": "Phone number",
+      "es": "Número de teléfono",
+      "fr": "Numéro de téléphone",
+      "pt": "Número de telefone",
+      "sw": "Namba ya simu",
+      "vi": "Số điện thoại",
+      "hi": "फ़ोन नंबर",
+      "ta": "தொலைபேசி எண்",
+      "si": "දුරකථන අංකය",
+      "am": "ስልክ ቁጥር",
+      "fil": "Numero ng telepono"
+    },
+    "continue": {
+      "en": "Continue →",
+      "es": "Continuar →",
+      "fr": "Continuer →",
+      "pt": "Continuar →",
+      "sw": "Endelea →",
+      "vi": "Tiếp tục →",
+      "hi": "आगे बढ़ें →",
+      "ta": "தொடரவும் →",
+      "si": "ඉදිරියට →",
+      "am": "ይቀጥሉ →",
+      "fil": "Magpatuloy →"
+    },
+    "country_required": {
+      "en": "Please choose your country",
+      "es": "Elija su país",
+      "fr": "Choisissez votre pays",
+      "pt": "Escolha seu país",
+      "sw": "Chagua nchi yako",
+      "vi": "Hãy chọn quốc gia",
+      "hi": "अपना देश चुनें",
+      "ta": "உங்கள் நாட்டைத் தேர்ந்தெடுக்கவும்",
+      "si": "ඔබේ රට තෝරන්න",
+      "am": "ሀገርዎን ይምረጡ",
+      "fil": "Piliin ang inyong bansa"
+    },
+    "name_required": {
+      "en": "Please enter your name",
+      "es": "Escriba su nombre",
+      "fr": "Entrez votre nom",
+      "pt": "Digite seu nome",
+      "sw": "Weka jina lako",
+      "vi": "Hãy nhập tên của quý vị",
+      "hi": "अपना नाम लिखें",
+      "ta": "உங்கள் பெயரை உள்ளிடவும்",
+      "si": "ඔබේ නම ඇතුළත් කරන්න",
+      "am": "ስምዎን ያስገቡ",
+      "fil": "Ilagay ang inyong pangalan"
+    },
+    "phone_required": {
+      "en": "Please enter your phone number",
+      "es": "Escriba su número de teléfono",
+      "fr": "Entrez votre numéro de téléphone",
+      "pt": "Digite seu número de telefone",
+      "sw": "Weka namba yako ya simu",
+      "vi": "Hãy nhập số điện thoại",
+      "hi": "अपना फ़ोन नंबर लिखें",
+      "ta": "உங்கள் தொலைபேசி எண்ணை உள்ளிடவும்",
+      "si": "ඔබේ දුරකථන අංකය ඇතුළත් කරන්න",
+      "am": "ስልክ ቁጥርዎን ያስገቡ",
+      "fil": "Ilagay ang numero ng inyong telepono"
+    },
+    "phone_short": {
+      "en": "Please enter your full phone number",
+      "es": "Escriba su número de teléfono completo",
+      "fr": "Entrez votre numéro de téléphone complet",
+      "pt": "Digite seu número de telefone completo",
+      "sw": "Weka namba yako kamili ya simu",
+      "vi": "Hãy nhập đủ số điện thoại",
+      "hi": "अपना पूरा फ़ोन नंबर लिखें",
+      "ta": "உங்கள் முழு தொலைபேசி எண்ணை உள்ளிடவும்",
+      "si": "ඔබේ සම්පූර්ණ දුරකථන අංකය ඇතුළත් කරන්න",
+      "am": "ሙሉ ስልክ ቁጥርዎን ያስገቡ",
+      "fil": "Ilagay ang buong numero ng inyong telepono"
+    },
+    "confirm_greeting": {
+      "en": "Hi, {name}!",
+      "es": "¡Hola, {name}!",
+      "fr": "Bonjour, {name} !",
+      "pt": "Olá, {name}!",
+      "sw": "Habari, {name}!",
+      "vi": "Xin chào, {name}!",
+      "hi": "नमस्ते, {name}!",
+      "ta": "வணக்கம், {name}!",
+      "si": "ආයුබෝවන්, {name}!",
+      "am": "ሰላም, {name}!",
+      "fil": "Kumusta po, {name}!"
+    },
+    "confirm_details": {
+      "en": "Please confirm your details:",
+      "es": "Confirme sus datos:",
+      "fr": "Confirmez vos informations :",
+      "pt": "Confirme seus dados:",
+      "sw": "Thibitisha maelezo yako:",
+      "vi": "Hãy xác nhận thông tin của quý vị:",
+      "hi": "अपनी जानकारी जाँचें:",
+      "ta": "உங்கள் விவரங்களை உறுதிப்படுத்தவும்:",
+      "si": "ඔබේ විස්තර තහවුරු කරන්න:",
+      "am": "መረጃዎን ያረጋግጡ፦",
+      "fil": "Kumpirmahin ang inyong detalye:"
+    },
+    "confirm_continue": {
+      "en": "Confirm & Continue →",
+      "es": "Confirmar y continuar →",
+      "fr": "Confirmer et continuer →",
+      "pt": "Confirmar e continuar →",
+      "sw": "Thibitisha na endelea →",
+      "vi": "Xác nhận và tiếp tục →",
+      "hi": "पुष्टि करें और आगे बढ़ें →",
+      "ta": "உறுதிசெய்து தொடரவும் →",
+      "si": "තහවුරු කර ඉදිරියට යන්න →",
+      "am": "ያረጋግጡና ይቀጥሉ →",
+      "fil": "Kumpirmahin at magpatuloy →"
+    },
+    "agree": {
+      "en": "✓ Agree",
+      "es": "✓ Acepto",
+      "fr": "✓ J’accepte",
+      "pt": "✓ Concordo",
+      "sw": "✓ Ninakubali",
+      "vi": "✓ Đồng ý",
+      "hi": "✓ सहमत हूँ",
+      "ta": "✓ ஒப்புக்கொள்கிறேன்",
+      "si": "✓ එකඟයි",
+      "am": "✓ እስማማለሁ",
+      "fil": "✓ Sumasang-ayon ako"
+    },
+    "disagree": {
+      "en": "✕ Disagree",
+      "es": "✕ No acepto",
+      "fr": "✕ Je refuse",
+      "pt": "✕ Não concordo",
+      "sw": "✕ Sikubali",
+      "vi": "✕ Không đồng ý",
+      "hi": "✕ सहमत नहीं हूँ",
+      "ta": "✕ ஒப்புக்கொள்ளவில்லை",
+      "si": "✕ එකඟ නැත",
+      "am": "✕ አልስማማም",
+      "fil": "✕ Hindi ako sang-ayon"
+    },
+    "contact_line": {
+      "en": "Questions or removal requests: ron@bunabaraka.org",
+      "es": "Preguntas o solicitudes de eliminación: ron@bunabaraka.org",
+      "fr": "Questions ou demandes de retrait : ron@bunabaraka.org",
+      "pt": "Perguntas ou pedidos de remoção: ron@bunabaraka.org",
+      "sw": "Maswali au maombi ya kuondoa: ron@bunabaraka.org",
+      "vi": "Câu hỏi hoặc yêu cầu gỡ bỏ: ron@bunabaraka.org",
+      "hi": "सवाल या हटाने के अनुरोध: ron@bunabaraka.org",
+      "ta": "கேள்விகள் அல்லது நீக்கக் கோரிக்கைகள்: ron@bunabaraka.org",
+      "si": "ප්‍රශ්න හෝ ඉවත් කිරීමේ ඉල්ලීම්: ron@bunabaraka.org",
+      "am": "ጥያቄዎች ወይም የማስወገድ ጥያቄዎች: ron@bunabaraka.org",
+      "fil": "Mga tanong o kahilingan na alisin: ron@bunabaraka.org"
+    },
+    "consent_save_error": {
+      "en": "Could not save your consent. Please try again.",
+      "es": "No se pudo guardar su respuesta. Inténtelo de nuevo.",
+      "fr": "Impossible d’enregistrer votre réponse. Réessayez.",
+      "pt": "Não foi possível salvar sua resposta. Tente de novo.",
+      "sw": "Haikuweza kuhifadhi jibu lako. Jaribu tena.",
+      "vi": "Không lưu được câu trả lời. Vui lòng thử lại.",
+      "hi": "आपकी सहमति सेव नहीं हुई। फिर कोशिश करें।",
+      "ta": "உங்கள் ஒப்புதல் சேமிக்கப்படவில்லை. மீண்டும் முயற்சிக்கவும்.",
+      "si": "ඔබේ එකඟතාව සුරැකිය නොහැක. නැවත උත්සාහ කරන්න.",
+      "am": "ፈቃድዎን ማስቀመጥ አልተቻለም። ድጋሚ ይሞክሩ።",
+      "fil": "Hindi na-save ang inyong sagot. Subukan muli."
+    },
+    "decision_save_error": {
+      "en": "Could not save your decision. Please try again.",
+      "es": "No se pudo guardar su decisión. Inténtelo de nuevo.",
+      "fr": "Impossible d’enregistrer votre décision. Réessayez.",
+      "pt": "Não foi possível salvar sua decisão. Tente de novo.",
+      "sw": "Haikuweza kuhifadhi uamuzi wako. Jaribu tena.",
+      "vi": "Không lưu được quyết định của quý vị. Vui lòng thử lại.",
+      "hi": "आपका निर्णय सेव नहीं हुआ। फिर कोशिश करें।",
+      "ta": "உங்கள் முடிவை சேமிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+      "si": "ඔබේ තීරණය සුරැකිය නොහැක. නැවත උත්සාහ කරන්න.",
+      "am": "ውሳኔዎን ማስቀመጥ አልተቻለም። ድጋሚ ይሞክሩ።",
+      "fil": "Hindi na-save ang inyong pasya. Subukan muli."
+    },
+    "declined_title": {
+      "en": "Thank you",
+      "es": "Gracias",
+      "fr": "Merci",
+      "pt": "Obrigado",
+      "sw": "Asante",
+      "vi": "Cảm ơn quý vị",
+      "hi": "धन्यवाद",
+      "ta": "நன்றி",
+      "si": "ස්තුතියි",
+      "am": "እናመሰግናለን",
+      "fil": "Salamat"
+    },
+    "declined_copy": {
+      "en": "Thank you for your time. Your decision has been recorded.",
+      "es": "Gracias por su tiempo. Su decisión fue registrada.",
+      "fr": "Merci pour votre temps. Votre décision a été enregistrée.",
+      "pt": "Obrigado pelo seu tempo. Sua decisão foi registrada.",
+      "sw": "Asante kwa muda wako. Uamuzi wako umehifadhiwa.",
+      "vi": "Cảm ơn quý vị. Quyết định của quý vị đã được ghi lại.",
+      "hi": "आपका समय देने के लिए धन्यवाद। आपका निर्णय दर्ज हो गया है।",
+      "ta": "உங்கள் நேரத்திற்கு நன்றி. உங்கள் முடிவு பதிவு செய்யப்பட்டது.",
+      "si": "ඔබේ කාලයට ස්තුතියි. ඔබේ තීරණය සටහන් විය.",
+      "am": "ለጊዜዎ እናመሰግናለን። ውሳኔዎ ተመዝግቧል።",
+      "fil": "Salamat sa oras ninyo. Naitala ang inyong pasya."
+    },
+    "selfie_title": {
+      "en": "🤳 Take a selfie",
+      "es": "🤳 Tome una selfie",
+      "fr": "🤳 Prenez un selfie",
+      "pt": "🤳 Tire uma selfie",
+      "sw": "🤳 Piga selfie",
+      "vi": "🤳 Chụp ảnh selfie",
+      "hi": "🤳 सेल्फ़ी लें",
+      "ta": "🤳 செல்ஃபி எடுக்கவும்",
+      "si": "🤳 සෙල්ෆියක් ගන්න",
+      "am": "🤳 የራስዎን ፎቶ ያንሱ",
+      "fil": "🤳 Mag-selfie"
+    },
+    "take_photo": {
+      "en": "Take photo",
+      "es": "Tomar foto",
+      "fr": "Prendre une photo",
+      "pt": "Tirar foto",
+      "sw": "Piga picha",
+      "vi": "Chụp ảnh",
+      "hi": "फ़ोटो लें",
+      "ta": "புகைப்படம் எடுக்கவும்",
+      "si": "ඡායාරූපයක් ගන්න",
+      "am": "ፎቶ ያንሱ",
+      "fil": "Kumuha ng larawan"
+    },
+    "retake": {
+      "en": "↺ Retake",
+      "es": "↺ Tomar otra",
+      "fr": "↺ Reprendre",
+      "pt": "↺ Tirar outra",
+      "sw": "↺ Piga tena",
+      "vi": "↺ Chụp lại",
+      "hi": "↺ फिर से लें",
+      "ta": "↺ மீண்டும் எடுக்கவும்",
+      "si": "↺ නැවත ගන්න",
+      "am": "↺ እንደገና ያንሱ",
+      "fil": "↺ Kunan muli"
+    },
+    "use_photo": {
+      "en": "✓ Use this photo",
+      "es": "✓ Usar esta foto",
+      "fr": "✓ Utiliser cette photo",
+      "pt": "✓ Usar esta foto",
+      "sw": "✓ Tumia picha hii",
+      "vi": "✓ Dùng ảnh này",
+      "hi": "✓ यही फ़ोटो रखें",
+      "ta": "✓ இந்தப் புகைப்படத்தைப் பயன்படுத்தவும்",
+      "si": "✓ මේ ඡායාරූපය භාවිතා කරන්න",
+      "am": "✓ ይህን ፎቶ ይጠቀሙ",
+      "fil": "✓ Gamitin ang larawang ito"
+    },
+    "flip_camera_aria": {
+      "en": "Flip camera",
+      "es": "Cambiar cámara",
+      "fr": "Retourner la caméra",
+      "pt": "Virar câmera",
+      "sw": "Geuza kamera",
+      "vi": "Đổi máy ảnh",
+      "hi": "कैमरा बदलें",
+      "ta": "கேமராவை மாற்றவும்",
+      "si": "කැමරාව මාරු කරන්න",
+      "am": "ካሜራ ይቀይሩ",
+      "fil": "Baligtarin ang camera"
+    },
+    "selfie_preview_alt": {
+      "en": "Selfie preview",
+      "es": "Vista previa de selfie",
+      "fr": "Aperçu du selfie",
+      "pt": "Prévia da selfie",
+      "sw": "Onyesho la selfie",
+      "vi": "Xem trước ảnh selfie",
+      "hi": "सेल्फ़ी झलक",
+      "ta": "செல்ஃபி முன்னோட்டம்",
+      "si": "සෙල්ෆි පෙරදසුන",
+      "am": "የራስ ፎቶ ቅድመ እይታ",
+      "fil": "Preview ng selfie"
+    },
+    "camera_starting": {
+      "en": "Camera is still starting. Please try again.",
+      "es": "La cámara aún está iniciando. Inténtelo de nuevo.",
+      "fr": "La caméra démarre encore. Réessayez.",
+      "pt": "A câmera ainda está iniciando. Tente de novo.",
+      "sw": "Kamera bado inaanza. Jaribu tena.",
+      "vi": "Máy ảnh đang mở. Vui lòng thử lại.",
+      "hi": "कैमरा अभी शुरू हो रहा है। फिर कोशिश करें।",
+      "ta": "கேமரா இன்னும் தொடங்குகிறது. மீண்டும் முயற்சிக்கவும்.",
+      "si": "කැමරාව තවම ආරම්භ වෙමින් ඇත. නැවත උත්සාහ කරන්න.",
+      "am": "ካሜራው ገና በመጀመር ላይ ነው። ድጋሚ ይሞክሩ።",
+      "fil": "Nagsisimula pa ang camera. Subukan muli."
+    },
+    "capture_error": {
+      "en": "Could not capture your photo. Please try again.",
+      "es": "No se pudo tomar su foto. Inténtelo de nuevo.",
+      "fr": "Impossible de prendre votre photo. Réessayez.",
+      "pt": "Não foi possível tirar sua foto. Tente de novo.",
+      "sw": "Haikuweza kupiga picha yako. Jaribu tena.",
+      "vi": "Không chụp được ảnh của quý vị. Vui lòng thử lại.",
+      "hi": "आपकी फ़ोटो नहीं ली जा सकी। फिर कोशिश करें।",
+      "ta": "உங்கள் புகைப்படத்தை எடுக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
+      "si": "ඔබේ ඡායාරූපය ගත නොහැකි විය. නැවත උත්සාහ කරන්න.",
+      "am": "ፎቶዎን ማንሳት አልተቻለም። ድጋሚ ይሞክሩ።",
+      "fil": "Hindi makuha ang larawan ninyo. Subukan muli."
+    },
+    "selfie_dark": {
+      "en": "Photo looks dark — try again in better light",
+      "es": "La foto se ve oscura. Inténtelo con más luz.",
+      "fr": "La photo est sombre. Réessayez avec plus de lumière.",
+      "pt": "A foto está escura. Tente com mais luz.",
+      "sw": "Picha ina giza. Jaribu mahali penye mwanga zaidi.",
+      "vi": "Ảnh bị tối. Hãy thử nơi sáng hơn.",
+      "hi": "फ़ोटो अंधेरी है। अधिक रोशनी में फिर कोशिश करें।",
+      "ta": "புகைப்படம் இருட்டாக உள்ளது. அதிக வெளிச்சத்தில் மீண்டும் முயற்சிக்கவும்.",
+      "si": "ඡායාරූපය අඳුරුයි. වැඩි ආලෝකයක් ඇති තැනක නැවත උත්සාහ කරන්න.",
+      "am": "ፎቶው ጨለማ ነው። በበለጠ ብርሃን ድጋሚ ይሞክሩ።",
+      "fil": "Madilim ang larawan. Subukan sa mas maliwanag na lugar."
+    },
+    "selfie_unclear": {
+      "en": "We could not see you clearly — put your head inside the oval and retake",
+      "es": "No pudimos verle bien. Ponga su cabeza dentro del óvalo y tome otra foto.",
+      "fr": "Nous ne vous voyons pas bien. Placez votre tête dans l’ovale et reprenez la photo.",
+      "pt": "Não conseguimos ver você bem. Coloque a cabeça dentro do oval e tire outra foto.",
+      "sw": "Hatukuweza kukuona vizuri. Weka kichwa ndani ya umbo la yai na upige picha tena.",
+      "vi": "Chúng tôi không thấy rõ quý vị. Hãy đặt đầu vào trong hình bầu dục rồi chụp lại.",
+      "hi": "हम आपको साफ़ नहीं देख पाए। अपना सिर अंडाकार के अंदर रखें और फिर फ़ोटो लें।",
+      "ta": "உங்களைத் தெளிவாகப் பார்க்க முடியவில்லை. உங்கள் தலையை ஓவல் வடிவத்துக்குள் வைத்து மீண்டும் படம் எடுக்கவும்.",
+      "si": "ඔබව පැහැදිලිව දැකීමට නොහැකි විය. හිස ඕවලාකාරය තුළ තබා නැවත ඡායාරූපය ගන්න.",
+      "am": "በግልጽ ማየት አልቻልንም። ራስዎን በሞላላው ውስጥ አድርገው ፎቶውን ድጋሚ ያንሱ።",
+      "fil": "Hindi namin kayo makita nang malinaw. Ilagay ang ulo sa loob ng bilog na pahaba at kunan muli."
+    },
+    "selfie_good": {
+      "en": "Looks good ✓",
+      "es": "Se ve bien ✓",
+      "fr": "C’est bien ✓",
+      "pt": "Está bom ✓",
+      "sw": "Inaonekana vizuri ✓",
+      "vi": "Trông đẹp ✓",
+      "hi": "अच्छा है ✓",
+      "ta": "நன்றாக உள்ளது ✓",
+      "si": "හොඳයි ✓",
+      "am": "ጥሩ ይመስላል ✓",
+      "fil": "Ayos na ✓"
+    },
+    "update_info": {
+      "en": "Update info / Rescind consent",
+      "es": "Cambiar datos / Retirar consentimiento",
+      "fr": "Modifier mes infos / Retirer mon accord",
+      "pt": "Alterar dados / Retirar consentimento",
+      "sw": "Badilisha taarifa / Ondoa idhini",
+      "vi": "Sửa thông tin / Rút lại đồng ý",
+      "hi": "जानकारी बदलें / सहमति वापस लें",
+      "ta": "தகவலை மாற்றவும் / ஒப்புதலைத் திரும்பப் பெறவும்",
+      "si": "විස්තර වෙනස් කරන්න / එකඟතාව ඉවත් කරන්න",
+      "am": "መረጃ ይቀይሩ / ፈቃድ ይመልሱ",
+      "fil": "Baguhin ang detalye / Bawiin ang pahintulot"
+    },
+    "start_recording": {
+      "en": "Start recording",
+      "es": "Empezar a grabar",
+      "fr": "Commencer l’enregistrement",
+      "pt": "Começar a gravar",
+      "sw": "Anza kurekodi",
+      "vi": "Bắt đầu quay",
+      "hi": "रिकॉर्डिंग शुरू करें",
+      "ta": "பதிவு தொடங்கவும்",
+      "si": "පටිගත කිරීම අරඹන්න",
+      "am": "መቅረጽ ይጀምሩ",
+      "fil": "Simulan ang pag-record"
+    },
+    "sound_check": {
+      "en": "Sound check",
+      "es": "Prueba de sonido",
+      "fr": "Test du son",
+      "pt": "Teste de som",
+      "sw": "Jaribio la sauti",
+      "vi": "Kiểm tra âm thanh",
+      "hi": "आवाज़ जाँच",
+      "ta": "ஒலி சோதனை",
+      "si": "හඬ පරීක්ෂාව",
+      "am": "የድምፅ ሙከራ",
+      "fil": "Pagsubok ng tunog"
+    },
+    "say_hello": {
+      "en": "Please say hello.",
+      "es": "Por favor, diga hola.",
+      "fr": "Veuillez dire bonjour.",
+      "pt": "Por favor, diga olá.",
+      "sw": "Tafadhali sema habari.",
+      "vi": "Xin quý vị nói xin chào.",
+      "hi": "कृपया नमस्ते बोलिए।",
+      "ta": "தயவுசெய்து வணக்கம் சொல்லுங்கள்.",
+      "si": "කරුණාකර ආයුබෝවන් කියන්න.",
+      "am": "እባክዎ ሰላም ይበሉ።",
+      "fil": "Pakisabi po ang kumusta."
+    },
+    "heard_you": {
+      "en": "We can hear you",
+      "es": "Podemos oírle",
+      "fr": "Nous vous entendons",
+      "pt": "Podemos ouvir você",
+      "sw": "Tunaweza kukusikia",
+      "vi": "Chúng tôi nghe thấy quý vị",
+      "hi": "हम आपको सुन सकते हैं",
+      "ta": "உங்களைக் கேட்க முடிகிறது",
+      "si": "අපට ඔබව ඇසෙනවා",
+      "am": "ልንሰማዎት እንችላለን",
+      "fil": "Naririnig namin kayo"
+    },
+    "mic_heard_detail": {
+      "en": "Your microphone is picking up your voice.",
+      "es": "Su micrófono capta su voz.",
+      "fr": "Votre micro capte votre voix.",
+      "pt": "Seu microfone está captando sua voz.",
+      "sw": "Kipaza sauti chako kinachukua sauti yako.",
+      "vi": "Mic của quý vị đang nhận giọng nói.",
+      "hi": "आपका माइक्रोफ़ोन आपकी आवाज़ पकड़ रहा है।",
+      "ta": "உங்கள் மைக்ரோஃபோன் உங்கள் குரலைப் பெறுகிறது.",
+      "si": "ඔබේ මයික්‍රෆෝනය ඔබේ හඬ ගන්නවා.",
+      "am": "ማይክሮፎንዎ ድምፅዎን እየቀበለ ነው።",
+      "fil": "Nakukuha ng mikropono ang boses ninyo."
+    },
+    "no_sound": {
+      "en": "No sound detected",
+      "es": "No se detectó sonido",
+      "fr": "Aucun son détecté",
+      "pt": "Nenhum som detectado",
+      "sw": "Hakuna sauti iliyosikika",
+      "vi": "Không phát hiện âm thanh",
+      "hi": "कोई आवाज़ नहीं मिली",
+      "ta": "ஒலி கண்டறியப்படவில்லை",
+      "si": "හඬක් හමු නොවීය",
+      "am": "ድምፅ አልተገኘም",
+      "fil": "Walang nakitang tunog"
+    },
+    "mic_hint": {
+      "en": "Try speaking closer to the phone or check your mic.",
+      "es": "Hable más cerca del teléfono o revise su micrófono.",
+      "fr": "Parlez plus près du téléphone ou vérifiez votre micro.",
+      "pt": "Fale mais perto do telefone ou verifique seu microfone.",
+      "sw": "Ongea karibu na simu au angalia kipaza sauti.",
+      "vi": "Hãy nói gần điện thoại hơn hoặc kiểm tra mic.",
+      "hi": "फ़ोन के पास बोलें या अपना माइक्रोफ़ोन जाँचें।",
+      "ta": "ஃபோனுக்கு அருகில் பேசுங்கள் அல்லது மைக்ரோஃபோனைப் பாருங்கள்.",
+      "si": "දුරකථනයට ළඟින් කතා කරන්න හෝ මයික්‍රෆෝනය පරීක්ෂා කරන්න.",
+      "am": "ወደ ስልኩ ቀርበው ይናገሩ ወይም ማይክሮፎንዎን ይመልከቱ።",
+      "fil": "Magsalita nang mas malapit sa telepono o tingnan ang mikropono."
+    },
+    "next": {
+      "en": "Next →",
+      "es": "Siguiente →",
+      "fr": "Suivant →",
+      "pt": "Próximo →",
+      "sw": "Inayofuata →",
+      "vi": "Tiếp theo →",
+      "hi": "आगे →",
+      "ta": "அடுத்து →",
+      "si": "ඊළඟට →",
+      "am": "ቀጣይ →",
+      "fil": "Susunod →"
+    },
+    "try_again": {
+      "en": "Try again",
+      "es": "Intentar de nuevo",
+      "fr": "Réessayer",
+      "pt": "Tentar de novo",
+      "sw": "Jaribu tena",
+      "vi": "Thử lại",
+      "hi": "फिर कोशिश करें",
+      "ta": "மீண்டும் முயற்சிக்கவும்",
+      "si": "නැවත උත්සාහ කරන්න",
+      "am": "ድጋሚ ይሞክሩ",
+      "fil": "Subukan muli"
+    },
+    "continue_anyway": {
+      "en": "Continue anyway",
+      "es": "Continuar de todos modos",
+      "fr": "Continuer quand même",
+      "pt": "Continuar mesmo assim",
+      "sw": "Endelea hata hivyo",
+      "vi": "Vẫn tiếp tục",
+      "hi": "फिर भी आगे बढ़ें",
+      "ta": "எப்படியும் தொடரவும்",
+      "si": "එහෙත් ඉදිරියට යන්න",
+      "am": "ቢሆንም ይቀጥሉ",
+      "fil": "Magpatuloy pa rin"
+    },
+    "recording": {
+      "en": "Recording",
+      "es": "Grabando",
+      "fr": "Enregistrement",
+      "pt": "Gravando",
+      "sw": "Inarekodi",
+      "vi": "Đang quay",
+      "hi": "रिकॉर्ड हो रहा है",
+      "ta": "பதிவு செய்கிறது",
+      "si": "පටිගත වෙමින් පවතී",
+      "am": "በመቅረጽ ላይ",
+      "fil": "Nagre-record"
+    },
+    "stop": {
+      "en": "■ Stop",
+      "es": "■ Detener",
+      "fr": "■ Arrêter",
+      "pt": "■ Parar",
+      "sw": "■ Simamisha",
+      "vi": "■ Dừng",
+      "hi": "■ रोकें",
+      "ta": "■ நிறுத்தவும்",
+      "si": "■ නවත්වන්න",
+      "am": "■ ያቁሙ",
+      "fil": "■ Ihinto"
+    },
+    "saving": {
+      "en": "Saving…",
+      "es": "Guardando…",
+      "fr": "Enregistrement…",
+      "pt": "Salvando…",
+      "sw": "Inahifadhi…",
+      "vi": "Đang lưu…",
+      "hi": "सहेजा जा रहा है…",
+      "ta": "சேமிக்கப்படுகிறது…",
+      "si": "සුරකිමින් පවතී…",
+      "am": "በማስቀመጥ ላይ…",
+      "fil": "Sine-save…"
+    },
+    "review_response": {
+      "en": "Review your response",
+      "es": "Revise su respuesta",
+      "fr": "Vérifiez votre réponse",
+      "pt": "Revise sua resposta",
+      "sw": "Kagua jibu lako",
+      "vi": "Xem lại câu trả lời",
+      "hi": "अपना जवाब देखें",
+      "ta": "உங்கள் பதிலைப் பாருங்கள்",
+      "si": "ඔබේ පිළිතුර බලන්න",
+      "am": "መልስዎን ይመልከቱ",
+      "fil": "Suriin ang inyong sagot"
+    },
+    "rerecord": {
+      "en": "↺ Re-record",
+      "es": "↺ Grabar de nuevo",
+      "fr": "↺ Réenregistrer",
+      "pt": "↺ Gravar de novo",
+      "sw": "↺ Rekodi tena",
+      "vi": "↺ Quay lại",
+      "hi": "↺ फिर रिकॉर्ड करें",
+      "ta": "↺ மீண்டும் பதிவு செய்யவும்",
+      "si": "↺ නැවත පටිගත කරන්න",
+      "am": "↺ እንደገና ይቅረጹ",
+      "fil": "↺ Mag-record muli"
+    },
+    "upload": {
+      "en": "✓ Upload",
+      "es": "✓ Enviar",
+      "fr": "✓ Envoyer",
+      "pt": "✓ Enviar",
+      "sw": "✓ Tuma",
+      "vi": "✓ Gửi",
+      "hi": "✓ भेजें",
+      "ta": "✓ அனுப்பவும்",
+      "si": "✓ යවන්න",
+      "am": "✓ ይላኩ",
+      "fil": "✓ Ipadala"
+    },
+    "uploading": {
+      "en": "Uploading your response…",
+      "es": "Enviando su respuesta…",
+      "fr": "Envoi de votre réponse…",
+      "pt": "Enviando sua resposta…",
+      "sw": "Inatuma jibu lako…",
+      "vi": "Đang gửi câu trả lời…",
+      "hi": "आपका जवाब भेजा जा रहा है…",
+      "ta": "உங்கள் பதில் அனுப்பப்படுகிறது…",
+      "si": "ඔබේ පිළිතුර යවමින් පවතී…",
+      "am": "መልስዎ በመላክ ላይ…",
+      "fil": "Ipinapadala ang inyong sagot…"
+    },
+    "upload_hint": {
+      "en": "Please stay on this page until the upload is complete.",
+      "es": "Permanezca en esta página hasta que termine el envío.",
+      "fr": "Restez sur cette page jusqu’à la fin de l’envoi.",
+      "pt": "Fique nesta página até o envio terminar.",
+      "sw": "Tafadhali baki kwenye ukurasa huu hadi kutuma kumalizike.",
+      "vi": "Hãy ở lại trang này đến khi gửi xong.",
+      "hi": "भेजना पूरा होने तक इसी पेज पर रहें।",
+      "ta": "அனுப்புவது முடியும் வரை இந்தப் பக்கத்தில் இருங்கள்.",
+      "si": "යැවීම අවසන් වන තෙක් මෙම පිටුවේ රැඳී සිටින්න.",
+      "am": "መላኩ እስኪጠናቀቅ ድረስ በዚህ ገጽ ላይ ይቆዩ።",
+      "fil": "Manatili sa pahinang ito hanggang matapos ang pagpapadala."
+    },
+    "upload_failed": {
+      "en": "Upload failed: {reason}",
+      "es": "Error al enviar: {reason}",
+      "fr": "Échec de l’envoi : {reason}",
+      "pt": "Falha ao enviar: {reason}",
+      "sw": "Kutuma kumeshindikana: {reason}",
+      "vi": "Gửi không thành công: {reason}",
+      "hi": "भेजना विफल हुआ: {reason}",
+      "ta": "பதிவேற்றம் தோல்வியடைந்தது: {reason}",
+      "si": "යැවීම අසාර්ථක විය: {reason}",
+      "am": "መላክ አልተሳካም፦ {reason}",
+      "fil": "Nabigo ang pag-upload: {reason}"
+    },
+    "missing_selfie": {
+      "en": "Missing selfie photo. Please retake your photo and try again.",
+      "es": "Falta la foto selfie. Tome otra foto e inténtelo de nuevo.",
+      "fr": "La photo selfie manque. Reprenez une photo et réessayez.",
+      "pt": "Falta a selfie. Tire outra foto e tente de novo.",
+      "sw": "Picha ya selfie haipo. Piga tena na ujaribu tena.",
+      "vi": "Thiếu ảnh selfie. Hãy chụp lại rồi thử lại.",
+      "hi": "सेल्फ़ी फ़ोटो नहीं है। फिर फ़ोटो लें और कोशिश करें।",
+      "ta": "செல்ஃபி புகைப்படம் இல்லை. மீண்டும் எடுத்து முயற்சிக்கவும்.",
+      "si": "සෙල්ෆි ඡායාරූපය නැත. නැවත ගෙන උත්සාහ කරන්න.",
+      "am": "የራስ ፎቶው የለም። ድጋሚ አንስተው ይሞክሩ።",
+      "fil": "Wala ang selfie. Kunan muli at subukan uli."
+    },
+    "recording_stopped": {
+      "en": "Recording stopped unexpectedly. Please try again.",
+      "es": "La grabación se detuvo inesperadamente. Inténtelo de nuevo.",
+      "fr": "L’enregistrement s’est arrêté. Réessayez.",
+      "pt": "A gravação parou. Tente de novo.",
+      "sw": "Kurekodi kumesimama ghafla. Jaribu tena.",
+      "vi": "Việc quay đã dừng. Vui lòng thử lại.",
+      "hi": "रिकॉर्डिंग रुक गई। फिर कोशिश करें।",
+      "ta": "பதிவு நின்றுவிட்டது. மீண்டும் முயற்சிக்கவும்.",
+      "si": "පටිගත කිරීම නතර විය. නැවත උත්සාහ කරන්න.",
+      "am": "ቀረጻው ቆሟል። ድጋሚ ይሞክሩ።",
+      "fil": "Huminto ang pag-record. Subukan muli."
+    },
+    "unknown_error": {
+      "en": "Unknown error. Please try again.",
+      "es": "Error desconocido. Inténtelo de nuevo.",
+      "fr": "Erreur inconnue. Réessayez.",
+      "pt": "Erro desconhecido. Tente de novo.",
+      "sw": "Hitilafu isiyojulikana. Jaribu tena.",
+      "vi": "Lỗi không rõ. Vui lòng thử lại.",
+      "hi": "अज्ञात त्रुटि। फिर कोशिश करें।",
+      "ta": "தெரியாத பிழை. மீண்டும் முயற்சிக்கவும்.",
+      "si": "නොදන්නා දෝෂයකි. නැවත උත්සාහ කරන්න.",
+      "am": "ያልታወቀ ስህተት። ድጋሚ ይሞክሩ።",
+      "fil": "Hindi kilalang error. Subukan muli."
+    },
+    "submission_complete": {
+      "en": "Submission complete",
+      "es": "Envío completo",
+      "fr": "Envoi terminé",
+      "pt": "Envio concluído",
+      "sw": "Kutuma kumekamilika",
+      "vi": "Gửi xong",
+      "hi": "भेजना पूरा हुआ",
+      "ta": "அனுப்புதல் முடிந்தது",
+      "si": "යැවීම සම්පූර්ණයි",
+      "am": "መላክ ተጠናቋል",
+      "fil": "Kumpleto na ang pagpapadala"
+    },
+    "thank_you_name": {
+      "en": "Thank you{name}!",
+      "es": "¡Gracias{name}!",
+      "fr": "Merci{name} !",
+      "pt": "Obrigado{name}!",
+      "sw": "Asante{name}!",
+      "vi": "Cảm ơn{name}!",
+      "hi": "धन्यवाद{name}!",
+      "ta": "நன்றி{name}!",
+      "si": "ස්තුතියි{name}!",
+      "am": "እናመሰግናለን{name}!",
+      "fil": "Salamat{name}!"
+    },
+    "video_sent": {
+      "en": "Thank you! Your video has been sent.",
+      "es": "¡Gracias! Su video fue enviado.",
+      "fr": "Merci. Votre vidéo a été envoyée.",
+      "pt": "Obrigado. Seu vídeo foi enviado.",
+      "sw": "Asante. Video yako imetumwa.",
+      "vi": "Cảm ơn. Video của quý vị đã được gửi.",
+      "hi": "धन्यवाद। आपका वीडियो भेज दिया गया है।",
+      "ta": "நன்றி. உங்கள் வீடியோ அனுப்பப்பட்டது.",
+      "si": "ස්තුතියි. ඔබේ වීඩියෝව යවා ඇත.",
+      "am": "እናመሰግናለን። ቪዲዮዎ ተልኳል።",
+      "fil": "Salamat. Naipadala ang inyong video."
+    },
+    "brand_footer": {
+      "en": "Buna Baraka",
+      "es": "Buna Baraka",
+      "fr": "Buna Baraka",
+      "pt": "Buna Baraka",
+      "sw": "Buna Baraka",
+      "vi": "Buna Baraka",
+      "hi": "Buna Baraka",
+      "ta": "Buna Baraka",
+      "si": "Buna Baraka",
+      "am": "Buna Baraka",
+      "fil": "Buna Baraka"
+    },
+    "country_options": {
+      "en": "Brazil, Colombia, Ethiopia, Guatemala, Honduras, India, Indonesia, Kenya, Mexico, Peru, Philippines, Rwanda, Tanzania, Uganda, Vietnam, Yemen, Sri Lanka, China, Hong Kong, Other",
+      "es": "Brasil, Colombia, Etiopía, Guatemala, Honduras, India, Indonesia, Kenia, México, Perú, Filipinas, Ruanda, Tanzania, Uganda, Vietnam, Yemen, Sri Lanka, China, Hong Kong, Otro",
+      "fr": "Brésil, Colombie, Éthiopie, Guatemala, Honduras, Inde, Indonésie, Kenya, Mexique, Pérou, Philippines, Rwanda, Tanzanie, Ouganda, Vietnam, Yémen, Sri Lanka, Chine, Hong Kong, Autre",
+      "pt": "Brasil, Colômbia, Etiópia, Guatemala, Honduras, Índia, Indonésia, Quênia, México, Peru, Filipinas, Ruanda, Tanzânia, Uganda, Vietnã, Iêmen, Sri Lanka, China, Hong Kong, Outro",
+      "sw": "Brazili, Kolombia, Ethiopia, Guatemala, Honduras, India, Indonesia, Kenya, Mexico, Peru, Ufilipino, Rwanda, Tanzania, Uganda, Vietnam, Yemen, Sri Lanka, China, Hong Kong, Nyingine",
+      "vi": "Brazil, Colombia, Ethiopia, Guatemala, Honduras, Ấn Độ, Indonesia, Kenya, Mexico, Peru, Philippines, Rwanda, Tanzania, Uganda, Việt Nam, Yemen, Sri Lanka, Trung Quốc, Hồng Kông, Khác",
+      "hi": "ब्राज़ील, कोलंबिया, इथियोपिया, ग्वाटेमाला, होंडुरास, भारत, इंडोनेशिया, केन्या, मेक्सिको, पेरू, फ़िलीपींस, रवांडा, तंज़ानिया, युगांडा, वियतनाम, यमन, श्रीलंका, चीन, हांगकांग, अन्य",
+      "ta": "பிரேசில், கொலம்பியா, எத்தியோப்பியா, குவாத்தமாலா, ஹோண்டுராஸ், இந்தியா, இந்தோனேசியா, கென்யா, மெக்சிகோ, பெரு, பிலிப்பைன்ஸ், ருவாண்டா, தான்சானியா, உகாண்டா, வியட்நாம், ஏமன், இலங்கை, சீனா, ஹாங்காங், மற்றவை",
+      "si": "බ්‍රසීලය, කොලොම්බියාව, ඉතියෝපියාව, ග්වාතමාලාව, හොන්ඩුරාස්, ඉන්දියාව, ඉන්දුනීසියාව, කෙන්යාව, මෙක්සිකෝව, පේරු, පිලිපීනය, රුවන්ඩාව, ටැන්සානියාව, උගන්ඩාව, වියට්නාමය, යේමනය, ශ්‍රී ලංකාව, චීනය, හොංකොං, වෙනත්",
+      "am": "ብራዚል፣ ኮሎምቢያ፣ ኢትዮጵያ፣ ጓቲማላ፣ ሆንዱራስ፣ ህንድ፣ ኢንዶኔዥያ፣ ኬንያ፣ ሜክሲኮ፣ ፔሩ፣ ፊሊፒንስ፣ ሩዋንዳ፣ ታንዛኒያ፣ ዩጋንዳ፣ ቬትናም፣ የመን፣ ስሪላንካ፣ ቻይና፣ ሆንግ ኮንግ፣ ሌላ",
+      "fil": "Brazil, Colombia, Ethiopia, Guatemala, Honduras, India, Indonesia, Kenya, Mexico, Peru, Pilipinas, Rwanda, Tanzania, Uganda, Vietnam, Yemen, Sri Lanka, China, Hong Kong, Iba"
+    },
+    "smile": {
+      "en": "Smile",
+      "es": "Sonría",
+      "fr": "Souriez",
+      "pt": "Sorria",
+      "sw": "Tabasamu",
+      "vi": "Mỉm cười",
+      "hi": "मुस्कुराएँ",
+      "ta": "புன்னகைக்கவும்",
+      "si": "සිනාසෙන්න",
+      "am": "ፈገግ ይበሉ",
+      "fil": "Ngumiti"
+    },
+    "get_ready": {
+      "en": "Get ready",
+      "es": "Prepárese",
+      "fr": "Préparez-vous",
+      "pt": "Prepare-se",
+      "sw": "Jitayarishe",
+      "vi": "Chuẩn bị",
+      "hi": "तैयार हो जाएँ",
+      "ta": "தயாராகுங்கள்",
+      "si": "සූදානම් වන්න",
+      "am": "ይዘጋጁ",
+      "fil": "Maghanda"
+    }
+  };
+
   // ── State ────────────────────────────────────────────────────────────────
   let farmerId        = null;
   let farmerName      = null;
   let farmerCountry   = null;
   let farmerPhone     = null;
   let farmerLang      = DEFAULT_LANG;
+  const sharedPromptAudio = new Audio();
+  sharedPromptAudio.preload = 'auto';
+  let audioUnlocked = false;
+  let unlockPending = false;
+
+  function unlockPromptAudio() {
+    if (audioUnlocked || unlockPending || currentAudio) return;
+    unlockPending = true;
+    sharedPromptAudio.src = 'data:audio/wav;base64,UklGRiUAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQEAAACA';
+    try {
+      const attempt = sharedPromptAudio.play();
+      Promise.resolve(attempt).then(() => {
+        audioUnlocked = true;
+        if (!currentAudio) sharedPromptAudio.pause();
+      }).catch(() => {}).finally(() => { unlockPending = false; });
+    } catch { unlockPending = false; }
+  }
+
+  document.addEventListener('pointerdown', unlockPromptAudio, true);
+  document.addEventListener('keydown', unlockPromptAudio, true);
+
+  function t(key, variables = {}) {
+    const translations = UI_TEXTS[key];
+    if (!translations) {
+      console.warn(`[webcap] Missing UI translation key: ${key}`);
+      return key;
+    }
+    let value = translations[farmerLang];
+    if (!value) {
+      console.warn(`[webcap] Missing ${farmerLang} translation: ${key}; using English`);
+      value = translations.en;
+    }
+    return value.replace(/\{(\w+)\}/g, (match, name) =>
+      Object.prototype.hasOwnProperty.call(variables, name) ? variables[name] : match);
+  }
+
+  function translatedCountry(country) {
+    const index = COUNTRY_OPTIONS.indexOf(country);
+    if (index < 0) {
+      if (country === 'United Kingdom') {
+        try { return new Intl.DisplayNames([farmerLang], { type: 'region' }).of('GB'); } catch { return country; }
+      }
+      return country;
+    }
+    const names = t('country_options').split(/,\s*|፣\s*/);
+    return names[index] || country;
+  }
+
+  function updateDocumentLanguage() {
+    document.documentElement.lang = farmerLang;
+    document.title = t('document_title');
+  }
   let consentGiven    = null;
   let consentTime     = null;
   let questions       = [];
@@ -211,6 +1228,7 @@
   let currentAudioDelayResolve = null;
   let isMuted         = false;
   let screenAudioController = null;
+  let blockedPromptRetry = null;
   let audioToggleState = 'idle';
   let audioToggleTimer = null;
   let reviewObjectUrl = null;
@@ -332,8 +1350,10 @@
       && document.getElementById('soundStatus')
       && currentMicLevel >= SOUND_LEVEL_THRESHOLD
     ) {
+      const firstDetection = !soundCheckHeard;
       soundCheckHeard = true;
       clearSoundCheckTimer();
+      if (firstDetection) void playAudioClip('soundcheck_success', farmerLang, { retryClipOnTap: true });
     }
     updateSoundCheckUi();
 
@@ -381,24 +1401,24 @@
 
     if (soundCheckHeard) {
       indicator.classList.add('sound-indicator--detected');
-      status.textContent = 'We can hear you';
+      status.textContent = t('heard_you');
       status.className = 'sound-status sound-status--good';
-      statusDetail.textContent = 'Your microphone is picking up your voice.';
-      primary.textContent = 'Next →';
+      statusDetail.textContent = t('mic_heard_detail');
+      primary.textContent = t('next');
       continueAnyway.style.display = 'none';
     } else if (soundCheckTimedOut) {
       indicator.classList.remove('sound-indicator--detected');
-      status.textContent = 'No sound detected';
+      status.textContent = t('no_sound');
       status.className = 'sound-status sound-status--warn';
-      statusDetail.textContent = 'Try speaking closer to the phone or check your mic.';
-      primary.textContent = 'Try again';
+      statusDetail.textContent = t('mic_hint');
+      primary.textContent = t('try_again');
       continueAnyway.style.display = 'inline-block';
     } else {
       indicator.classList.remove('sound-indicator--detected');
       status.textContent = '';
       status.className = 'sound-status';
       statusDetail.textContent = '';
-      primary.textContent = 'Next';
+      primary.textContent = t('next');
       continueAnyway.style.display = 'none';
     }
   }
@@ -484,6 +1504,7 @@
     farmerPhone   = params.get('phone') || null;
     const urlLang = params.get('lang') || DEFAULT_LANG;
     farmerLang    = SUPPORTED_LANGS.includes(urlLang) ? urlLang : DEFAULT_LANG;
+    updateDocumentLanguage();
 
     // (a) Log what params were read from URL
     console.log('[webcap] URL params:', {
@@ -511,7 +1532,7 @@
       window.SUPABASE_ANON_KEY = config.supabaseAnonKey;
     } catch (err) {
       console.error('[webcap] Failed to load config:', err);
-      showError('App is not configured. Please contact your coordinator.');
+      showError(t('config_error'));
       return;
     }
 
@@ -548,7 +1569,10 @@
         farmerPhone   = existingSubmission.phone || farmerPhone;
         consentGiven  = existingSubmission.consent_given;
         consentTime   = existingSubmission.consent_timestamp;
-        farmerLang    = existingSubmission.language || farmerLang;
+        if (!params.has('lang') && SUPPORTED_LANGS.includes(existingSubmission.language)) {
+          farmerLang = existingSubmission.language;
+          updateDocumentLanguage();
+        }
         isReturningFarmer = true;
 
         if (consentGiven === true) {
@@ -657,7 +1681,7 @@
       }
       return true;
     } catch (err) {
-      showError('Could not load questions. Please try again later.');
+      showError(t('questions_load_error'));
       return false;
     }
   }
@@ -666,6 +1690,7 @@
     if (!question || !question.text) return null;
     const requestedText = question.text[lang];
     const englishText = question.text[DEFAULT_LANG];
+    if ((!requestedText || !requestedText.trim()) && lang !== DEFAULT_LANG) console.warn(`[webcap] Missing question translation for ${lang}; using English`);
     return (requestedText && requestedText.trim()) || (englishText && englishText.trim()) || null;
   }
 
@@ -730,7 +1755,7 @@
   }
 
   function renderMuteToggleContent() {
-    return `${renderMuteToggleIcon(isMuted)}${muteToggleShowsLabel() ? '<span class="mute-toggle-label">Tap for sound</span>' : ''}`;
+    return `${renderMuteToggleIcon(isMuted)}${muteToggleShowsLabel() ? `<span class="mute-toggle-label">${escapeHtml(t('tap_for_sound'))}</span>` : ''}`;
   }
 
   function renderMuteToggle() {
@@ -749,7 +1774,7 @@
 
   function renderAudioReplayButton(id, className = '') {
     return `
-      <button class="audio-replay-icon${className ? ` ${className}` : ''}" id="${id}" type="button" aria-label="Replay audio">
+      <button class="audio-replay-icon${className ? ` ${className}` : ''}" id="${id}" type="button" aria-label="${escapeHtml(t('replay_audio_aria'))}">
         <span aria-hidden="true">↺</span>
       </button>
     `;
@@ -767,7 +1792,7 @@
   function syncMuteToggleButton(button) {
     if (!button) return;
     button.innerHTML = renderMuteToggleContent();
-    const action = audioToggleState === 'playing' ? 'Mute audio' : 'Play audio';
+    const action = t(audioToggleState === 'playing' ? 'mute_audio_aria' : 'play_audio_aria');
     button.setAttribute('aria-label', action);
     button.setAttribute('title', action);
   }
@@ -794,6 +1819,7 @@
   function resetScreenAudioController() {
     clearAudioToggleTimer();
     screenAudioController = null;
+    blockedPromptRetry = null;
     audioToggleState = 'idle';
   }
 
@@ -861,6 +1887,12 @@
       if (!screenAudioController) return;
       if (isMuted) setMuted(false);
       setAudioToggleState('idle');
+      if (blockedPromptRetry) {
+        const retry = blockedPromptRetry;
+        blockedPromptRetry = null;
+        retry();
+        return;
+      }
       screenAudioController.replay();
     });
   }
@@ -873,8 +1905,8 @@
     stopCurrentAudio();
 
     return new Promise(resolve => {
-      const audio = options.preloadedAudio || new Audio(path);
-      audio.currentTime = 0;
+      const audio = sharedPromptAudio;
+      audio.src = path;
       let settled = false;
 
       const finish = status => {
@@ -892,15 +1924,15 @@
 
       currentAudio = audio;
       currentAudioSettle = finish;
-      audio.addEventListener('play', () => {
+      audio.onplay = () => {
         if (currentAudio === audio) setAudioToggleState('playing');
-      });
-      audio.addEventListener('playing', () => {
+      };
+      audio.onplaying = () => {
         if (currentAudio === audio) setAudioToggleState('playing');
-      });
-      audio.addEventListener('pause', () => {
+      };
+      audio.onpause = () => {
         if (currentAudio === audio) setAudioToggleState('idle');
-      });
+      };
       audio.onended = () => {
         if (currentAudio === audio) setAudioToggleState('idle');
         finish('ended');
@@ -910,10 +1942,20 @@
         finish('error');
       };
 
-      const playPromise = audio.play();
+      let playPromise;
+      try {
+        playPromise = audio.play();
+      } catch (error) {
+        if (options.retryClipOnTap) blockedPromptRetry = () => playAudioPath(path, options);
+        setAudioToggleState('needs-tap');
+        finish('play-error');
+        return;
+      }
       if (playPromise && typeof playPromise.then === 'function') {
         playPromise
           .then(() => {
+            if (settled) return;
+            blockedPromptRetry = null;
             // Some mobile browsers resolve playback before they dispatch a
             // paintable `playing` event, so mirror the real play promise too.
             if (currentAudio === audio) setAudioToggleState('playing');
@@ -923,6 +1965,8 @@
             syncMuteToggleButtons();
           })
           .catch(() => {
+            if (settled) return;
+            if (options.retryClipOnTap) blockedPromptRetry = () => playAudioPath(path, options);
             if (currentAudio === audio) setAudioToggleState('needs-tap');
             finish('play-error');
           });
@@ -948,6 +1992,7 @@
       return primaryResult;
     }
 
+    if (primaryResult === 'play-error') return primaryResult;
     if (options.skipEnglishFallback || lang === 'en') {
       return options.optional ? 'skipped' : primaryResult;
     }
@@ -1030,7 +2075,7 @@
             }
           },
         });
-        if (result === 'stopped' || result === 'muted') {
+        if (result === 'stopped' || result === 'muted' || result === 'play-error') {
           if (completeOnStop && typeof onComplete === 'function') {
             onComplete();
           }
@@ -1098,9 +2143,9 @@
       return true;
     } catch (err) {
       if (err.name === 'NotAllowedError') {
-        showError('Camera access was denied. Please allow camera access and reload the page.');
+        showError(t('camera_denied'));
       } else {
-        showError('Could not access your camera. Please check that it is not in use by another app.');
+        showError(t('camera_unavailable'));
       }
       return false;
     }
@@ -1339,7 +2384,7 @@
     render(`
       <div class="screen screen--loading">
         <div class="spinner"></div>
-        <p>Loading…</p>
+        <p>${escapeHtml(t('loading'))}</p>
       </div>
     `);
   }
@@ -1348,7 +2393,7 @@
     render(`
       <div class="screen screen--error">
         <div class="error-icon">⚠</div>
-        <p class="error-msg">${msg}</p>
+        <p class="error-msg">${escapeHtml(msg)}</p>
       </div>
     `);
   }
@@ -1365,10 +2410,10 @@
     const selectedCountry = countryOptionFromValue(farmerCountry);
     const suggestedCountry = selectedCountry ? '' : suggestedCountryFromTimeZone();
     const csOpts = COUNTRY_OPTIONS.map(name => {
-      return `<li class="cs-opt" data-value="${name}">${flagHtml(name)}${name}</li>`;
+      return `<li class="cs-opt" data-value="${escapeHtml(name)}">${flagHtml(name)}${escapeHtml(translatedCountry(name))}</li>`;
     }).join('');
     const suggestedOption = suggestedCountry
-      ? `<li class="cs-opt cs-opt--suggested" data-value="${suggestedCountry}">Suggested: ${flagHtml(suggestedCountry)}${suggestedCountry}</li>`
+      ? `<li class="cs-opt cs-opt--suggested" data-value="${suggestedCountry}">${flagHtml(suggestedCountry)}${escapeHtml(t('suggested_country', { country: translatedCountry(suggestedCountry) }))}</li>`
       : '';
 
     render(`
@@ -1376,14 +2421,14 @@
         <div class="card">
           <form class="registry-form" id="registryForm" novalidate>
             <div class="form-group">
-              <label>Country/Region *</label>
+              <label>${escapeHtml(t('country_label'))}</label>
               <div class="cs-wrap" id="csWrap">
                 <div class="cs-trigger" id="csTrigger" role="button" tabindex="0" aria-expanded="false">
-                  <span id="csDisplay" class="cs-placeholder">📍 Choose country</span>
+                  <span id="csDisplay" class="cs-placeholder">📍 ${escapeHtml(t('choose_country'))}</span>
                   <span class="cs-arrow">▾</span>
                 </div>
                 <ul class="cs-list" id="csList">
-                  <li class="cs-opt cs-opt--empty" data-value="">📍 Choose country</li>
+                  <li class="cs-opt cs-opt--empty" data-value="">📍 ${escapeHtml(t('choose_country'))}</li>
                   ${suggestedOption}
                   ${csOpts}
                 </ul>
@@ -1392,19 +2437,19 @@
               <p class="field-error" id="countryError" aria-live="polite"></p>
             </div>
             <div class="form-group">
-              <label for="nameInput">Name *</label>
-              <input type="text" id="nameInput" placeholder="Your name" required enterkeyhint="next" value="${escapeHtml(farmerName || '')}">
+              <label for="nameInput">${escapeHtml(t('name_label'))}</label>
+              <input type="text" id="nameInput" placeholder="${escapeHtml(t('name_placeholder'))}" required enterkeyhint="next" value="${escapeHtml(farmerName || '')}">
               <p class="field-error" id="nameError" aria-live="polite"></p>
             </div>
             <div class="form-group">
-              <label for="phoneInput">Phone *</label>
+              <label for="phoneInput">${escapeHtml(t('phone_label'))}</label>
               <div class="phone-input-wrap">
                 <span id="phonePrefix" class="phone-prefix"></span>
-                <input type="tel" id="phoneInput" placeholder="📞 Phone number" inputmode="numeric" pattern="[0-9]*" maxlength="15" enterkeyhint="done">
+                <input type="tel" id="phoneInput" placeholder="📞 ${escapeHtml(t('phone_placeholder'))}" inputmode="numeric" pattern="[0-9]*" maxlength="15" enterkeyhint="done">
               </div>
               <p class="field-error" id="phoneError" aria-live="polite"></p>
             </div>
-            <button class="btn registry-submit-button" id="registrySubmitBtn" type="submit">Continue →</button>
+            <button class="btn registry-submit-button" id="registrySubmitBtn" type="submit">${escapeHtml(t('continue'))}</button>
           </form>
         </div>
       </div>
@@ -1432,8 +2477,8 @@
     };
     const updateNamePlaceholder = country => {
       nameInput.placeholder = COUNTRY_NAME_EXAMPLES[country]
-        ? `e.g. ${COUNTRY_NAME_EXAMPLES[country]}`
-        : 'Your name';
+        ? t('name_example', { name: COUNTRY_NAME_EXAMPLES[country] })
+        : t('name_placeholder');
     };
     const updatePhonePrefix = country => {
       const prefix = DIAL_CODES[country] || '';
@@ -1446,11 +2491,11 @@
       csWrap.classList.remove('cs-open');
       csTrigger.setAttribute('aria-expanded', 'false');
       if (country) {
-        csDisplay.innerHTML = `${flagHtml(country)}${country}`;
+        csDisplay.innerHTML = `${flagHtml(country)}${escapeHtml(translatedCountry(country))}`;
         csDisplay.classList.remove('cs-placeholder');
         clearFieldError(csTrigger, 'countryError');
       } else {
-        csDisplay.textContent = '📍 Choose country';
+        csDisplay.textContent = `📍 ${t('choose_country')}`;
         csDisplay.classList.add('cs-placeholder');
       }
       updateNamePlaceholder(country);
@@ -1507,18 +2552,18 @@
       let firstInvalid = null;
 
       if (!country) {
-        showFieldError(csTrigger, 'countryError', 'Please choose your country');
+        showFieldError(csTrigger, 'countryError', t('country_required'));
         firstInvalid = csTrigger;
       }
       if (name.replace(/\s/g, '').length < 2) {
-        showFieldError(nameInput, 'nameError', 'Please enter your name');
+        showFieldError(nameInput, 'nameError', t('name_required'));
         firstInvalid = firstInvalid || nameInput;
       }
       if (!phoneDigits) {
-        showFieldError(phoneWrap, 'phoneError', 'Please enter your phone number');
+        showFieldError(phoneWrap, 'phoneError', t('phone_required'));
         firstInvalid = firstInvalid || phoneInput;
       } else if (phoneLocal.length < 6) {
-        showFieldError(phoneWrap, 'phoneError', 'Please enter your full phone number');
+        showFieldError(phoneWrap, 'phoneError', t('phone_short'));
         firstInvalid = firstInvalid || phoneInput;
       }
       if (firstInvalid) {
@@ -1550,21 +2595,21 @@
     render(`
       <div class="screen screen--registry">
         <div class="card">
-          <h2>Hi ${farmerName}! 👋</h2>
-          <p>Please confirm your details:</p>
+          <h2>${escapeHtml(t('confirm_greeting', { name: farmerName || '' }))} 👋</h2>
+          <p>${escapeHtml(t('confirm_details'))}</p>
           <div class="form-group">
-            <label for="nameConfirm">Name</label>
-            <input type="text" id="nameConfirm" value="${farmerName}">
+            <label for="nameConfirm">${escapeHtml(t('name_label').replace(/\s*\*$/, ''))}</label>
+            <input type="text" id="nameConfirm" value="${escapeHtml(farmerName || '')}">
           </div>
           <div class="form-group">
-            <label>Country/Region</label>
-            <p class="registry-field-readonly">${escapeHtml(countryDisplayName(farmerCountry) || '—')}</p>
+            <label>${escapeHtml(t('country_label').replace(/\s*\*$/, ''))}</label>
+            <p class="registry-field-readonly">${escapeHtml(translatedCountry(countryDisplayName(farmerCountry)) || '—')}</p>
           </div>
           <div class="form-group">
-            <label for="phoneConfirm">Phone 📞</label>
-            <input type="text" id="phoneConfirm" value="${farmerPhone || ''}">
+            <label for="phoneConfirm">${escapeHtml(t('phone_label').replace(/\s*\*$/, ''))} 📞</label>
+            <input type="text" id="phoneConfirm" value="${escapeHtml(farmerPhone || '')}">
           </div>
-          <button class="btn btn--primary" id="registryConfirmBtn">Confirm & Continue →</button>
+          <button class="btn btn--primary" id="registryConfirmBtn">${escapeHtml(t('confirm_continue'))}</button>
         </div>
       </div>
     `);
@@ -1612,10 +2657,10 @@
             ${consentParagraphs.map(paragraph => `<p>${paragraph}</p>`).join('')}
           </div>
           <div class="consent-actions">
-            <button class="btn btn--consent btn--yes" id="consentYesBtn">✓ Agree</button>
-            <button class="btn btn--consent btn--no" id="consentNoBtn">✕ Disagree</button>
+            <button class="btn btn--consent btn--yes" id="consentYesBtn">${escapeHtml(t('agree'))}</button>
+            <button class="btn btn--consent btn--no" id="consentNoBtn">${escapeHtml(t('disagree'))}</button>
           </div>
-          <a class="contact-line" href="mailto:ron@bunabaraka.org">Questions or removal requests: ron@bunabaraka.org</a>
+          <a class="contact-line" href="mailto:ron@bunabaraka.org">${escapeHtml(t('contact_line'))}</a>
         </div>
       </div>
     `);
@@ -1633,7 +2678,7 @@
         await syncFarmerConsent(true);
       } catch (err) {
         console.error('[webcap] consent update error:', err);
-        showError('Could not save your consent. Please try again.');
+        showError(t('consent_save_error'));
         return;
       }
       if (activeHistoryScreen !== 'consent' || consentGiven !== true || consentTime !== agreedAt) {
@@ -1650,7 +2695,7 @@
         await syncFarmerConsent(false);
       } catch (err) {
         console.error('[webcap] consent update error:', err);
-        showError('Could not save your decision. Please try again.');
+        showError(t('decision_save_error'));
         return;
       }
       showConsentDecline();
@@ -1669,8 +2714,8 @@
       <div class="screen screen--consent-decline">
         <div class="card">
           <div style="font-size: 48px; margin-bottom: 16px;">👋</div>
-          <h2>Thank you</h2>
-          <p>Thank you for your time. Your decision has been recorded.</p>
+          <h2>${escapeHtml(t('declined_title'))}</h2>
+          <p>${escapeHtml(t('declined_copy'))}</p>
         </div>
       </div>
     `);
@@ -1760,7 +2805,7 @@
           </div>
           <p class="camera-permission-copy">${escapeHtml(permissionCopy[farmerLang] || permissionCopy.en)}</p>
         </div>
-        <button class="btn btn--record" id="cameraPermissionContinueBtn">Continue →</button>
+        <button class="btn btn--record" id="cameraPermissionContinueBtn">${escapeHtml(t('continue'))}</button>
       </div>
     `);
     setupMuteToggle(permissionAudio);
@@ -1796,25 +2841,25 @@
     const actionHtml = hasCapturedSelfie
       ? `
           <div class="selfie-actions">
-            <button class="btn selfie-retake-button" id="retakeSelfieBtn">↺ Retake</button>
-            <button class="btn selfie-use-button" id="useSelfieBtn">✓ Use this photo</button>
+            <button class="btn selfie-retake-button" id="retakeSelfieBtn">${escapeHtml(t('retake'))}</button>
+            <button class="btn selfie-use-button" id="useSelfieBtn">${escapeHtml(t('use_photo'))}</button>
           </div>
         `
       : `
           <div class="selfie-camera-controls">
-            ${showFlipButton ? '<button class="selfie-flip-button" id="selfieFlipBtn" type="button" aria-label="Flip camera">↻</button>' : ''}
-            <button class="btn selfie-take-button" id="takeSelfieBtn" type="button">${renderCameraIcon()}<span>Take photo</span></button>
+            ${showFlipButton ? `<button class="selfie-flip-button" id="selfieFlipBtn" type="button" aria-label="${escapeHtml(t('flip_camera_aria'))}">↻</button>` : ''}
+            <button class="btn selfie-take-button" id="takeSelfieBtn" type="button">${renderCameraIcon()}<span>${escapeHtml(t('take_photo'))}</span></button>
           </div>
         `;
 
     render(`
       <div class="screen screen--selfie">
         ${hasCapturedSelfie ? '' : renderMuteToggle()}
-        ${hasCapturedSelfie ? '' : '<h1 class="selfie-live-title">🤳 Take a selfie</h1>'}
+        ${hasCapturedSelfie ? '' : `<h1 class="selfie-live-title">${escapeHtml(t('selfie_title'))}</h1>`}
         <div class="selfie-preview-slot">
         ${hasCapturedSelfie
           ? `<div class="preview-wrap" id="selfiePreviewWrap">
-              <img id="selfiePreviewImage" src="${selfieObjectUrl}" alt="Selfie preview">
+              <img id="selfiePreviewImage" src="${selfieObjectUrl}" alt="${escapeHtml(t('selfie_preview_alt'))}">
             </div>`
           : renderCameraPreview({ id: 'selfiePreviewWrap', selfieGuide: true })}
         </div>
@@ -1917,7 +2962,7 @@
   async function captureSelfie() {
     const preview = document.getElementById('preview');
     if (!preview || preview.readyState < 2) {
-      alert('Camera is still starting. Please try again.');
+      alert(t('camera_starting'));
       return;
     }
 
@@ -1945,7 +2990,7 @@
     const blob = await canvasToJpegBlob(canvas);
     console.log('[webcap] selfie: blob created', { size: blob ? blob.size : null, type: blob ? blob.type : null });
     if (!blob) {
-      showError('Could not capture your photo. Please try again.');
+      showError(t('capture_error'));
       return;
     }
 
@@ -1981,13 +3026,13 @@
 
     if (isTooDark) {
       selfieFeedbackTone = 'warn';
-      selfieFeedbackMessage = 'Photo looks dark - try again in better light';
+      selfieFeedbackMessage = t('selfie_dark');
     } else if (subjectMissing) {
       selfieFeedbackTone = 'warn';
-      selfieFeedbackMessage = "We couldn't see you clearly - center your head and shoulders in the outline and retake";
+      selfieFeedbackMessage = t('selfie_unclear');
     } else {
       selfieFeedbackTone = 'good';
-      selfieFeedbackMessage = 'Looks good ✓';
+      selfieFeedbackMessage = t('selfie_good');
     }
 
     showSelfieCapture();
@@ -2022,7 +3067,7 @@
     const questionText = currentQuestionText();
     const questionLanguage = currentQuestionTextLanguage() || DEFAULT_LANG;
     const updateInfoLink = isReturningFarmer
-      ? `<a href="#" id="updateInfoLink" class="question-update-link">Update info / Rescind consent</a>`
+      ? `<a href="#" id="updateInfoLink" class="question-update-link">${escapeHtml(t('update_info'))}</a>`
       : '';
 
     render(`
@@ -2032,7 +3077,7 @@
           ${renderAudioReplayButton('playBtn')}
           <p class="question-listen-text">${escapeHtml(questionText || '')}</p>
         </div>
-        <button class="btn btn--record" id="readyToRecordBtn"><span class="record-start-dot" aria-hidden="true"></span>Start recording</button>
+        <button class="btn btn--record" id="readyToRecordBtn"><span class="record-start-dot" aria-hidden="true"></span>${escapeHtml(t('start_recording'))}</button>
         ${updateInfoLink}
       </div>
     `);
@@ -2109,8 +3154,8 @@
         ${renderMuteToggle()}
         <div class="question-card">
           ${renderAudioReplayButton('soundCheckReplayBtn')}
-          <p class="question-label">Sound check</p>
-          <p class="question-text">Please say hello.</p>
+          <p class="question-label">${escapeHtml(t('sound_check'))}</p>
+          <p class="question-text">${escapeHtml(t('say_hello'))}</p>
         </div>
         <div class="sound-check-preview-slot">
           ${renderCameraPreview()}
@@ -2128,8 +3173,8 @@
           </div>
         </div>
         <div class="sound-check-actions">
-          <button class="btn btn--record" id="soundCheckPrimaryBtn">Next →</button>
-          <button class="btn btn--link" id="continueAnywayBtn" style="display:none">Continue anyway</button>
+          <button class="btn btn--record" id="soundCheckPrimaryBtn">${escapeHtml(t('next'))}</button>
+          <button class="btn btn--link" id="continueAnywayBtn" style="display:none">${escapeHtml(t('continue_anyway'))}</button>
         </div>
       </div>
     `);
@@ -2240,11 +3285,11 @@
       <div class="screen screen--recording">
         <div class="recording-header">
           <span class="rec-dot"></span>
-          <span class="rec-label">Recording</span>
+          <span class="rec-label">${escapeHtml(t('recording'))}</span>
         </div>
         <p class="recording-question-band">${escapeHtml(questionText || '')}</p>
         ${renderCameraPreview({ id: 'recordingPreviewWrap', recording: true })}
-        <button class="btn btn--stop" id="stopBtn" hidden>■ Stop</button>
+        <button class="btn btn--stop" id="stopBtn" hidden>${escapeHtml(t('stop'))}</button>
       </div>
     `);
     const preview = document.getElementById('preview');
@@ -2262,7 +3307,7 @@
     render(`
       <div class="screen screen--review">
         <div class="question-card">
-          <p class="question-label">Review your response</p>
+          <p class="question-label">${escapeHtml(t('review_response'))}</p>
           <p class="question-text">${escapeHtml(questionText || '')}</p>
         </div>
         <div class="preview-wrap preview-wrap--recording${isUsingFrontCamera() ? ' preview-wrap--mirrored' : ''}">
@@ -2271,8 +3316,8 @@
           </div>
         </div>
         <div class="review-actions">
-          <button class="btn btn--secondary" id="rerecordBtn">↺ Re-record</button>
-          <button class="btn btn--upload" id="uploadBtn">✓ Upload</button>
+          <button class="btn btn--secondary" id="rerecordBtn">${escapeHtml(t('rerecord'))}</button>
+          <button class="btn btn--upload" id="uploadBtn">${escapeHtml(t('upload'))}</button>
         </div>
       </div>
     `);
@@ -2292,11 +3337,11 @@
     setHistoryScreen('upload');
     render(`
       <div class="screen screen--uploading">
-        <p class="upload-label">Uploading your response…</p>
+        <p class="upload-label">${escapeHtml(t('uploading'))}</p>
         <div class="progress-bar-wrap">
           <div class="progress-bar" id="progressBar"></div>
         </div>
-        <p class="upload-hint">Please stay on this page until the upload is complete.</p>
+        <p class="upload-hint">${escapeHtml(t('upload_hint'))}</p>
       </div>
     `);
   }
@@ -2305,8 +3350,8 @@
     render(`
       <div class="screen screen--error">
         <div class="error-icon">⚠</div>
-        <p class="error-msg">Upload failed: ${msg}</p>
-        <button class="btn btn--secondary" id="retryBtn" style="margin-top:16px">Try again</button>
+        <p class="error-msg">${escapeHtml(t('upload_failed', { reason: msg }))}</p>
+        <button class="btn btn--secondary" id="retryBtn" style="margin-top:16px">${escapeHtml(t('try_again'))}</button>
       </div>
     `);
     document.getElementById('retryBtn').addEventListener('click', showReview);
@@ -2335,10 +3380,10 @@
               <path d="M24 41.5 35 52.5 57 29.5"></path>
             </svg>
           </div>
-          <p class="success-eyebrow">Submission complete</p>
-          <h1>Thank you${displayName}!</h1>
-          <p class="success-copy">Thank you! Your video has been sent.</p>
-          <a class="contact-line" href="mailto:ron@bunabaraka.org">Questions or removal requests: ron@bunabaraka.org</a>
+          <p class="success-eyebrow">${escapeHtml(t('submission_complete'))}</p>
+          <h1>${escapeHtml(t('thank_you_name', { name: displayName }))}</h1>
+          <p class="success-copy">${escapeHtml(t('video_sent'))}</p>
+          <a class="contact-line" href="mailto:ron@bunabaraka.org">${escapeHtml(t('contact_line'))}</a>
           <p class="success-footer">Buna Baraka</p>
         </div>
       </div>
@@ -2407,7 +3452,7 @@
       if (recordedChunks.length > 0) {
         finishRecordingToReview();
       } else {
-        failRecording('Recording stopped unexpectedly. Please try again.');
+        failRecording(t('recording_stopped'));
       }
     };
   }
@@ -2474,7 +3519,7 @@
       const stopButton = document.getElementById('stopBtn');
       if (stopButton) {
         stopButton.disabled = true;
-        stopButton.textContent = 'Saving…';
+        stopButton.textContent = t('saving');
       }
       window.setTimeout(stopActiveRecorder, 1000);
       return;
@@ -2507,7 +3552,7 @@
     showUploading();
 
     if (!selfieBlob) {
-      showUploadError('Missing selfie photo. Please retake your photo and try again.');
+      showUploadError(t('missing_selfie'));
       return;
     }
 
@@ -2603,7 +3648,7 @@
       clearInterval(ticker);
       setUploadInProgress(false);
       console.error('[webcap] upload error:', err);
-      showUploadError(err.message || 'Unknown error. Please try again.');
+      showUploadError(t('unknown_error'));
     }
   }
 

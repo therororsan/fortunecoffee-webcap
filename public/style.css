@@ -33,8 +33,8 @@
   --text-muted:   #5d5941;
   --btn-secondary:#e7ddc8;
   --radius:       12px;
-  --font:         'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-  --font-heading: 'IM Fell English', Georgia, 'Times New Roman', serif;
+  --font:         'Geist', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Sinhala', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-heading: 'IM Fell English', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Sinhala', 'Noto Sans Ethiopic', Georgia, serif;
 }
 
 html, body {
@@ -353,10 +353,15 @@ html, body {
 }
 
 .review-actions .btn {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
   width: 0;
   height: 56px;
   min-height: 56px;
-  padding: 12px 8px;
+  padding: 4px 6px;
+  font-size: 14px;
+  line-height: 1.1;
   display: grid;
   place-items: center;
 }
@@ -1127,11 +1132,17 @@ html, body {
 .selfie-use-button,
 .selfie-retake-button {
   width: auto;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.15;
   min-height: 64px;
-  padding: 12px 16px;
+  padding: 6px 8px;
   border-radius: 12px;
   flex: 1;
 }
+
+.selfie-actions .btn { font-size: 14px; }
 
 .selfie-take-button,
 .selfie-use-button {

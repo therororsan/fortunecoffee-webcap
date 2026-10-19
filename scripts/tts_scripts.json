@@ -3,6 +3,19 @@
     "default": "21m00Tcm4TlvDq8ikWAM",
     "en": "XcXEQzuLXRU9RcfWzEJt"
   },
+  "soundcheck_success": {
+    "en": "We can hear you.",
+    "es": "Podemos oírle.",
+    "fr": "Nous vous entendons.",
+    "pt": "Podemos ouvir você.",
+    "sw": "Tunaweza kukusikia.",
+    "vi": "Chúng tôi nghe thấy quý vị.",
+    "hi": "हम आपको सुन सकते हैं।",
+    "ta": "உங்களைக் கேட்க முடிகிறது.",
+    "si": "අපට ඔබව ඇසෙනවා.",
+    "am": "ልንሰማዎት እንችላለን።",
+    "fil": "Naririnig namin kayo."
+  },
   "consent": {
     "en": "Hi! <break time=\"0.4s\" /> We would like to share your story with coffee drinkers. <break time=\"0.4s\" /> We will take your photo and video, and put them on the internet. <break time=\"0.4s\" /> A computer will also make a drawing of you for our cards. <break time=\"0.4s\" /> You can say no, or ask us later to remove them. <break time=\"0.4s\" /> If you agree, press the green button.",
     "sw": "Habari! <break time=\"0.4s\" /> Tungependa kushiriki hadithi yako na watu wanaokunywa kahawa. <break time=\"0.4s\" /> Tutakupiga picha na kurekodi video, na kuziweka mtandaoni. <break time=\"0.4s\" /> Kompyuta pia itatengeneza mchoro wako kwa ajili ya kadi zetu. <break time=\"0.4s\" /> Unaweza kukataa, au baadaye utuombe tuziondoe. <break time=\"0.4s\" /> Ukikubali, bonyeza kitufe cha kijani.",
